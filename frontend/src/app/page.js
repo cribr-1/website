@@ -1,436 +1,194 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Search, TrendingUp, Zap, BarChart3, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import styles from "./page.module.css";
-import { mockProjects } from "@/data/mockProjects";
-import { supabase } from "@/lib/supabase";
-import { parseQuery } from "@/lib/queryParser";
+import { useRouter } from "next/navigation";
 
-const COMMON_AMENITIES = [
-  "Swimming Pool", "Gym", "Clubhouse", "Power Backup", "Security",
-  "Jogging Track", "Children's Play Area", "Landscaped Gardens"
+const SUGGESTIONS = [
+  "2BHK under 1 Cr in Whitefield",
+  "Luxury apartments in Sarjapur",
+  "Projects near upcoming metro",
+  "Best investment projects in North Bangalore"
 ];
 
-export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [usingMock, setUsingMock] = useState(false);
-  const [parsedFilters, setParsedFilters] = useState(null);
+const TRENDING_AREAS = [
+  { name: "Whitefield", growth: "+12%", color: "blue" },
+  { name: "Sarjapur", growth: "+8%", color: "emerald" },
+  { name: "Hebbal", growth: "+15%", color: "blue" },
+  { name: "HSR Layout", growth: "+6%", color: "emerald" },
+];
 
-  // Location states
-  const [location, setLocation] = useState("Bangalore"); // Default
-  const [cityInput, setCityInput] = useState("");
-  const [citySuggestions, setCitySuggestions] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+export default function HomePage() {
+  const [query, setQuery] = useState("");
+  const router = useRouter();
 
-  // Compare states
-  const [selectedProjects, setSelectedProjects] = useState([]);
-
-  // Deep Filters states
-  const [selectedBHKs, setSelectedBHKs] = useState([]);
-  const [maxPrice, setMaxPrice] = useState(50000000); // Default 5 Cr
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
-
-  // Load selected projects from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("compareProjects");
-    if (saved) {
-      setSelectedProjects(JSON.parse(saved));
-    }
-  }, []);
-
-  const toggleCompare = (e, projectId) => {
-    e.preventDefault(); // Prevent navigating to detail page
-    e.stopPropagation();
-    
-    let updated;
-    if (selectedProjects.includes(projectId)) {
-      updated = selectedProjects.filter(id => id !== projectId);
-    } else {
-      if (selectedProjects.length >= 3) {
-        alert("You can only compare up to 3 projects at a time.");
-        return;
-      }
-      updated = [...selectedProjects, projectId];
-    }
-    
-    setSelectedProjects(updated);
-    localStorage.setItem("compareProjects", JSON.stringify(updated));
-  };
-
-  // Geolocation detection on mount
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`);
-            const data = await res.json();
-            
-            const city = data.address.city || data.address.town || data.address.district || data.address.state;
-            
-            if (data.address.country_code === 'in' && city) {
-              setLocation(city);
-            }
-          } catch (error) {
-            console.error("Error reverse geocoding:", error);
-          }
-        },
-        (error) => {
-          console.log("Geolocation permission denied or error:", error.message);
-        }
-      );
-    }
-  }, []);
-
-  // Fetch city suggestions when typing
-  useEffect(() => {
-    if (cityInput.length > 2) {
-      const fetchCities = async () => {
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&featuretype=city&q=${cityInput}`);
-          const data = await res.json();
-          
-          const uniqueCities = data.map(item => ({
-            name: item.name,
-            state: item.address?.state || item.display_name.split(',')[1]?.trim()
-          })).filter((value, index, self) =>
-            index === self.findIndex((t) => t.name === value.name)
-          );
-
-          setCitySuggestions(uniqueCities);
-        } catch (error) {
-          console.error("Error fetching city suggestions:", error);
-        }
-      };
-      
-      const timer = setTimeout(fetchCities, 300);
-      return () => clearTimeout(timer);
-    } else {
-      setCitySuggestions([]);
-    }
-  }, [cityInput]);
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    async function fetchProjects() {
-      setLoading(true);
-      try {
-        let query = supabase
-          .from('projects')
-          .select('*, builders(name)');
-        
-        const parsed = parseQuery(debouncedQuery);
-        setParsedFilters(parsed);
-
-        // Apply Search Bar Filters
-        if (parsed.bhk) {
-          query = query.contains('unit_types', [parsed.bhk]);
-        }
-        if (parsed.priceMax) {
-          query = query.lte('price_max', parsed.priceMax);
-        }
-        if (parsed.locality) {
-          query = query.ilike('locality', `%${parsed.locality}%`);
-        }
-        
-        if (parsed.remainingQuery && parsed.remainingQuery.length > 2) {
-          query = query.textSearch('search_vector', parsed.remainingQuery, {
-            type: 'websearch',
-            config: 'english'
-          });
-        }
-
-        // Apply Deep Filters (Sidebar)
-        if (selectedBHKs.length > 0) {
-          query = query.overlaps('unit_types', selectedBHKs);
-        }
-        if (maxPrice) {
-          query = query.lte('price_max', maxPrice);
-        }
-        if (selectedAmenities.length > 0) {
-          query = query.contains('amenities', selectedAmenities);
-        }
-
-        const { data, error } = await query;
-        
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          setProjects(data);
-          setUsingMock(false);
-        } else if (!debouncedQuery && selectedBHKs.length === 0 && selectedAmenities.length === 0 && maxPrice === 50000000) {
-          setProjects(mockProjects);
-          setUsingMock(true);
-        } else {
-          setProjects([]);
-          setUsingMock(false);
-        }
-      } catch (error) {
-        console.error("Error fetching projects from Supabase:", error);
-        if (!debouncedQuery) {
-          setProjects(mockProjects);
-          setUsingMock(true);
-        } else {
-          setProjects([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchProjects();
-  }, [debouncedQuery, location, selectedBHKs, maxPrice, selectedAmenities]);
-
-  const formatPrice = (price) => {
-    return (price / 10000000).toFixed(2) + " Cr";
-  };
-
-  const handleBHKChange = (bhk) => {
-    if (selectedBHKs.includes(bhk)) {
-      setSelectedBHKs(selectedBHKs.filter(item => item !== bhk));
-    } else {
-      setSelectedBHKs([...selectedBHKs, bhk]);
-    }
-  };
-
-  const handleAmenityChange = (amenity) => {
-    if (selectedAmenities.includes(amenity)) {
-      setSelectedAmenities(selectedAmenities.filter(item => item !== amenity));
-    } else {
-      setSelectedAmenities([...selectedAmenities, amenity]);
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query)}`);
     }
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: "100px" }}>
-      <section className={styles.hero}>
-        <h1 className="animate-fade-in">Find Your Perfect Crib</h1>
-        <p className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
-          Discover, compare, and analyze premium real estate projects.
-        </p>
-        
-        <div className={styles.searchContainer}>
-          <div className={styles.locationSelector}>
-            <span onClick={() => setShowDropdown(!showDropdown)}>📍 {location}</span>
-            
-            {showDropdown && (
-              <div className={styles.suggestionsDropdown}>
-                <input
-                  type="text"
-                  placeholder="Change city..."
-                  value={cityInput}
-                  onChange={(e) => setCityInput(e.target.value)}
-                  className={styles.cityInput}
-                  autoFocus
-                />
-                <ul>
-                  {citySuggestions.length > 0 ? (
-                    citySuggestions.map((city, index) => (
-                      <li key={index} onClick={() => {
-                        setLocation(city.name);
-                        setShowDropdown(false);
-                        setCityInput("");
-                      }}>
-                        {city.name}
-                      </li>
-                    ))
-                  ) : cityInput.length > 2 ? (
-                    <li style={{ color: "var(--muted)" }}>No cities found</li>
-                  ) : (
-                    <>
-                      <li onClick={() => { setLocation("Bangalore"); setShowDropdown(false); }}>Bangalore</li>
-                      <li onClick={() => { setLocation("Mumbai"); setShowDropdown(false); }}>Mumbai</li>
-                      <li onClick={() => { setLocation("Delhi"); setShowDropdown(false); }}>Delhi</li>
-                    </>
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
+    <div className="flex flex-col items-center">
+      {/* Hero Section */}
+      <section className="w-full pt-20 pb-32 px-4 bg-gradient-to-b from-white to-gray-50/50">
+        <div className="container max-w-4xl mx-auto text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 mb-6"
+          >
+            Real Estate Intelligence <br />
+            <span className="text-primary">Powered by AI.</span>
+          </motion.h1>
           
-          <input
-            type="text"
-            placeholder="Try '2BHK under 1 Cr in Whitefield'..."
-            className={styles.searchInput}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto"
+          >
+            Stop searching. Start researching. Get deep insights into premium projects with the most advanced property discovery platform.
+          </motion.p>
 
-        {parsedFilters && (parsedFilters.bhk || parsedFilters.priceMax || parsedFilters.locality || parsedFilters.amenities.length > 0) && (
-          <div className={styles.filtersDisplay}>
-            <span style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Detected Filters:</span>
-            {parsedFilters.bhk && <span className={styles.filterChip}>{parsedFilters.bhk}</span>}
-            {parsedFilters.priceMax && <span className={styles.filterChip}>{`< ${(parsedFilters.priceMax / 10000000).toFixed(1)} Cr`}</span>}
-            {parsedFilters.locality && <span className={styles.filterChip}>{parsedFilters.locality}</span>}
-            {parsedFilters.amenities.map((amenity, index) => (
-              <span key={index} className={styles.filterChip}>{amenity}</span>
+          <motion.form 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            onSubmit={handleSearch}
+            className="relative max-w-3xl mx-auto mb-8"
+          >
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search for projects, builders, or locations..."
+                className="w-full h-16 pl-16 pr-6 rounded-2xl border-2 border-gray-100 bg-white shadow-xl shadow-gray-200/50 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-lg"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <button 
+                type="submit"
+                className="absolute right-3 top-3 bottom-3 px-6 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+              >
+                Search
+              </button>
+            </div>
+          </motion.form>
+
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-wrap items-center justify-center gap-3"
+          >
+            <span className="text-sm font-medium text-gray-400 mr-2">Try:</span>
+            {SUGGESTIONS.map((suggestion, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setQuery(suggestion);
+                  router.push(`/search?q=${encodeURIComponent(suggestion)}`);
+                }}
+                className="px-4 py-1.5 rounded-full bg-white border border-gray-100 text-sm text-gray-600 hover:border-primary/30 hover:text-primary transition-all shadow-sm"
+              >
+                {suggestion}
+              </button>
             ))}
-          </div>
-        )}
+          </motion.div>
+        </div>
       </section>
 
-      {usingMock && (
-        <div style={{ background: "rgba(245, 158, 11, 0.1)", color: "#f59e0b", padding: "0.75rem 1rem", borderRadius: "8px", marginBottom: "2rem", fontSize: "0.9rem", maxWidth: "600px", textAlign: "center" }}>
-          ⚠️ Showing mock data. Please run the generated SQL script in your Supabase dashboard to see live data.
+      {/* Stats / Trending Section */}
+      <section className="container py-24 border-t">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3 text-primary">
+              <BarChart3 className="h-6 w-6" />
+              <h3 className="font-bold text-lg">Market Intelligence</h3>
+            </div>
+            <p className="text-gray-600 leading-relaxed">
+              Real-time pricing trends and rental yields for every major locality. Make data-backed decisions.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3 text-emerald-600">
+              <ShieldCheck className="h-6 w-6" />
+              <h3 className="font-bold text-lg">Builder Verification</h3>
+            </div>
+            <p className="text-gray-600 leading-relaxed">
+              Transparent builder reputation scores based on delivery history, quality, and RERA compliance.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3 text-blue-600">
+              <Zap className="h-6 w-6" />
+              <h3 className="font-bold text-lg">AI Comparison</h3>
+            </div>
+            <p className="text-gray-600 leading-relaxed">
+              Side-by-side technical comparison of projects using AI to highlight the best value for your needs.
+            </p>
+          </div>
         </div>
-      )}
+      </section>
 
-      {/* Main Content Layout with Sidebar */}
-      <div className={styles.mainLayout}>
-        {/* Filter Sidebar */}
-        <aside className={`${styles.sidebar} card-glass`}>
-          <h3>Filters</h3>
-          
-          <div className={styles.filterSection}>
-            <h4>BHK Type</h4>
-            {["1BHK", "2BHK", "3BHK", "4BHK"].map((bhk) => (
-              <label key={bhk} className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={selectedBHKs.includes(bhk)}
-                  onChange={() => handleBHKChange(bhk)}
-                />
-                {bhk}
-              </label>
-            ))}
-          </div>
-
-          <div className={styles.filterSection}>
-            <h4>Max Price</h4>
-            <input
-              type="range"
-              min="5000000"
-              max="100000000"
-              step="5000000"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-              className={styles.rangeInput}
-            />
-            <div style={{ fontSize: "0.9rem", color: "var(--primary)", marginTop: "0.5rem" }}>
-              Up to {formatPrice(maxPrice)}
+      {/* Trending Areas */}
+      <section className="w-full bg-gray-50 py-24">
+        <div className="container">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">Intelligence by Locality</h2>
+              <p className="text-gray-600 mt-2">Discover high-growth areas and investment hotspots.</p>
             </div>
+            <Link href="/localities" className="text-primary font-medium hover:underline">View all areas →</Link>
           </div>
-
-          <div className={styles.filterSection}>
-            <h4>Amenities</h4>
-            {COMMON_AMENITIES.map((amenity) => (
-              <label key={amenity} className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={selectedAmenities.includes(amenity)}
-                  onChange={() => handleAmenityChange(amenity)}
-                />
-                {amenity}
-              </label>
-            ))}
-          </div>
-
-          <button 
-            className={styles.clearButton}
-            onClick={() => {
-              setSelectedBHKs([]);
-              setMaxPrice(50000000);
-              setSelectedAmenities([]);
-            }}
-          >
-            Clear Filters
-          </button>
-        </aside>
-
-        {/* Projects Grid */}
-        <section style={{ flex: 1 }}>
-          <h2 style={{ marginBottom: "1.5rem" }}>
-            {debouncedQuery ? `Search Results` : (usingMock ? "Featured Projects (Mock)" : "Live Projects")}
-          </h2>
           
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "2rem" }}>Loading projects...</div>
-          ) : (
-            <div className={styles.grid}>
-              {projects.map((project) => (
-                <div key={project.id} className={`${styles.card} card-glass`}>
-                  <Link href={`/projects/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ position: "relative" }}>
-                      <img
-                        src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"}
-                        alt={project.name || project.project_name}
-                        className={styles.cardImage}
-                      />
-                      <button 
-                        className={`${styles.compareButton} ${selectedProjects.includes(project.id) ? styles.compareActive : ""}`}
-                        onClick={(e) => toggleCompare(e, project.id)}
-                      >
-                        {selectedProjects.includes(project.id) ? "✓ Added" : "+ Compare"}
-                      </button>
-                    </div>
-                  </Link>
-                  <div className={styles.cardContent}>
-                    <Link href={`/localities/${project.locality}`} style={{ textDecoration: 'none' }}>
-                      <div className={styles.badge}>{project.locality}</div>
-                    </Link>
-                    <Link href={`/projects/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      <h3>{project.name || project.project_name}</h3>
-                    </Link>
-                    <p style={{ color: "var(--muted)" }}>
-                      By <Link href={`/builders/${project.builder_id}`} style={{ color: "var(--primary)", textDecoration: "none" }}>{project.builders?.name || project.builder_name}</Link>
-                    </p>
-                    <div className={styles.price}>
-                      {formatPrice(project.price_min)} - {formatPrice(project.price_max)}
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--muted)" }}>
-                      <span>⭐ {project.google_reviews_score}</span>
-                      <span>Progress: {project.construction_progress}%</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {!loading && projects.length === 0 && (
-            <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)" }}>
-              No projects found matching your filters.
-            </div>
-          )}
-        </section>
-      </div>
-
-      {/* Persistent Compare Bar */}
-      {selectedProjects.length > 0 && (
-        <div className={styles.compareBar}>
-          <div className={styles.compareBarContent}>
-            <span>{selectedProjects.length} project{selectedProjects.length > 1 ? "s" : ""} selected</span>
-            <div style={{ display: "flex", gap: "1rem" }}>
-              <button 
-                className={styles.clearButton}
-                onClick={() => {
-                  setSelectedProjects([]);
-                  localStorage.removeItem("compareProjects");
-                }}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {TRENDING_AREAS.map((area, i) => (
+              <Link 
+                key={i} 
+                href={`/localities/${area.name}`}
+                className="group p-6 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
               >
-                Clear All
-              </button>
-              <Link href={`/compare?ids=${selectedProjects.join(",")}`}>
-                <button className={styles.actionButton}>Compare Now</button>
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-2 rounded-lg bg-${area.color}-50 text-${area.color}-600`}>
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                    {area.growth} Growth
+                  </span>
+                </div>
+                <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{area.name}</h4>
+                <p className="text-sm text-gray-500 mt-1">High demand for 2&3 BHKs</p>
               </Link>
-            </div>
+            ))}
           </div>
         </div>
-      )}
+      </section>
+
+      {/* AI Assistant CTA */}
+      <section className="container py-24 text-center">
+        <div className="p-12 rounded-3xl bg-gray-900 text-white relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold mb-6">Confused about where to invest?</h2>
+            <p className="text-gray-400 mb-10 max-w-xl mx-auto">
+              Our AI analyzes over 500+ projects and 50+ data points per project to give you a personalized recommendation.
+            </p>
+            <button className="px-8 py-4 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20">
+              Start AI Research
+            </button>
+          </div>
+          {/* Decorative background element */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+        </div>
+      </section>
     </div>
   );
 }

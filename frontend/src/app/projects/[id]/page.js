@@ -1,8 +1,19 @@
 import { supabase } from "@/lib/supabase";
-import styles from "./page.module.css";
 import { mockProjects } from "@/data/mockProjects";
 import AiSummary from "@/components/AiSummary";
 import Link from "next/link";
+import { 
+  MapPin, 
+  Share2, 
+  Heart, 
+  ChevronRight, 
+  CheckCircle2, 
+  Info, 
+  Compass, 
+  TrendingUp,
+  Layout,
+  Users
+} from "lucide-react";
 
 export default async function ProjectDetailPage({ params }) {
   const resolvedParams = await params;
@@ -11,7 +22,6 @@ export default async function ProjectDetailPage({ params }) {
   let project = null;
   let error = null;
 
-  // Try to fetch from Supabase first
   try {
     const { data, error: dbError } = await supabase
       .from('projects')
@@ -22,16 +32,12 @@ export default async function ProjectDetailPage({ params }) {
     if (dbError) throw dbError;
     project = data;
   } catch (err) {
-    console.error("Supabase fetch error or invalid UUID:", err);
-    // If it fails (e.g. invalid UUID), try to find in mock data as fallback
     project = mockProjects.find(p => p.id === id);
-    if (!project) {
-      error = "Project not found";
-    }
+    if (!project) error = "Project not found";
   }
 
   if (error) {
-    return <div className={styles.error}>{error}</div>;
+    return <div className="container py-20 text-center text-red-500 font-bold">{error}</div>;
   }
 
   const formatPrice = (price) => {
@@ -39,70 +45,150 @@ export default async function ProjectDetailPage({ params }) {
   };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <Link href={`/localities/${project.locality}`} style={{ textDecoration: 'none' }}>
-          <div className={styles.badge}>{project.locality}</div>
-        </Link>
-        <h1>{project.name || project.project_name}</h1>
-        <p className={styles.builder}>
-          By <Link href={`/builders/${project.builder_id}`} style={{ color: "var(--primary)", textDecoration: "none" }}>{project.builders?.name || project.builder_name}</Link>
-        </p>
-      </header>
+    <div className="bg-white min-h-screen pb-20">
+      {/* Breadcrumbs & Actions */}
+      <div className="container py-6 flex items-center justify-between text-sm">
+        <div className="flex items-center space-x-2 text-gray-400">
+          <Link href="/" className="hover:text-primary transition-colors">Search</Link>
+          <ChevronRight className="h-4 w-4" />
+          <Link href={`/localities/${project.locality}`} className="hover:text-primary transition-colors">{project.locality}</Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-gray-900 font-medium">{project.name || project.project_name}</span>
+        </div>
+        <div className="flex items-center space-x-4">
+          <button className="p-2 rounded-full border border-gray-100 hover:bg-gray-50 transition-colors"><Share2 className="h-4 w-4" /></button>
+          <button className="p-2 rounded-full border border-gray-100 hover:bg-gray-50 transition-colors"><Heart className="h-4 w-4" /></button>
+        </div>
+      </div>
 
-      <div className={styles.grid}>
-        <div className={styles.mainContent}>
-          <img
-            src={project.images?.[0] || "https://placehold.co/1200x800/31343c/ffffff?text=No+Image"}
-            alt={project.name || project.project_name}
-            className={styles.mainImage}
-          />
-          
-          {/* AI Summary Section */}
-          <AiSummary project={project} />
-          
-          <div className={styles.section}>
-            <h2>About Project</h2>
-            <p>{project.property_title_summary || "No summary available."}</p>
+      {/* Hero Section */}
+      <div className="container grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
+        <div className="md:col-span-8 space-y-6">
+          <div className="relative aspect-video rounded-3xl overflow-hidden border border-gray-100 shadow-xl shadow-gray-200/20">
+            <img
+              src={project.images?.[0] || "https://placehold.co/1200x800/31343c/ffffff?text=No+Image"}
+              alt={project.name || project.project_name}
+              className="object-cover w-full h-full"
+            />
+            <div className="absolute bottom-6 left-6 flex space-x-2">
+              <span className="px-4 py-2 rounded-xl bg-white/90 backdrop-blur-md shadow-sm text-xs font-bold text-gray-900 flex items-center space-x-2">
+                <Layout className="h-3.5 w-3.5 text-primary" />
+                <span>View all 12 photos</span>
+              </span>
+            </div>
           </div>
 
-          <div className={styles.section}>
-            <h2>Amenities</h2>
-            <div className={styles.tags}>
-              {project.amenities?.map((amenity, index) => (
-                <span key={index} className={styles.tag}>{amenity}</span>
-              )) || <span>No amenities listed.</span>}
+          <div className="space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">{project.name || project.project_name}</h1>
+                <div className="flex items-center space-x-4 mt-2">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <MapPin className="h-4 w-4 mr-1 text-primary" />
+                    {project.locality}, Bangalore
+                  </div>
+                  <div className="text-sm font-medium">
+                    By <Link href={`/builders/${project.builder_id}`} className="text-primary hover:underline">{project.builders?.name || project.builder_name}</Link>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-gray-900">₹{formatPrice(project.price_min)} - {formatPrice(project.price_max)}</div>
+                <div className="text-sm text-gray-400 mt-1">₹{project.price_per_sft}/sft onwards</div>
+              </div>
             </div>
+          </div>
+
+          <hr className="border-gray-100" />
+
+          {/* AI Summary Section */}
+          <AiSummary project={project} />
+
+          {/* Detailed Sections */}
+          <div className="space-y-12 py-8">
+            <section className="space-y-6">
+              <h2 className="text-2xl font-bold tracking-tight">Intelligence Dashboard</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { label: "Locality Score", value: "8.4/10", icon: MapPin, color: "blue" },
+                  { label: "Commute Score", value: `${project.commute_score}/10`, icon: Compass, color: "emerald" },
+                  { label: "Value Score", value: "High", icon: TrendingUp, color: "blue" },
+                  { label: "Popularity", value: "Top 5%", icon: Users, color: "emerald" },
+                ].map((stat, i) => (
+                  <div key={i} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
+                    <div className={`p-2 rounded-lg bg-${stat.color}-50 text-${stat.color}-600 w-fit`}>
+                      <stat.icon className="h-4 w-4" />
+                    </div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">{stat.label}</div>
+                    <div className="text-lg font-bold text-gray-900">{stat.value}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold tracking-tight">About the Project</h2>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                {project.property_title_summary || "Discover luxury living in this premium project that combines modern architecture with sustainable design."}
+              </p>
+            </section>
+
+            <section className="space-y-6">
+              <h2 className="text-2xl font-bold tracking-tight">Premium Amenities</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
+                {project.amenities?.map((amenity, index) => (
+                  <div key={index} className="flex items-center space-x-3 text-gray-700">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                    <span className="font-medium">{amenity}</span>
+                  </div>
+                )) || <p className="text-gray-400 italic">No specific amenities listed.</p>}
+              </div>
+            </section>
           </div>
         </div>
 
-        <div className={styles.sidebar}>
-          <div className="card-glass" style={{ padding: "1.5rem" }}>
-            <h3>Pricing & Configurations</h3>
-            <div className={styles.price}>
-              {formatPrice(project.price_min)} - {formatPrice(project.price_max)}
-            </div>
-            <p style={{ color: "var(--muted)" }}>Price per sft: ₹{project.price_per_sft}</p>
-            
-            <hr style={{ margin: "1rem 0", borderColor: "var(--glass-border)" }} />
-            
-            <h4>Unit Types</h4>
-            <div className={styles.tags}>
-              {project.unit_types?.map((type, index) => (
-                <span key={index} className={styles.tag}>{type}</span>
-              )) || <span>N/A</span>}
-            </div>
-          </div>
+        {/* Sticky Sidebar CTA */}
+        <div className="md:col-span-4">
+          <div className="sticky top-24 space-y-6">
+            <div className="p-8 rounded-3xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50 space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold">Invest in {project.name || "this project"}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Join 250+ investors tracking this project. Get verified builder history and pricing insights.
+                </p>
+              </div>
 
-          <div className="card-glass" style={{ padding: "1.5rem", marginTop: "1rem" }}>
-            <h3>Key Details</h3>
-            <ul className={styles.detailsList}>
-              <li><span>Status:</span> <span>{project.construction_progress}% Complete</span></li>
-              <li><span>Total Units:</span> <span>{project.total_units}</span></li>
-              <li><span>Land Area:</span> <span>{project.land_area_acres} Acres</span></li>
-              <li><span>RERA:</span> <span>{project.rera_number || "N/A"}</span></li>
-              <li><span>Commute Score:</span> <span>{project.commute_score}/10</span></li>
-            </ul>
+              <div className="space-y-4">
+                <button className="w-full py-4 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                  Contact verified agent
+                </button>
+                <button className="w-full py-4 rounded-xl border border-gray-200 text-gray-900 font-bold hover:bg-gray-50 transition-all">
+                  Download technical brochure
+                </button>
+              </div>
+
+              <div className="flex items-center justify-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <Info className="h-3 w-3" />
+                <span>RERA: {project.rera_number || "Verified"}</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-3xl border border-gray-100 bg-gray-50 space-y-4">
+              <h3 className="font-bold text-gray-900">Project Highlights</h3>
+              <ul className="space-y-3">
+                {[
+                  { label: "Status", value: `${project.construction_progress}% Complete` },
+                  { label: "Total Units", value: project.total_units || "N/A" },
+                  { label: "Land Area", value: `${project.land_area_acres} Acres` },
+                  { label: "Configurations", value: project.unit_types?.join(", ") || "N/A" },
+                ].map((item, i) => (
+                  <li key={i} className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 font-medium">{item.label}</span>
+                    <span className="text-gray-900 font-bold">{item.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
