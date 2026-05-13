@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
@@ -9,6 +9,14 @@ import { mockProjects } from "@/data/mockProjects";
 import AiCompareSummary from "@/components/AiCompareSummary";
 
 export default function ComparePage() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: "center", padding: "4rem" }}>Loading comparison...</div>}>
+      <CompareContent />
+    </Suspense>
+  );
+}
+
+function CompareContent() {
   const searchParams = useSearchParams();
   const ids = searchParams.get("ids")?.split(",") || [];
   
@@ -90,7 +98,7 @@ export default function ComparePage() {
                   <th key={project.id} style={{ minWidth: "250px" }}>
                     <div className={styles.projectHeader}>
                       <img 
-                        src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"} 
+                         src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"} 
                         alt={project.name || project.project_name} 
                       />
                       <h3>{project.name || project.project_name}</h3>
@@ -159,3 +167,4 @@ export default function ComparePage() {
     </div>
   );
 }
+
