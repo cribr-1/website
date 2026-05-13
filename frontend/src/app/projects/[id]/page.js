@@ -12,7 +12,8 @@ import {
   Compass,
   TrendingUp,
   Layout,
-  Users
+  Users,
+  ShieldCheck
 } from "lucide-react";
 
 export default async function ProjectDetailPage({ params }) {
