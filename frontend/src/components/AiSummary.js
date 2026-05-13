@@ -9,13 +9,13 @@ export default function AiSummary({ project }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate AI generation delay
+    // Simulate AI analytical research delay
     const timer = setTimeout(() => {
       const bhk = project.unit_types?.join(", ") || "various configurations";
       const locality = project.locality || "East Bangalore";
       const builder = project.builders?.name || project.builder_name || "a premium builder";
       
-      const simulated = `${project.name || project.project_name} is a high-potential residential development by ${builder} located in the heart of ${locality}. Our analysis indicates strong appreciation potential due to the ${project.construction_progress}% completion rate and excellent infrastructure connectivity (Commute Score: ${project.commute_score}/10). The project excels in luxury amenities including ${project.amenities?.slice(0, 4).join(", ")}, making it a top-tier choice for both end-users and investors seeking long-term value in Bangalore's real estate market.`;
+      const simulated = `TECHNICAL ANALYSIS: ${project.name || project.project_name} by ${builder} is a high-density development in ${locality}. While the project offers strong metro connectivity (Commute Score: ${project.commute_score}/10), it is currently ${project.construction_progress}% complete, indicating potential delivery delays if progress doesn't accelerate. The ₹${project.price_per_sft}/sft pricing is at the higher end for this micro-market. HIGHLIGHT: Best suited for working professionals prioritizing commute over low-density privacy. TRADE-OFF: Potential noise levels due to proximity to transit corridors.`;
       
       setSummary(simulated);
       setLoading(false);

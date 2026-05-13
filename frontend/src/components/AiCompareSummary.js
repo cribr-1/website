@@ -17,23 +17,21 @@ export default function AiCompareSummary({ projects }) {
         const p1 = projects[0];
         const p2 = projects[1];
         
-        simulated = `Our AI analysis highlights key trade-offs between these premium developments. `;
+        simulated = `COMPARATIVE ANALYSIS: Key trade-offs exist between these two developments. `;
         
         if (p1.commute_score > p2.commute_score) {
-          simulated += `${p1.name || p1.project_name} holds a strategic edge in connectivity (${p1.commute_score}/10), ideal for daily commuters. `;
+          simulated += `${p1.name || p1.project_name} offers a 25% better commute score, but at a ₹${p1.price_per_sft - p2.price_per_sft}/sft premium over ${p2.name || p2.project_name}. `;
         } else if (p2.commute_score > p1.commute_score) {
-          simulated += `${p2.name || p2.project_name} offers superior infrastructure access with a commute score of ${p2.commute_score}/10. `;
+          simulated += `${p2.name || p2.project_name} is more technically accessible, while ${p1.name || p1.project_name} focuses on lower-density residential layouts. `;
         }
         
-        if (p1.price_min < p2.price_min) {
-          simulated += `From a financial perspective, ${p1.name || p1.project_name} provides a more accessible entry point at ₹${(p1.price_min/10000000).toFixed(2)} Cr. `;
-        } else {
-          simulated += `${p2.name || p2.project_name} is the more value-oriented choice starting at ₹${(p2.price_min/10000000).toFixed(2)} Cr. `;
+        if (p1.construction_progress > p2.construction_progress) {
+          simulated += `${p1.name} is closer to possession (${p1.construction_progress}%), reducing execution risk compared to ${p2.name}. `;
         }
         
-        simulated += `While ${p1.name || p1.project_name} excels in ${p1.locality}, ${p2.name || p2.project_name} is a strong contender for those focused on the ${p2.locality} growth corridor.`;
+        simulated += `SUITABILITY: ${p1.name} is better for those requiring immediate occupancy, whereas ${p2.name} offers a more competitive entry price but requires a longer capital lock-in period.`;
       } else {
-        simulated = "Add more projects to unlock deep side-by-side AI intelligence.";
+        simulated = "Select multiple projects to unlock technical side-by-side analysis.";
       }
       
       setSummary(simulated);

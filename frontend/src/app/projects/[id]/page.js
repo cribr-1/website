@@ -107,22 +107,55 @@ export default async function ProjectDetailPage({ params }) {
           {/* Detailed Sections */}
           <div className="space-y-12 py-8">
             <section className="space-y-6">
-              <h2 className="text-2xl font-bold tracking-tight">Intelligence Dashboard</h2>
+              <h2 className="text-2xl font-bold tracking-tight">Transparency Dashboard</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
-                  { label: "Locality Score", value: "8.4/10", icon: MapPin, color: "blue" },
+                  { label: "Data Quality", value: "9.2/10", icon: MapPin, color: "blue" },
                   { label: "Commute Score", value: `${project.commute_score}/10`, icon: Compass, color: "emerald" },
-                  { label: "Value Score", value: "High", icon: TrendingUp, color: "blue" },
-                  { label: "Popularity", value: "Top 5%", icon: Users, color: "emerald" },
+                  { label: "RERA Status", value: "Active", icon: TrendingUp, color: "blue" },
+                  { label: "User Rating", value: `${project.google_reviews_score || "N/A"}/5`, icon: Users, color: "emerald" },
                 ].map((stat, i) => (
                   <div key={i} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
                     <div className={`p-2 rounded-lg bg-${stat.color}-50 text-${stat.color}-600 w-fit`}>
                       <stat.icon className="h-4 w-4" />
                     </div>
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">{stat.label}</div>
-                    <div className="text-lg font-bold text-gray-900">{stat.value}</div>
+                    <div>
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{stat.label}</div>
+                      <div className="text-lg font-bold text-gray-900">{stat.value}</div>
+                    </div>
                   </div>
                 ))}
+              </div>
+            </section>
+
+            {/* Suitability & Trade-offs */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 border-t border-gray-100">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                  <ShieldCheck className="h-5 w-5 mr-2 text-primary" />
+                  Suitability Analysis
+                </h3>
+                <p className="text-gray-600 leading-relaxed bg-gray-50 p-6 rounded-2xl italic">
+                  "{project.suitability || "Data being analyzed for specific demographic suitability."}"
+                </p>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                  <Info className="h-5 w-5 mr-2 text-amber-500" />
+                  Technical Trade-offs
+                </h3>
+                <ul className="space-y-3">
+                  {(project.trade_offs || [
+                    "Market-standard density for this locality.",
+                    "Pricing reflects current infrastructure milestones.",
+                    "Possession timeline subject to RERA extensions."
+                  ]).map((trade, i) => (
+                    <li key={i} className="flex items-start text-sm text-gray-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-gray-300 mt-1.5 mr-3 flex-shrink-0" />
+                      {trade}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </section>
 

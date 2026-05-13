@@ -14,7 +14,13 @@ export const mockProjects = [
     total_units: 2258,
     unit_types: ["2BHK", "3BHK", "4BHK"],
     google_reviews_score: 4.6,
-    commute_score: 0.62,
+    commute_score: 6.2,
+    trade_offs: [
+      "High-density layout (2250+ units) may lead to crowded common areas.",
+      "Pricing is 15% above the 2-year micro-market average.",
+      "Proximity to main road may cause noise issues in lower-floor units."
+    ],
+    suitability: "Best for professionals requiring immediate proximity to ITPL.",
     images: ["https://placehold.co/600x400/31343c/ffffff?text=Prestige+Silver+Oak"]
   },
   {
@@ -32,7 +38,13 @@ export const mockProjects = [
     total_units: 2020,
     unit_types: ["2.5BHK", "2BHK", "3.5BHK", "4BHK"],
     google_reviews_score: 4.8,
-    commute_score: 0.77,
+    commute_score: 7.7,
+    trade_offs: [
+      "Possession is 3+ years away, involving higher execution risk.",
+      "Internal road connectivity to the project is currently underdeveloped.",
+      "Lower-than-average open space ratio compared to luxury standards."
+    ],
+    suitability: "Ideal for long-term residents looking for a value entry price point.",
     images: ["https://placehold.co/600x400/31343c/ffffff?text=NVT+Symphony"]
   },
   {
@@ -50,7 +62,13 @@ export const mockProjects = [
     total_units: 3056,
     unit_types: ["2.5BHK", "3.5BHK", "3BHK"],
     google_reviews_score: 4.1,
-    commute_score: 0.81,
+    commute_score: 8.1,
+    trade_offs: [
+      "Extremely large scale (3000+ units) may impact maintenance quality.",
+      "Water table in this specific village area has seen recent fluctuations.",
+      "Connectivity relies heavily on the upcoming Peripheral Ring Road."
+    ],
+    suitability: "Suited for families prioritizing brand trust and future infrastructure.",
     images: ["https://placehold.co/600x400/31343c/ffffff?text=Godrej+Lakeside"]
   },
   {
@@ -68,7 +86,13 @@ export const mockProjects = [
     total_units: 507,
     unit_types: ["1BHK", "2.5BHK", "3BHK"],
     google_reviews_score: 4.0,
-    commute_score: 0.85,
+    commute_score: 8.5,
+    trade_offs: [
+      "Very long possession timeline (2029) requires significant patience.",
+      "Higher maintenance costs due to complex architectural design.",
+      "Limited unit availability in smaller configurations."
+    ],
+    suitability: "Best for design-conscious homeowners who aren't on a tight timeline.",
     images: ["https://placehold.co/600x400/31343c/ffffff?text=Total+Environment"]
   }
 ];
