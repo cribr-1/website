@@ -135,8 +135,8 @@ export default async function ProjectDetailPage({ params }) {
                   <ShieldCheck className="h-5 w-5 mr-2 text-primary" />
                   Suitability Analysis
                 </h3>
-                <p className="text-gray-600 leading-relaxed bg-gray-50 p-6 rounded-2xl italic">
-                  "{project.suitability || "Data being analyzed for specific demographic suitability."}"
+                <p className="text-gray-600 leading-relaxed bg-gray-50 p-6 rounded-2xl italic border border-gray-100">
+                  "{project.suitability || "Data being analyzed for lifestyle and demographic suitability."}"
                 </p>
               </div>
               <div className="space-y-4">
@@ -185,18 +185,18 @@ export default async function ProjectDetailPage({ params }) {
           <div className="sticky top-24 space-y-6">
             <div className="p-8 rounded-3xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50 space-y-6">
               <div className="space-y-2">
-                <h3 className="text-lg font-bold">Invest in {project.name || "this project"}</h3>
+                <h3 className="text-lg font-bold">Project Intelligence</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">
-                  Join 250+ investors tracking this project. Get verified builder history and pricing insights.
+                  Join 250+ researchers tracking this development. Get verified builder history and technical insights.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <button className="w-full py-4 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                  Contact verified agent
+                  Request research report
                 </button>
                 <button className="w-full py-4 rounded-xl border border-gray-200 text-gray-900 font-bold hover:bg-gray-50 transition-all">
-                  Download technical brochure
+                  Download technical specs
                 </button>
               </div>
 

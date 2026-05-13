@@ -10,14 +10,14 @@ const SUGGESTIONS = [
   "2BHK under 1 Cr in Whitefield",
   "Luxury apartments in Sarjapur",
   "Projects near upcoming metro",
-  "Best investment projects in North Bangalore"
+  "Family-friendly projects in North Bangalore"
 ];
 
 const TRENDING_AREAS = [
-  { name: "Whitefield", growth: "+12%", color: "blue" },
-  { name: "Sarjapur", growth: "+8%", color: "emerald" },
-  { name: "Hebbal", growth: "+15%", color: "blue" },
-  { name: "HSR Layout", growth: "+6%", color: "emerald" },
+  { name: "Whitefield", growth: "+12%", type: "IT Hub", color: "blue" },
+  { name: "Sarjapur", growth: "+8%", type: "Residential", color: "emerald" },
+  { name: "Hebbal", growth: "+15%", type: "Premium", color: "blue" },
+  { name: "HSR Layout", growth: "+6%", type: "Startup Hub", color: "emerald" },
 ];
 
 export default function HomePage() {
@@ -42,8 +42,8 @@ export default function HomePage() {
             transition={{ duration: 0.5 }}
             className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 mb-6"
           >
-            Real Estate Intelligence <br />
-            <span className="text-primary">Powered by AI.</span>
+            Find the right property <br />
+            <span className="text-primary">with real insights.</span>
           </motion.h1>
 
           <motion.p
@@ -52,7 +52,7 @@ export default function HomePage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto"
           >
-            Stop searching. Start researching. Get deep insights into premium projects with the most advanced property discovery platform.
+            Understand projects beyond marketing. Get deep insights into premium developments with unbiased intelligence and technical research.
           </motion.p>
 
           <motion.form
@@ -144,7 +144,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Intelligence by Locality</h2>
-              <p className="text-gray-600 mt-2">Discover high-growth areas and investment hotspots.</p>
+              <p className="text-gray-600 mt-2">Discover micro-markets, lifestyle corridors, and growth trends.</p>
             </div>
             <Link href="/localities" className="text-primary font-medium hover:underline">View all areas →</Link>
           </div>
@@ -160,12 +160,12 @@ export default function HomePage() {
                   <div className={`p-2 rounded-lg bg-${area.color}-50 text-${area.color}-600`}>
                     <TrendingUp className="h-5 w-5" />
                   </div>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-                    {area.growth} Growth
+                  <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+                    {area.type}
                   </span>
                 </div>
                 <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{area.name}</h4>
-                <p className="text-sm text-gray-500 mt-1">High demand for 2&3 BHKs</p>
+                <p className="text-sm text-gray-500 mt-1">Market growth: {area.growth}</p>
               </Link>
             ))}
           </div>
@@ -176,12 +176,12 @@ export default function HomePage() {
       <section className="container py-24 text-center">
         <div className="p-12 rounded-3xl bg-gray-900 text-white relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="text-3xl font-bold mb-6">Confused about where to invest?</h2>
+            <h2 className="text-3xl font-bold mb-6">Make a smarter property decision.</h2>
             <p className="text-gray-400 mb-10 max-w-xl mx-auto">
-              Our AI analyzes over 500+ projects and 50+ data points per project to give you a personalized recommendation.
+              Our AI analyzes over 500+ projects and 50+ data points per project to simplify your property search and technical research.
             </p>
             <button className="px-8 py-4 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20">
-              Start AI Research
+              Explore Intelligence Dashboard
             </button>
           </div>
           {/* Decorative background element */}

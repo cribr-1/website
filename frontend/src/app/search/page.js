@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { 
   Search, 
   SlidersHorizontal, 
@@ -13,7 +14,14 @@ import {
   List, 
   Save, 
   Copy,
-  Info
+  Info,
+  X,
+  ArrowRight,
+  TrendingUp,
+  Layout,
+  Users,
+  ShieldCheck,
+  Check
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -45,6 +53,8 @@ function SearchResultsContent() {
     amenities: []
   });
 
+  const router = useRouter();
+
   useEffect(() => {
     async function fetchResults() {
       setLoading(true);
@@ -63,22 +73,51 @@ function SearchResultsContent() {
         
         if (error) throw error;
         
-        if (data && data.length > 0) {
-          setProjects(data);
-        } else if (!q) {
-          setProjects(mockProjects);
-        } else {
-          setProjects([]);
+        let results = data && data.length > 0 ? data : (q ? [] : mockProjects);
+
+        // Apply Frontend Filters
+        if (activeFilters.bhk.length > 0) {
+          results = results.filter(p => activeFilters.bhk.some(b => p.unit_types?.includes(b)));
         }
+        if (activeFilters.budget.length > 0) {
+          // Simplified budget filtering for mock data
+          results = results.filter(p => {
+             const price = p.price_min / 10000000;
+             return activeFilters.budget.some(b => {
+               if (b === "Under 1 Cr") return price < 1;
+               if (b === "1 Cr - 2 Cr") return price >= 1 && price <= 2;
+               if (b === "2 Cr - 5 Cr") return price > 2 && price <= 5;
+               if (b === "Above 5 Cr") return price > 5;
+               return false;
+             });
+          });
+        }
+
+        setProjects(results);
       } catch (err) {
         console.error(err);
-        setProjects(mockProjects.filter(p => p.name.toLowerCase().includes(q.toLowerCase()) || p.locality.toLowerCase().includes(q.toLowerCase())));
+        setProjects(mockProjects.filter(p => p.project_name.toLowerCase().includes(q.toLowerCase()) || p.locality.toLowerCase().includes(q.toLowerCase())));
       } finally {
         setLoading(false);
       }
     }
     fetchResults();
   }, [q, activeFilters]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const toggleFilter = (category, value) => {
+    setActiveFilters(prev => {
+      const current = prev[category];
+      const next = current.includes(value) 
+        ? current.filter(v => v !== value) 
+        : [...current, value];
+      return { ...prev, [category]: next };
+    });
+  };
 
   const toggleCompare = (id) => {
     if (selectedProjects.includes(id)) {
@@ -90,10 +129,9 @@ function SearchResultsContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50/50">
-      {/* Sticky Search Header */}
       <div className="sticky top-16 z-40 w-full bg-white border-b py-4 shadow-sm">
         <div className="container flex items-center space-x-4">
-          <div className="relative flex-1">
+          <form onSubmit={handleSearch} className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input 
               type="text" 
@@ -102,7 +140,16 @@ function SearchResultsContent() {
               className="w-full h-11 pl-11 pr-4 rounded-xl border bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all text-sm outline-none border-gray-200 focus:border-primary/30"
               placeholder="Search by project, builder or location..."
             />
-          </div>
+            {query && (
+              <button 
+                type="button" 
+                onClick={() => { setQuery(""); router.push("/search"); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </form>
           <button className="h-11 px-4 rounded-xl border border-gray-200 bg-white flex items-center space-x-2 text-sm font-medium hover:bg-gray-50 transition-colors md:hidden">
             <SlidersHorizontal className="h-4 w-4" />
             <span>Filters</span>
@@ -122,14 +169,27 @@ function SearchResultsContent() {
             <div key={key} className="space-y-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">{key}</h4>
               <div className="space-y-2">
-                {options.map(option => (
-                  <label key={option} className="flex items-center space-x-3 cursor-pointer group">
-                    <div className="w-4 h-4 rounded border border-gray-300 flex items-center justify-center group-hover:border-primary transition-colors">
-                      {/* Checkbox implementation */}
-                    </div>
-                    <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{option}</span>
-                  </label>
-                ))}
+                {options.map(option => {
+                  const isSelected = activeFilters[key].includes(option);
+                  return (
+                    <label 
+                      key={option} 
+                      onClick={() => toggleFilter(key, option)}
+                      className="flex items-center space-x-3 cursor-pointer group"
+                    >
+                      <div className={cn(
+                        "w-4 h-4 rounded border flex items-center justify-center transition-all",
+                        isSelected ? "bg-primary border-primary" : "border-gray-300 group-hover:border-primary"
+                      )}>
+                        {isSelected && <CheckCircle2 className="h-3 w-3 text-white" />}
+                      </div>
+                      <span className={cn(
+                        "text-sm transition-colors",
+                        isSelected ? "text-gray-900 font-medium" : "text-gray-600 group-hover:text-gray-900"
+                      )}>{option}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -149,80 +209,99 @@ function SearchResultsContent() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AnimatePresence mode="popLayout">
-              {projects.map((project, idx) => (
+              {projects.length === 0 ? (
                 <motion.div 
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="group premium-card flex flex-col"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-full py-20 text-center space-y-4"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <img 
-                      src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"} 
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest text-primary shadow-sm">
-                        {project.locality}
-                      </span>
-                    </div>
-                    <div className="absolute top-4 right-4 flex space-x-2">
-                      <button className="p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-sm hover:text-primary transition-colors">
-                        <Save className="h-4 w-4" />
-                      </button>
-                    </div>
+                  <div className="p-4 rounded-full bg-gray-100 w-fit mx-auto text-gray-400">
+                    <Search className="h-8 w-8" />
                   </div>
-
-                  <div className="p-5 flex-1 flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-bold text-lg text-gray-900 group-hover:text-primary transition-colors">
-                          <Link href={`/projects/${project.id}`}>{project.name || project.project_name}</Link>
-                        </h3>
-                        <p className="text-xs text-gray-500 font-medium italic">By {project.builders?.name || project.builder_name}</p>
-                      </div>
-                      <div className="flex items-center text-amber-500 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg">
-                        <Star className="h-3 w-3 fill-current mr-1" />
-                        {project.google_reviews_score}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center text-xs text-gray-400 mb-4">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {project.locality}, Bangalore
-                    </div>
-
-                    <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-100/50 mb-4">
-                      <div className="flex items-center space-x-1.5 mb-1 text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-                        <Info className="h-3 w-3" />
-                        <span>AI Intelligence</span>
-                      </div>
-                      <p className="text-xs text-blue-800/80 leading-relaxed line-clamp-2">
-                        {project.property_title_summary || "High appreciation potential due to proximity to upcoming metro and IT hubs in the area."}
-                      </p>
-                    </div>
-
-                    <div className="mt-auto flex items-center justify-between">
-                      <div className="text-lg font-bold text-gray-900">
-                        ₹{(project.price_min / 10000000).toFixed(2)} - {(project.price_max / 10000000).toFixed(2)} Cr
-                      </div>
-                      <button 
-                        onClick={() => toggleCompare(project.id)}
-                        className={cn(
-                          "h-9 px-4 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 border",
-                          selectedProjects.includes(project.id) 
-                            ? "bg-primary text-white border-primary" 
-                            : "bg-white text-gray-600 border-gray-200 hover:border-primary/30 hover:text-primary"
-                        )}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                        <span>{selectedProjects.includes(project.id) ? "Selected" : "Compare"}</span>
-                      </button>
-                    </div>
-                  </div>
+                  <h3 className="text-xl font-bold">No projects found</h3>
+                  <p className="text-gray-500 max-w-xs mx-auto">
+                    We couldn't find any unbiased data matching your current filters. Try adjusting your research parameters.
+                  </p>
+                  <button 
+                    onClick={() => { setActiveFilters({ budget: [], bhk: [], possession: [], amenities: [] }); setQuery(""); router.push("/search"); }}
+                    className="text-primary font-bold hover:underline flex items-center justify-center mx-auto"
+                  >
+                    Clear all filters <ArrowRight className="h-4 w-4 ml-2" />
+                  </button>
                 </motion.div>
-              ))}
+              ) : (
+                projects.map((project, idx) => (
+                  <motion.div 
+                    key={project.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="group premium-card flex flex-col"
+                  >
+                    {/* ... rest of the card ... */}
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <img 
+                        src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"} 
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest text-primary shadow-sm">
+                          {project.locality}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex-1 flex flex-col">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-bold text-lg text-gray-900 group-hover:text-primary transition-colors">
+                            <Link href={`/projects/${project.id}`}>{project.name || project.project_name}</Link>
+                          </h3>
+                          <p className="text-xs text-gray-500 font-medium italic">By {project.builders?.name || project.builder_name}</p>
+                        </div>
+                        <div className="flex items-center text-amber-500 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg">
+                          <Star className="h-3 w-3 fill-current mr-1" />
+                          {project.google_reviews_score}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center text-xs text-gray-400 mb-4">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {project.locality}, Bangalore
+                      </div>
+
+                      <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-100/50 mb-4">
+                        <div className="flex items-center space-x-1.5 mb-1 text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                          <Info className="h-3 w-3" />
+                          <span>AI Intelligence</span>
+                        </div>
+                        <p className="text-xs text-blue-800/80 leading-relaxed line-clamp-2">
+                          {project.property_title_summary || "High appreciation potential due to proximity to upcoming metro and IT hubs in the area."}
+                        </p>
+                      </div>
+
+                      <div className="mt-auto flex items-center justify-between">
+                        <div className="text-lg font-bold text-gray-900">
+                          ₹{(project.price_min / 10000000).toFixed(2)} - {(project.price_max / 10000000).toFixed(2)} Cr
+                        </div>
+                        <button 
+                          onClick={() => toggleCompare(project.id)}
+                          className={cn(
+                            "h-9 px-4 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 border",
+                            selectedProjects.includes(project.id) 
+                              ? "bg-primary text-white border-primary" 
+                              : "bg-white text-gray-600 border-gray-200 hover:border-primary/30 hover:text-primary"
+                          )}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          <span>{selectedProjects.includes(project.id) ? "Selected" : "Compare"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </AnimatePresence>
           </div>
         </main>

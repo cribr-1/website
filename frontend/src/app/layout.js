@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Cribr - AI-Powered Real Estate Research",
-  description: "Advanced intelligence for real estate investment and discovery.",
+  title: "Cribr | Property Intelligence & Transparency",
+  description: "Unbiased real estate data and technical research for home buyers and researchers.",
 };
 
 export default function RootLayout({ children }) {

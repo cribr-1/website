@@ -79,8 +79,8 @@ export default async function LocalityPage({ params }) {
                 <TrendingUp className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Market Trend</div>
-                <div className="text-sm font-bold text-gray-900">High Appreciation</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Growth Profile</div>
+                <div className="text-sm font-bold text-gray-900">Steady Appreciation</div>
               </div>
             </div>
           </div>
@@ -137,10 +137,10 @@ export default async function LocalityPage({ params }) {
             </div>
           </div>
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold tracking-tight">AI Market Outlook</h2>
-            <div className="p-8 rounded-3xl bg-primary/5 border border-primary/10 relative overflow-hidden h-full">
+            <h2 className="text-2xl font-bold tracking-tight">AI Locality Analysis</h2>
+            <div className="p-8 rounded-3xl bg-gray-50 border border-gray-100 relative overflow-hidden h-full">
               <p className="text-gray-700 leading-relaxed font-medium relative z-10">
-                {name} continues to be a top-performing micro-market in Bangalore. Our analysis suggests that the upcoming infrastructure projects and proximity to IT corridors make it a "Strong Buy" for long-term appreciation. End-users should focus on gated communities within 2km of the upcoming metro station.
+                {name} serves as a key micro-market in Bangalore, balancing infrastructure development with residential density. Our analysis highlights that proximity to upcoming transit nodes and established IT clusters provides a stable foundation for property valuation. Home buyers should prioritize developments with verified water source sustainability and RERA-compliant timelines.
               </p>
               <div className="absolute -bottom-6 -right-6 opacity-5">
                 <TrendingUp className="h-32 w-32 text-primary" />

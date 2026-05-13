@@ -210,13 +210,12 @@ function CompareContent() {
         )}
       </div>
 
-      {/* Comparison Insights Sidebar/Section */}
-      <div className="container mt-24 grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="container mt-24 grid grid-cols-1 md:grid-cols-2 gap-12">
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold tracking-tight">Investment Summary</h2>
-          <div className="p-8 rounded-3xl bg-blue-50/30 border border-blue-100 space-y-6">
-            <p className="text-blue-900 font-medium leading-relaxed">
-              Based on your selection, these projects represent the top-tier of Bangalore's real estate growth. Our engine recommends prioritizing projects with a commute score above 8.5 if investment liquidity is your primary goal.
+          <h2 className="text-2xl font-bold tracking-tight">Research Synthesis</h2>
+          <div className="p-8 rounded-3xl bg-gray-50 border border-gray-100 space-y-6">
+            <p className="text-gray-700 font-medium leading-relaxed">
+              Based on your selection, these projects represent varying levels of infrastructure proximity and builder stability. We recommend prioritizing projects with higher commute scores if daily lifestyle convenience is your primary decision factor.
             </p>
             <div className="flex items-center space-x-3 text-xs font-bold text-blue-600 uppercase tracking-widest">
               <CheckCircle2 className="h-4 w-4" />
@@ -225,13 +224,13 @@ function CompareContent() {
           </div>
         </div>
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold tracking-tight">Need expert help?</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Need deeper data?</h2>
           <div className="p-8 rounded-3xl border border-gray-100 space-y-6 shadow-sm">
             <p className="text-gray-600 leading-relaxed">
-              Our investment advisors can help you navigate the nuances between these developments. Get a custom financial projection for each project.
+              Our technical analysts can provide a detailed breakdown of builder history, project risks, and micro-market volatility for your selected properties.
             </p>
             <button className="w-full py-4 rounded-xl bg-gray-900 text-white font-bold hover:bg-gray-800 transition-all shadow-lg shadow-gray-200">
-              Schedule AI-Assisted Consult
+              Request Full Technical Report
             </button>
           </div>
         </div>

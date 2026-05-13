@@ -1,155 +1,169 @@
-import { supabase } from "@/lib/supabase";
-import styles from "./page.module.css";
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { mockProjects } from "@/data/mockProjects";
+import { 
+  ArrowLeft, 
+  Building2, 
+  ShieldCheck, 
+  CheckCircle2, 
+  Clock, 
+  Star, 
+  MapPin,
+  TrendingUp,
+  Layout,
+  ExternalLink
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default async function BuilderPage({ params }) {
-  const resolvedParams = await params;
-  const { id } = resolvedParams;
+export default function BuilderPage({ params }) {
+  const [builder, setBuilder] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  let builder = null;
-  let projects = [];
-  let error = null;
+  useEffect(() => {
+    async function fetchData() {
+      const { id } = await params;
+      try {
+        const { data: bData, error: bError } = await supabase
+          .from('builders')
+          .select('*')
+          .eq('id', id)
+          .single();
 
-  try {
-    // 1. Fetch Builder Details
-    const { data: builderData, error: builderError } = await supabase
-      .from('builders')
-      .select('*')
-      .eq('id', id)
-      .single();
+        if (bError) throw bError;
+        setBuilder(bData);
 
-    if (builderError) throw builderError;
-    builder = builderData;
+        const { data: pData, error: pError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('builder_id', id);
 
-    // 2. Fetch Projects by this Builder
-    const { data: projectsData, error: projectsError } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('builder_id', id);
-
-    if (projectsError) throw projectsError;
-    projects = projectsData;
-
-  } catch (err) {
-    console.error("Error fetching builder data:", err);
-
-    // Fallback: Try to find in mock data
-    // Since mock data doesn't have a separate builders array, we derive it
-    const fallbackProjects = mockProjects.filter(p => p.builder_id === id);
-
-    if (fallbackProjects.length > 0) {
-      builder = {
-        id: id,
-        name: fallbackProjects[0].builder_name || "Unknown Builder",
-        description: `Premium real estate developer with a focus on quality and innovation.`
-      };
-      projects = fallbackProjects;
-    } else {
-      error = "Builder not found";
+        if (pError) throw pError;
+        setProjects(pData || []);
+      } catch (err) {
+        console.error("Using mock data for builder:", id);
+        const fallbackProjects = mockProjects.filter(p => p.builder_id === id);
+        if (fallbackProjects.length > 0) {
+          setBuilder({
+            id: id,
+            name: fallbackProjects[0].builder_name || "Unknown Builder",
+            description: `Established developer known for technical precision and project transparency.`
+          });
+          setProjects(fallbackProjects);
+        } else {
+          setError("Builder profile not found in our intelligence database.");
+        }
+      } finally {
+        setLoading(false);
+      }
     }
-  }
+    fetchData();
+  }, [params]);
 
-  if (error) {
-    return (
-      <div style={{ padding: "4rem", textAlign: "center" }}>
-        <h2>{error}</h2>
-        <Link href="/">
-          <button className={styles.backButton} style={{ marginTop: "2rem" }}>Go Home</button>
-        </Link>
-      </div>
-    );
-  }
+  const trustMetrics = [
+    { label: "Market Reputation", value: "4.7/5", icon: Star, color: "blue" },
+    { label: "Technical Delivery", value: "94%", icon: CheckCircle2, color: "emerald" },
+    { label: "Timeline Accuracy", value: "92%", icon: Clock, color: "blue" },
+    { label: "Active Projects", value: projects.length, icon: Building2, color: "emerald" },
+  ];
 
-  // Simulated Trust Metrics
-  const trustMetrics = {
-    reputationScore: 4.7,
-    projectsDelivered: 32,
-    onTimeRate: 94,
-    qualityRating: 4.5,
-    transparencyScore: 4.8
-  };
-
-  const formatPrice = (price) => {
-    return (price / 10000000).toFixed(2) + " Cr";
-  };
+  if (loading) return <div className="container py-32 text-center text-gray-400">Loading builder intelligence...</div>;
+  if (error) return (
+    <div className="container py-32 text-center space-y-6">
+      <h2 className="text-2xl font-bold">{error}</h2>
+      <Link href="/">
+        <button className="px-8 py-3 rounded-xl bg-primary text-white font-bold">Return to Discovery</button>
+      </Link>
+    </div>
+  );
 
   return (
-    <div className={styles.container}>
-      <Link href="/" style={{ textDecoration: 'none' }}>
-        <button className={styles.backButton}>← Back to Search</button>
-      </Link>
+    <div className="bg-white min-h-screen pb-32">
+      <div className="bg-gray-50/50 border-b">
+        <div className="container py-12">
+          <Link href="/" className="flex items-center text-sm font-medium text-gray-500 hover:text-primary mb-8 transition-colors">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to search
+          </Link>
 
-      <header className={styles.header}>
-        <div className={styles.builderProfile}>
-          <div className={styles.logoPlaceholder}>
-            {builder.name.substring(0, 2).toUpperCase()}
-          </div>
-          <div>
-            <h1>{builder.name}</h1>
-            <p className={styles.description}>{builder.description || "No description available."}</p>
-          </div>
-        </div>
-      </header>
-
-      {/* Trust Score Dashboard */}
-      <section className={styles.trustDashboard}>
-        <div className="card-glass" style={{ padding: "1.5rem" }}>
-          <h3 style={{ color: "var(--primary)", marginBottom: "1rem" }}>✨ Builder Trust Score</h3>
-          <div className={styles.metricsGrid}>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{trustMetrics.reputationScore}/5</div>
-              <div className={styles.metricLabel}>Reputation Score</div>
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+            <div className="h-24 w-24 rounded-3xl bg-white border border-gray-100 flex items-center justify-center text-2xl font-bold text-primary shadow-sm flex-shrink-0">
+              {builder.name.substring(0, 2).toUpperCase()}
             </div>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{trustMetrics.projectsDelivered}</div>
-              <div className={styles.metricLabel}>Projects Delivered</div>
-            </div>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{trustMetrics.onTimeRate}%</div>
-              <div className={styles.metricLabel}>On-Time Delivery</div>
-            </div>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{trustMetrics.qualityRating}/5</div>
-              <div className={styles.metricLabel}>Construction Quality</div>
+            <div className="space-y-4 max-w-2xl">
+              <div className="flex items-center space-x-2 text-primary font-bold text-xs uppercase tracking-widest">
+                <ShieldCheck className="h-4 w-4" />
+                <span>Verified Builder Profile</span>
+              </div>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900">{builder.name}</h1>
+              <p className="text-gray-500 leading-relaxed text-lg">
+                {builder.description}
+              </p>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Projects Grid */}
-      <section style={{ marginTop: "3rem" }}>
-        <h2 style={{ marginBottom: "1.5rem" }}>Projects by {builder.name}</h2>
+      <div className="container mt-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
+          {trustMetrics.map((stat, i) => (
+            <div key={i} className="p-6 rounded-2xl border border-gray-100 bg-white shadow-sm">
+              <div className={cn("p-2 rounded-lg w-fit mb-4", `bg-${stat.color}-50 text-${stat.color}-600`)}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{stat.label}</div>
+              <div className="text-xl font-bold text-gray-900">{stat.value}</div>
+            </div>
+          ))}
+        </div>
 
-        {projects.length === 0 ? (
-          <p style={{ color: "var(--muted)" }}>No projects found for this builder.</p>
-        ) : (
-          <div className={styles.grid}>
+        <div className="space-y-12">
+          <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-bold tracking-tight">Active Developments</h2>
+            <div className="text-sm font-medium text-gray-400">{projects.length} Projects Tracked</div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.map((project) => (
-              <div key={project.id} className={`${styles.card} card-glass`}>
-                <Link href={`/projects/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img
-                    src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"}
-                    alt={project.name || project.project_name}
-                    className={styles.cardImage}
-                  />
-                  <div className={styles.cardContent}>
-                    <div className={styles.badge}>{project.locality}</div>
-                    <h3>{project.name || project.project_name}</h3>
-                    <div className={styles.price}>
-                      {formatPrice(project.price_min)} - {formatPrice(project.price_max)}
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--muted)", marginTop: "1rem" }}>
-                      <span>⭐ {project.google_reviews_score}</span>
-                      <span>Progress: {project.construction_progress}%</span>
+              <Link key={project.id} href={`/projects/${project.id}`} className="group">
+                <div className="premium-card flex flex-col h-full">
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    <img
+                      src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"}
+                      alt={project.name}
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest text-primary shadow-sm">
+                        {project.locality}
+                      </span>
                     </div>
                   </div>
-                </Link>
-              </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors mb-4">
+                      {project.name || project.project_name}
+                    </h3>
+                    <div className="mt-auto space-y-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <div className="text-gray-500 font-medium">Price Range</div>
+                        <div className="text-gray-900 font-bold">₹{(project.price_min / 10000000).toFixed(2)} - {(project.price_max / 10000000).toFixed(2)} Cr</div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <div className="text-gray-500 font-medium">Technical Progress</div>
+                        <div className="text-emerald-600 font-bold">{project.construction_progress}% Complete</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
-        )}
-      </section>
+        </div>
+      </div>
     </div>
   );
 }
