@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { mockProjects } from "@/data/mockProjects";
 
 const SUGGESTIONS = [
   "2BHK under 1 Cr in Whitefield",
@@ -264,21 +265,25 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="premium-card flex flex-col group">
+          {mockProjects.slice(0, 3).map((project) => (
+            <Link key={project.id} href={`/projects/${project.id}`} className="premium-card flex flex-col group">
               <div className="relative aspect-[16/10] overflow-hidden">
-                <div className="w-full h-full bg-gray-100 group-hover:scale-105 transition-transform duration-500"></div>
+                <img 
+                  src={project.images[0]} 
+                  alt={project.project_name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
                 <div className="absolute top-4 left-4">
                   <div className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-bold text-primary shadow-sm uppercase tracking-widest border border-gray-100">
-                    9.2 Trust Score
+                    {project.google_reviews_score * 2} Trust Score
                   </div>
                 </div>
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-bold text-xl text-gray-900 group-hover:text-primary transition-colors">Prestige Project {i}</h3>
-                    <p className="text-xs text-gray-400 font-medium italic">By Prestige Group</p>
+                    <h3 className="font-bold text-xl text-gray-900 group-hover:text-primary transition-colors">{project.project_name}</h3>
+                    <p className="text-xs text-gray-400 font-medium italic">By {project.builder_name}</p>
                   </div>
                 </div>
                 
@@ -288,18 +293,18 @@ export default function HomePage() {
                       <span>Intelligence Snippet</span>
                    </div>
                    <p className="text-xs text-gray-600 leading-relaxed font-medium line-clamp-2 italic">
-                     "Exceptional connectivity score due to proximity to Outer Ring Road. Low density ensures high privacy."
+                     "{project.trade_offs[0]}"
                    </p>
                 </div>
 
                 <div className="mt-auto flex items-center justify-between pt-6 border-t border-gray-50">
-                  <div className="text-lg font-bold text-gray-900">₹1.2 - 2.5 Cr</div>
-                  <button className="p-2 rounded-lg border border-gray-100 hover:border-primary/20 hover:text-primary transition-all shadow-sm">
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  <div className="text-lg font-bold text-gray-900">₹{(project.price_min / 10000000).toFixed(1)} - {(project.price_max / 10000000).toFixed(1)} Cr</div>
+                  <div className="p-2 rounded-lg border border-gray-100 group-hover:border-primary/20 group-hover:text-primary transition-all shadow-sm">
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { mockProjects } from "@/data/mockProjects";
@@ -28,6 +28,7 @@ export default function ComparePage() {
 
 function CompareContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const ids = searchParams.get("ids")?.split(",") || [];
 
   const [projects, setProjects] = useState([]);
@@ -71,6 +72,15 @@ function CompareContent() {
     return (price / 10000000).toFixed(2) + " Cr";
   };
 
+  const handleRemove = (id) => {
+    const newIds = ids.filter(i => i !== id);
+    if (newIds.length === 0) {
+      router.push('/');
+    } else {
+      router.push(`/compare?ids=${newIds.join(",")}`);
+    }
+  };
+
   if (ids.length === 0 || (ids.length === 1 && ids[0] === "")) {
     return (
       <div className="container py-32 text-center">
@@ -104,7 +114,10 @@ function CompareContent() {
             <p className="text-gray-500 mt-2">Side-by-side analysis of {projects.length} selected developments.</p>
           </div>
           <div className="flex items-center space-x-3">
-            <button className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-bold hover:bg-gray-50 transition-all flex items-center">
+            <button 
+              onClick={() => router.push('/')}
+              className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-bold hover:bg-gray-50 transition-all flex items-center"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Project
             </button>
@@ -135,7 +148,10 @@ function CompareContent() {
                             src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"}
                             className="object-cover w-full h-full"
                           />
-                          <button className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500 transition-colors shadow-sm opacity-0 group-hover:opacity-100">
+                          <button 
+                            onClick={() => handleRemove(project.id)}
+                            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500 transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
