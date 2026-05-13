@@ -2,19 +2,8 @@ import { supabase } from "@/lib/supabase";
 import { mockProjects } from "@/data/mockProjects";
 import AiSummary from "@/components/AiSummary";
 import Link from "next/link";
-import {
-  MapPin,
-  Share2,
-  Heart,
-  ChevronRight,
-  CheckCircle2,
-  Info,
-  Compass,
-  TrendingUp,
-  Layout,
-  Users,
-  ShieldCheck
-} from "lucide-react";
+import { MapPin, Share2, Heart, ChevronRight, CheckCircle2, Info, Compass, TrendingUp, Layout, Users } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 export default async function ProjectDetailPage({ params }) {
   const resolvedParams = await params;

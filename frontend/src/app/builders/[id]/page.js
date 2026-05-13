@@ -7,7 +7,6 @@ import { mockProjects } from "@/data/mockProjects";
 import { 
   ArrowLeft, 
   Building2, 
-  ShieldCheck, 
   CheckCircle2, 
   Clock, 
   Star, 
@@ -16,6 +15,7 @@ import {
   Layout,
   ExternalLink
 } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BuilderPage({ params }) {

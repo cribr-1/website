@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   MapPin,
   TrendingUp,
-  ShieldCheck,
   Car,
   Droplets,
   Zap,
@@ -13,6 +12,7 @@ import {
   ChevronRight,
   Info
 } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default async function LocalityPage({ params }) {

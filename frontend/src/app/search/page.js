@@ -20,9 +20,9 @@ import {
   TrendingUp,
   Layout,
   Users,
-  ShieldCheck,
   Check
 } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { mockProjects } from "@/data/mockProjects";
