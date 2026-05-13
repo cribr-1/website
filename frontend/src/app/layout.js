@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
               <span className="text-xl font-bold tracking-tight">Cribr</span>
               <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full uppercase tracking-widest">AI Intelligence</span>
             </Link>
-            
+
             <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
               <Link href="/" className="transition-colors hover:text-primary">Search</Link>
               <Link href="/compare" className="transition-colors hover:text-primary">Compare</Link>
@@ -83,18 +83,18 @@ export default function RootLayout({ children }) {
 
         {/* Mobile Navigation */}
         <nav className="md:hidden fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t flex items-center justify-around px-4 pb-safe">
-           <Link href="/" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
+          <Link href="/" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
             <span className="text-[10px]">Home</span>
-           </Link>
-           <Link href="/compare" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
+          </Link>
+          <Link href="/compare" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
             <span className="text-[10px]">Compare</span>
-           </Link>
-           <Link href="/saved" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
+          </Link>
+          <Link href="/saved" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
             <span className="text-[10px]">Saved</span>
-           </Link>
-           <Link href="/profile" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
+          </Link>
+          <Link href="/profile" className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-primary">
             <span className="text-[10px]">Account</span>
-           </Link>
+          </Link>
         </nav>
       </body>
     </html>

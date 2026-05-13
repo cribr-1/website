@@ -36,7 +36,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="w-full pt-20 pb-32 px-4 bg-gradient-to-b from-white to-gray-50/50">
         <div className="container max-w-4xl mx-auto text-center">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -45,8 +45,8 @@ export default function HomePage() {
             Real Estate Intelligence <br />
             <span className="text-primary">Powered by AI.</span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -55,7 +55,7 @@ export default function HomePage() {
             Stop searching. Start researching. Get deep insights into premium projects with the most advanced property discovery platform.
           </motion.p>
 
-          <motion.form 
+          <motion.form
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -73,7 +73,7 @@ export default function HomePage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <button 
+              <button
                 type="submit"
                 className="absolute right-3 top-3 bottom-3 px-6 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
               >
@@ -82,7 +82,7 @@ export default function HomePage() {
             </div>
           </motion.form>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -148,11 +148,11 @@ export default function HomePage() {
             </div>
             <Link href="/localities" className="text-primary font-medium hover:underline">View all areas →</Link>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {TRENDING_AREAS.map((area, i) => (
-              <Link 
-                key={i} 
+              <Link
+                key={i}
                 href={`/localities/${area.name}`}
                 className="group p-6 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
               >

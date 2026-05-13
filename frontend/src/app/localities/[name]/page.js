@@ -1,14 +1,14 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { mockProjects } from "@/data/mockProjects";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  TrendingUp, 
-  ShieldCheck, 
-  Car, 
-  Droplets, 
-  Zap, 
+import {
+  ArrowLeft,
+  MapPin,
+  TrendingUp,
+  ShieldCheck,
+  Car,
+  Droplets,
+  Zap,
   Building2,
   ChevronRight,
   Info
@@ -29,7 +29,7 @@ export default async function LocalityPage({ params }) {
       .ilike('locality', `%${name}%`);
 
     if (dbError) throw dbError;
-    
+
     if (data && data.length > 0) {
       projects = data;
     } else {
@@ -62,7 +62,7 @@ export default async function LocalityPage({ params }) {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to discovery
           </Link>
-          
+
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-4">
               <div className="flex items-center space-x-2 text-primary font-bold text-xs uppercase tracking-widest">

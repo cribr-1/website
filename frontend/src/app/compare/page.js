@@ -6,12 +6,12 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { mockProjects } from "@/data/mockProjects";
 import AiCompareSummary from "@/components/AiCompareSummary";
-import { 
-  ArrowLeft, 
-  Plus, 
-  CheckCircle2, 
-  Info, 
-  Star, 
+import {
+  ArrowLeft,
+  Plus,
+  CheckCircle2,
+  Info,
+  Star,
   BarChart3,
   ExternalLink,
   Trash2
@@ -29,7 +29,7 @@ export default function ComparePage() {
 function CompareContent() {
   const searchParams = useSearchParams();
   const ids = searchParams.get("ids")?.split(",") || [];
-  
+
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -104,7 +104,7 @@ function CompareContent() {
             <p className="text-gray-500 mt-2">Side-by-side analysis of {projects.length} selected developments.</p>
           </div>
           <div className="flex items-center space-x-3">
-             <button className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-bold hover:bg-gray-50 transition-all flex items-center">
+            <button className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-bold hover:bg-gray-50 transition-all flex items-center">
               <Plus className="h-4 w-4 mr-2" />
               Add Project
             </button>
@@ -131,8 +131,8 @@ function CompareContent() {
                     <th key={project.id} className="p-8 min-w-[300px] border-l border-gray-100 relative group">
                       <div className="space-y-4">
                         <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-4 border border-gray-100">
-                          <img 
-                            src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"} 
+                          <img
+                            src={project.images?.[0] || "https://placehold.co/600x400/31343c/ffffff?text=No+Image"}
                             className="object-cover w-full h-full"
                           />
                           <button className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500 transition-colors shadow-sm opacity-0 group-hover:opacity-100">
@@ -157,32 +157,40 @@ function CompareContent() {
                   { label: "Locality", key: "locality" },
                   { label: "Unit Types", key: "unit_types", format: (p) => p.unit_types?.join(", ") },
                   { label: "Price per sft", key: "price_per_sft", format: (p) => `₹${p.price_per_sft}` },
-                  { label: "Google Review", key: "google_reviews_score", format: (p) => (
-                    <div className="flex items-center text-amber-500 font-bold">
-                      <Star className="h-4 w-4 fill-current mr-1" />
-                      {p.google_reviews_score}
-                    </div>
-                  )},
-                  { label: "Commute Score", key: "commute_score", format: (p) => (
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold">{p.commute_score}/10</span>
-                      <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500" style={{ width: `${p.commute_score * 10}%` }}></div>
+                  {
+                    label: "Google Review", key: "google_reviews_score", format: (p) => (
+                      <div className="flex items-center text-amber-500 font-bold">
+                        <Star className="h-4 w-4 fill-current mr-1" />
+                        {p.google_reviews_score}
                       </div>
-                    </div>
-                  )},
-                  { label: "Progress", key: "construction_progress", format: (p) => (
-                    <div className="space-y-1.5">
-                      <span className="text-xs font-bold">{p.construction_progress}% Complete</span>
-                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary" style={{ width: `${p.construction_progress}%` }}></div>
+                    )
+                  },
+                  {
+                    label: "Commute Score", key: "commute_score", format: (p) => (
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold">{p.commute_score}/10</span>
+                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-emerald-500" style={{ width: `${p.commute_score * 10}%` }}></div>
+                        </div>
                       </div>
-                    </div>
-                  )},
+                    )
+                  },
+                  {
+                    label: "Progress", key: "construction_progress", format: (p) => (
+                      <div className="space-y-1.5">
+                        <span className="text-xs font-bold">{p.construction_progress}% Complete</span>
+                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${p.construction_progress}%` }}></div>
+                        </div>
+                      </div>
+                    )
+                  },
                   { label: "Total Units", key: "total_units" },
-                  { label: "RERA Certified", key: "rera_number", format: (p) => (
-                    <CheckCircle2 className={cn("h-5 w-5", p.rera_number ? "text-emerald-500" : "text-gray-200")} />
-                  )},
+                  {
+                    label: "RERA Certified", key: "rera_number", format: (p) => (
+                      <CheckCircle2 className={cn("h-5 w-5", p.rera_number ? "text-emerald-500" : "text-gray-200")} />
+                    )
+                  },
                 ].map((row, i) => (
                   <tr key={i} className="group hover:bg-gray-50/30 transition-colors">
                     <td className="p-8 text-sm font-semibold text-gray-500 flex items-center group-hover:text-gray-900 transition-colors">
