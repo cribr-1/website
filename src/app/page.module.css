@@ -1,0 +1,342 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 4rem 1rem;
+  gap: 1.5rem;
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(to right, var(--foreground), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fillColor: transparent;
+  max-width: 800px;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  color: var(--muted);
+  max-width: 600px;
+}
+
+.searchContainer {
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.locationSelector {
+  position: absolute;
+  left: 1.5rem;
+  z-index: 10;
+  cursor: pointer;
+  color: var(--primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--glass-bg);
+  padding: 0.5rem 0.75rem;
+  border-radius: 99px;
+  border: 1px solid var(--glass-border);
+  font-size: 0.9rem;
+}
+
+.suggestionsDropdown {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 300px;
+  background: #1a1d24;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  padding: 0.75rem;
+  z-index: 20;
+}
+
+.cityInput {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.suggestionsDropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestionsDropdown li {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.suggestionsDropdown li:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--primary);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 1rem 1.5rem 1rem 9rem; /* Added left padding for location badge */
+  border-radius: 99px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  color: var(--foreground);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.filtersDisplay {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: -1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.filterChip {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cardImage {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.compareButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.compareButton:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.compareActive {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.cardContent {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cardContent h3 {
+  font-size: 1.1rem;
+  color: var(--foreground);
+}
+
+.cardContent p {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  width: fit-content;
+}
+
+/* Compare Bar */
+.compareBar {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  padding: 1rem 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.compareBarContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-weight: 600;
+}
+
+.clearButton {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.clearButton:hover {
+  color: white;
+}
+
+.actionButton {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 99px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.actionButton:hover {
+  background: #4f46e5;
+}
+
+/* Main Layout with Sidebar */
+.mainLayout {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.sidebar {
+  width: 250px;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+  padding: 1.5rem;
+}
+
+.sidebar h3 {
+  margin-bottom: 1.5rem;
+  color: var(--primary);
+}
+
+.filterSection {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.filterSection h4 {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  cursor: pointer;
+}
+
+.rangeInput {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .compareBar {
+    bottom: 1rem;
+    width: 95%;
+    padding: 0.75rem 1rem;
+  }
+
+  .mainLayout {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  .sidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
+}

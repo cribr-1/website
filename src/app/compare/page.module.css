@@ -1,0 +1,86 @@
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  margin-top: 1rem;
+}
+
+.compareTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.compareTable th, .compareTable td {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
+}
+
+.compareTable th:last-child, .compareTable td:last-child {
+  border-right: none;
+}
+
+.compareTable th {
+  background: rgba(0, 0, 0, 0.2);
+  vertical-align: top;
+}
+
+.projectHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  text-align: center;
+}
+
+.projectHeader img {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--glass-border);
+}
+
+.projectHeader h3 {
+  font-size: 1.1rem;
+  color: var(--foreground);
+}
+
+.projectHeader p {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.featureName {
+  font-weight: 600;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.1);
+  width: 150px;
+}
+
+.priceHighlight {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.backButton {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--foreground);
+  border: 1px solid var(--glass-border);
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
