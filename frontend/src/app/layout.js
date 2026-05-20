@@ -1,17 +1,6 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: "Cribr | Property Intelligence & Transparency",
@@ -20,8 +9,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={cn(geistSans.variable, geistMono.variable, "antialiased")}>
-      <body className="min-h-screen flex flex-col bg-background text-foreground">
+    <html lang="en" className="antialiased">
+      <body className="min-h-screen flex flex-col bg-background text-foreground font-sans">
         <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
           <div className="container flex h-16 items-center justify-between">
             {/* Left: Logo & Tagline */}

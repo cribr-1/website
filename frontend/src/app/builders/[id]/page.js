@@ -27,26 +27,43 @@ export default function BuilderPage({ params }) {
   useEffect(() => {
     async function fetchData() {
       const { id } = await params;
-      try {
-        const { data: bData, error: bError } = await supabase
-          .from('builders')
-          .select('*')
-          .eq('id', id)
-          .single();
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
-        if (bError) throw bError;
-        setBuilder(bData);
+      try {
+        let builderData = null;
+        if (isUUID) {
+          const { data, error: bError } = await supabase
+            .from('builders')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+          if (bError) throw bError;
+          builderData = data;
+        } else {
+          // Attempt slug match (e.g. "prestige" -> "Prestige Estates")
+          const cleanSlug = id.replace(/-/g, ' ');
+          const { data, error: bError } = await supabase
+            .from('builders')
+            .select('*')
+            .ilike('name', `%${cleanSlug}%`)
+            .limit(1);
+          if (bError) throw bError;
+          builderData = data && data[0];
+        }
+
+        if (!builderData) throw new Error("Builder not found in DB");
+        setBuilder(builderData);
 
         const { data: pData, error: pError } = await supabase
           .from('projects')
           .select('*')
-          .eq('builder_id', id);
+          .eq('builder_id', builderData.id);
 
         if (pError) throw pError;
         setProjects(pData || []);
       } catch (err) {
-        console.error("Using mock data for builder:", id);
-        const fallbackProjects = mockProjects.filter(p => p.builder_id === id);
+        console.warn("Falling back to mock data for builder id/slug:", id);
+        const fallbackProjects = mockProjects.filter(p => p.builder_id === id || p.builder_name?.toLowerCase().includes(id.toLowerCase()));
         if (fallbackProjects.length > 0) {
           setBuilder({
             id: id,
