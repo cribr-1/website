@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { mockProjects } from '@/data/mockProjects';
 
 const premiumImages = [
   "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
@@ -37,18 +38,28 @@ const clamp = (val) => Math.min(Math.max(Math.round(val), 1), 10);
 
 export async function getRecommendations(answers) {
   // Query projects and builders from Supabase
-  const { data: dbProjects, error } = await supabase
-    .from('projects')
-    .select(`
-      *,
-      builders (
-        name
-      )
-    `);
-
-  if (error || !dbProjects || dbProjects.length === 0) {
-    console.error("Error fetching projects from Supabase:", error);
-    return null;
+  let dbProjects = [];
+  let fetchFailed = false;
+  
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        builders (
+          name
+        )
+      `);
+      
+    if (error) {
+      console.warn("Supabase query returned error, using fallback mock data:", error);
+      fetchFailed = true;
+    } else {
+      dbProjects = data || [];
+    }
+  } catch (err) {
+    console.warn("Supabase connection failed, using fallback mock data:", err);
+    fetchFailed = true;
   }
 
   // Parse raw text query if available to extract filters
@@ -78,69 +89,76 @@ export async function getRecommendations(answers) {
     }
   }
 
-  // Map to matching engine structure
-  const projects = dbProjects.map(p => {
-    const minPrice = p.price_min || 0;
-    
-    // Determine budget category
-    let budgetCategory = "budget";
-    if (minPrice > 15000000) {
-      budgetCategory = "luxury";
-    } else if (minPrice >= 10000000) {
-      budgetCategory = "premium";
-    }
-
-    // Readiness
-    const readiness = p.construction_progress === 100 ? "Ready to Move" : "Under Construction";
-
-    // Scoring mappings (scaled 1-10)
-    const commuteScore = clamp((p.commute_score || 0.6) * 10);
-    const trustScore = clamp((p.google_reviews_score || 4.2) * 2);
-    const lifestyleScore = clamp(10 - (p.density || 75) / 15);
-    const connectivityScore = clamp(10 - (p.distance_from_nearest_office_hub || 10) / 2);
-    const futureGrowthScore = clamp((p.timeline_reliability || 0.8) * 10);
-    const valueForMoneyScore = clamp(10 - (p.price_per_sft || 12000) / 3000);
-
-    // Derived traits for UI
-    const strengths = [];
-    if (trustScore >= 8) strengths.push(`Tier-1 builder trust (${p.builders?.name || 'Prestige'})`);
-    if (commuteScore >= 8) strengths.push("Exceptional commute convenience and metro proximity");
-    if (lifestyleScore >= 8) strengths.push("Spacious low-density layouts");
-    if (strengths.length < 3) strengths.push("Excellent ready-to-use modern amenities");
-    if (strengths.length < 3) strengths.push("Clear title with no pending litigations");
-
-    const downsides = [];
-    if (p.complaints > 1) downsides.push(`Reported minor complaints (${p.complaints})`);
-    if (p.construction_progress < 50) downsides.push("Under construction (longer wait timeline)");
-    if (lifestyleScore < 6) downsides.push("High-density complex layout");
-    if (downsides.length === 0) downsides.push("Slightly premium maintenance fees");
-
-    return {
-      id: p.id,
-      name: p.name,
-      builder: p.builders?.name || "Premium Builder",
-      location: `${p.locality || 'Sarjapur'}, ${p.area || 'Bengaluru'}`,
-      price: formatPrice(p.price_min, p.price_max),
-      budgetCategory,
-      configuration: p.unit_types ? p.unit_types.join(", ") : "2 BHK, 3 BHK",
-      readiness,
-      purpose: p.price_min > 12000000 ? ["live", "invest"] : ["live"],
-      image: getStableImage(p.id),
-      scores: {
-        commute: commuteScore,
-        trust: trustScore,
-        lifestyle: lifestyleScore,
-        connectivity: connectivityScore,
-        futureGrowth: futureGrowthScore,
-        valueForMoney: valueForMoneyScore
-      },
-      insights: {
-        bestFor: `Families and professionals seeking ${p.locality || 'prime East Bangalore'}.`,
-        downsides,
-        strengths
+  // Build projects matching structures
+  let projects = [];
+  
+  if (!fetchFailed && dbProjects && dbProjects.length > 0) {
+    projects = dbProjects.map(p => {
+      const minPrice = p.price_min || 0;
+      
+      // Determine budget category
+      let budgetCategory = "budget";
+      if (minPrice > 15000000) {
+        budgetCategory = "luxury";
+      } else if (minPrice >= 10000000) {
+        budgetCategory = "premium";
       }
-    };
-  });
+
+      // Readiness
+      const readiness = p.construction_progress === 100 ? "Ready to Move" : "Under Construction";
+
+      // Scoring mappings (scaled 1-10)
+      const commuteScore = clamp((p.commute_score || 0.6) * 10);
+      const trustScore = clamp((p.google_reviews_score || 4.2) * 2);
+      const lifestyleScore = clamp(10 - (p.density || 75) / 15);
+      const connectivityScore = clamp(10 - (p.distance_from_nearest_office_hub || 10) / 2);
+      const futureGrowthScore = clamp((p.timeline_reliability || 0.8) * 10);
+      const valueForMoneyScore = clamp(10 - (p.price_per_sft || 12000) / 3000);
+
+      // Derived traits for UI
+      const strengths = [];
+      if (trustScore >= 8) strengths.push(`Tier-1 builder trust (${p.builders?.name || 'Prestige'})`);
+      if (commuteScore >= 8) strengths.push("Exceptional commute convenience and metro proximity");
+      if (lifestyleScore >= 8) strengths.push("Spacious low-density layouts");
+      if (strengths.length < 3) strengths.push("Excellent ready-to-use modern amenities");
+      if (strengths.length < 3) strengths.push("Clear title with no pending litigations");
+
+      const downsides = [];
+      if (p.complaints > 1) downsides.push(`Reported minor complaints (${p.complaints})`);
+      if (p.construction_progress < 50) downsides.push("Under construction (longer wait timeline)");
+      if (lifestyleScore < 6) downsides.push("High-density complex layout");
+      if (downsides.length === 0) downsides.push("Slightly premium maintenance fees");
+
+      return {
+        id: p.id,
+        name: p.name,
+        builder: p.builders?.name || "Premium Builder",
+        location: `${p.locality || 'Sarjapur'}, ${p.area || 'Bengaluru'}`,
+        price: formatPrice(p.price_min, p.price_max),
+        budgetCategory,
+        configuration: p.unit_types ? p.unit_types.join(", ") : "2 BHK, 3 BHK",
+        readiness,
+        purpose: p.price_min > 12000000 ? ["live", "invest"] : ["live"],
+        image: getStableImage(p.id),
+        scores: {
+          commute: commuteScore,
+          trust: trustScore,
+          lifestyle: lifestyleScore,
+          connectivity: connectivityScore,
+          futureGrowth: futureGrowthScore,
+          valueForMoney: valueForMoneyScore
+        },
+        insights: {
+          bestFor: `Families and professionals seeking ${p.locality || 'prime East Bangalore'}.`,
+          downsides,
+          strengths
+        }
+      };
+    });
+  } else {
+    projects = mockProjects;
+  }
+
 
   // Basic scoring logic matching user answers:
   let scoredProjects = projects.map(project => {
