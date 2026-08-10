@@ -1,0 +1,344 @@
+import React from "react";
+import { mapToWhitelistedProject, WhitelistedProject } from "../lib/projectDataMapper";
+import {
+  CheckCircle2,
+  Building2,
+  MapPin,
+  Calendar,
+  Clock,
+  Building,
+  Layers,
+  Navigation,
+  Star,
+  ShieldCheck,
+  AlertTriangle,
+  FileCheck,
+  Info
+} from "lucide-react";
+
+interface ProjectOverviewContentProps {
+  property: any;
+}
+
+export const ProjectOverviewContent: React.FC<ProjectOverviewContentProps> = ({ property }) => {
+  const p: WhitelistedProject = mapToWhitelistedProject(property);
+
+  return (
+    <div className="space-y-8 font-sans text-neutral-900">
+      {/* SECTION A — PROJECT INFORMATION */}
+      <section className="bg-white rounded-[24px] p-6 border border-neutral-200/80 shadow-2xs space-y-4">
+        <div className="flex items-center space-x-2 border-b border-neutral-100 pb-3">
+          <Building2 className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-bold font-display text-neutral-950 tracking-tight">
+            Section A — Project Information
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+          <div className="p-3.5 bg-neutral-50/80 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Project Name
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.projectName}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50/80 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Builder / Promoter
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.builder}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50/80 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              RERA Reg. Number
+            </span>
+            <span className="text-xs font-bold font-mono text-emerald-700 block flex items-center space-x-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">{p.reraNumber}</span>
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50/80 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Locality
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.locality}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50/80 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Taluk / Area
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.area}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION C — PRICING */}
+      <section className="bg-white rounded-[24px] p-6 border border-neutral-200/80 shadow-2xs space-y-4">
+        <div className="flex items-center space-x-2 border-b border-neutral-100 pb-3">
+          <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center font-mono">₹</span>
+          <h2 className="text-lg font-bold font-display text-neutral-950 tracking-tight">
+            Section C — Pricing
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-blue-600 font-bold block">
+              Unit Types
+            </span>
+            <span className="text-sm font-black font-mono text-neutral-950 block">
+              {p.unitTypes}
+            </span>
+          </div>
+
+          <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Minimum Price
+            </span>
+            <span className="text-base font-black font-mono text-neutral-950 block">
+              {p.minPrice}
+            </span>
+          </div>
+
+          <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Maximum Price
+            </span>
+            <span className="text-base font-black font-mono text-neutral-950 block">
+              {p.maxPrice}
+            </span>
+          </div>
+
+          <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Price / sq ft
+            </span>
+            <span className="text-base font-black font-mono text-blue-700 block">
+              {p.pricePerSqft}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION B — PROJECT STATUS */}
+      <section className="bg-white rounded-[24px] p-6 border border-neutral-200/80 shadow-2xs space-y-4">
+        <div className="flex items-center space-x-2 border-b border-neutral-100 pb-3">
+          <Calendar className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-bold font-display text-neutral-950 tracking-tight">
+            Section B — Project Status
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Project Start Date
+            </span>
+            <span className="text-xs font-bold font-mono text-neutral-900 block">
+              {p.projectStartDate}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Possession Date
+            </span>
+            <span className="text-xs font-bold font-mono text-neutral-900 block">
+              {p.possessionDate}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Construction Progress
+            </span>
+            <span className="text-xs font-bold font-mono text-emerald-700 block">
+              {p.constructionProgress}% Completed
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Years to Possession
+            </span>
+            <span className="text-xs font-bold font-mono text-neutral-900 block">
+              {p.yearsToPossession}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
+          <div className="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200/80 flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-900">
+              Timeline Reliability Ratio
+            </span>
+            <span className="text-sm font-black font-mono text-emerald-700">
+              {p.timelineReliabilityRatio}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200/80 flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-900">
+              Timeline Reliability Status
+            </span>
+            <span className="text-xs font-bold font-mono px-2.5 py-1 bg-emerald-600 text-white rounded-md">
+              Timeline Reliability: {p.timelineReliabilityDisplay.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION D — PROJECT SCALE */}
+      <section className="bg-white rounded-[24px] p-6 border border-neutral-200/80 shadow-2xs space-y-4">
+        <div className="flex items-center space-x-2 border-b border-neutral-100 pb-3">
+          <Layers className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-bold font-display text-neutral-950 tracking-tight">
+            Section D — Project Scale
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1 text-center">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Land Area (acres)
+            </span>
+            <span className="text-base font-bold font-mono text-neutral-950 block">
+              {p.landAreaAcres}
+            </span>
+            <span className="text-[10px] text-neutral-400 font-mono block">
+              ({p.landAreaSqm})
+            </span>
+          </div>
+
+          <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1 text-center">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Total Units
+            </span>
+            <span className="text-base font-bold font-mono text-neutral-950 block">
+              {p.totalUnits}
+            </span>
+          </div>
+
+          <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1 text-center">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Unit Density
+            </span>
+            <span className="text-base font-bold font-mono text-indigo-700 block">
+              {p.unitDensity}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION E — LOCATION TRANSIT */}
+      <section className="bg-white rounded-[24px] p-6 border border-neutral-200/80 shadow-2xs space-y-4">
+        <div className="flex items-center space-x-2 border-b border-neutral-100 pb-3">
+          <Navigation className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-bold font-display text-neutral-950 tracking-tight">
+            Section E — Location Transit
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Nearest Office Hub
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.nearestOfficeHub}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Distance to Hub
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.distanceToHub}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Commute Score Display
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.commuteScoreDisplay}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION F — BUILDER & LEGAL */}
+      <section className="bg-white rounded-[24px] p-6 border border-neutral-200/80 shadow-2xs space-y-4">
+        <div className="flex items-center space-x-2 border-b border-neutral-100 pb-3">
+          <ShieldCheck className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-bold font-display text-neutral-950 tracking-tight">
+            Section F — Builder & Legal
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Builder Grade
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block">
+              {p.builderGrade}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Google Rating
+            </span>
+            <span className="text-sm font-bold text-neutral-950 block flex items-center space-x-1">
+              <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0" />
+              <span>{p.googleRating}</span>
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Complaints Count
+            </span>
+            <span className={`text-sm font-bold block ${p.complaints === "0" || p.complaints === 0 ? "text-emerald-700" : "text-amber-600"}`}>
+              {p.complaints} Active Complaints
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Land Litigation Status
+            </span>
+            <span className={`text-sm font-bold block ${p.landLitigation.toLowerCase() === "no" ? "text-emerald-700" : "text-rose-700"}`}>
+              {p.landLitigation}
+            </span>
+          </div>
+
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1 sm:col-span-2 md:col-span-3">
+            <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
+              Google Review Summary
+            </span>
+            <span className="text-xs text-neutral-700 block leading-relaxed">
+              {p.googleReviewSummary}
+            </span>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default ProjectOverviewContent;

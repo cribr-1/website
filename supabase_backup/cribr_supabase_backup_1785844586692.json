@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-08-04T11:56:26.004Z",
+  "project_url": "https://nasccqkadwmfcajgecfs.supabase.co",
+  "tables": {
+    "profiles": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    },
+    "properties": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    },
+    "projects": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    },
+    "builders": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    },
+    "bookings": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    },
+    "saved_properties": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    },
+    "notifications": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    },
+    "audit_logs": {
+      "status": "ok",
+      "count": 0,
+      "data": []
+    }
+  }
+}
