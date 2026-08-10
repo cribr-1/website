@@ -166,10 +166,10 @@ export class ProjectService {
           if (intent.unitType && filtered.length > 0) {
             filtered = filtered.filter((p: any) => {
               if (Array.isArray(p.unit_types)) {
-                return p.unit_types.some((u: string) => u.toLowerCase().includes(intent.unitType!.toLowerCase()));
+                return p.unit_types.some((u: string) => u.toLowerCase().replace(/\s/g, '').includes(intent.unitType!.toLowerCase().replace(/\s/g, '')));
               }
               if (typeof p.unit_types === "string") {
-                return p.unit_types.toLowerCase().includes(intent.unitType!.toLowerCase());
+                return p.unit_types.toLowerCase().replace(/\s/g, '').includes(intent.unitType!.toLowerCase().replace(/\s/g, ''));
               }
               return true;
             });

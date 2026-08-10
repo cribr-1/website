@@ -178,7 +178,12 @@ Maintain conversation context when historical messages are provided.`;
   async extractSearchIntent(query: string): Promise<any | null> {
     if (!this.groq) return null;
 
-    const systemPrompt = `You are CRIBR's real estate search intent parser. Return JSON ONLY with this schema: {"locality":string|null,"unitType":string|null,"maxPriceINR":number|null,"minPriceINR":number|null,"minBuilderGrade":string|null,"maxDistanceHubKm":number|null,"nearestOfficeHub":string|null,"possessionYear":number|null,"maxComplaints":number|null,"builderName":string|null,"keywords":string[]}`;
+    const systemPrompt = `You are CRIBR's real estate search intent parser. Return JSON ONLY with this exact schema: {"locality":string|null,"unitType":string|null,"maxPriceINR":number|null,"minPriceINR":number|null,"minBuilderGrade":string|null,"maxDistanceHubKm":number|null,"nearestOfficeHub":string|null,"possessionYear":number|null,"maxComplaints":number|null,"builderName":string|null,"keywords":string[]}
+CRITICAL:
+- 1 Crore (Cr) = 10,000,000 INR. E.g. "1.5cr" = 15000000.
+- 1 Lakh (L) = 100,000 INR. E.g. "50 lakhs" = 5000000.
+- Convert all prices to exact integer INR values.
+- unitType should be "1BHK", "2BHK", "3BHK", etc.`;
 
     try {
       const completion = await this.groq.chat.completions.create({
