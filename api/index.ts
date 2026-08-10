@@ -1,2 +1,2 @@
-import app from "../src/server/app";
-export default app;
+import app from "../dist/server.cjs";
+export default app.default || app;
