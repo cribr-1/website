@@ -87,23 +87,6 @@ class CribrLocalDatabase {
     }
   }
 
-  getUsers(): CribrUser[] {
-    return this.getStorageItem<CribrUser[]>("cribr_sim_users", [
-      {
-        id: "demo-user-1",
-        email: "demo@cribr.ai",
-        fullName: "Aaryan Rajput",
-        phone: "+91 98765 43210",
-        avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-        createdAt: new Date().toISOString()
-      }
-    ]);
-  }
-
-  saveUsers(users: CribrUser[]): void {
-    this.setStorageItem("cribr_sim_users", users);
-  }
-
   getBookings(): CribrBooking[] {
     return this.getStorageItem<CribrBooking[]>("cribr_sim_bookings", []);
   }
@@ -193,7 +176,7 @@ export const cribrAuth = {
   async checkAccountExists(identifier: string): Promise<{ exists: boolean; email: string }> {
     const query = identifier.trim().toLowerCase();
     
-    if (isRealSupabaseConfigured && supabase) {
+    if (supabase) {
       try {
         const { data, error } = await supabase
           .from("profiles")
@@ -209,15 +192,9 @@ export const cribrAuth = {
       }
     }
 
-    // Local DB Check fallback
-    const users = localDb.getUsers();
-    const foundUser = users.find(
-      (u) => u.email.toLowerCase() === query || u.phone?.replace(/[^0-9]/g, "").includes(query.replace(/[^0-9]/g, ""))
-    );
-
     return {
-      exists: !!foundUser,
-      email: foundUser ? foundUser.email : query
+      exists: false,
+      email: query
     };
   },
 
@@ -235,7 +212,7 @@ export const cribrAuth = {
       return { success: false, error: "Invalid password format. Minimum length is 6 characters." };
     }
     
-    if (isRealSupabaseConfigured && supabase) {
+    if (supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: sanitizedEmail,
@@ -266,22 +243,12 @@ export const cribrAuth = {
           return { success: true, user: cribrUser };
         }
       } catch (err: any) {
-        console.warn("Supabase auth failed. Falling back to local verification:", err.message);
+        console.warn("Supabase auth failed:", err.message);
         return { success: false, error: err.message || "Invalid credentials." };
       }
     }
 
-    // Local DB Sign In fallback
-    const users = localDb.getUsers();
-    const user = users.find((u) => u.email.toLowerCase() === sanitizedEmail);
-
-    if (!user) {
-      return { success: false, error: "Account not recognized. Please register first." };
-    }
-
-    localDb.setActiveSession(user);
-    cribrAuditLogs.insertLog("USER_LOGIN_SUCCESS", `User ${sanitizedEmail} successfully authenticated via Local Database fallback.`);
-    return { success: true, user };
+    return { success: false, error: "Authentication service unavailable." };
   },
 
   // Register new user with strict form sanitization and check constraints (Section 6)
@@ -320,7 +287,7 @@ export const cribrAuth = {
       return { success: false, error: "Enterprise security requires passwords to be at least 8 characters long." };
     }
 
-    if (isRealSupabaseConfigured && supabase) {
+    if (supabase) {
       try {
         const { data, error } = await supabase.auth.signUp({
           email: sanitizedEmail,
@@ -369,33 +336,12 @@ export const cribrAuth = {
       }
     }
 
-    // Local registration fallback
-    const users = localDb.getUsers();
-    const alreadyExists = users.some((u) => u.email.toLowerCase() === sanitizedEmail);
-
-    if (alreadyExists) {
-      return { success: false, error: "An account with this email already exists." };
-    }
-
-    const newUser: CribrUser = {
-      id: `cribr-user-${Math.random().toString(36).substr(2, 9)}`,
-      email: sanitizedEmail,
-      fullName: params.fullName,
-      phone: params.phone,
-      avatarUrl: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150`,
-      createdAt: new Date().toISOString()
-    };
-
-    localDb.saveUsers([...users, newUser]);
-    localDb.setActiveSession(newUser);
-    cribrAuditLogs.insertLog("USER_REGISTER_SUCCESS", `New user profile created for ${sanitizedEmail} via Local Database fallback.`);
-
-    return { success: true, user: newUser };
+    return { success: false, error: "Authentication service unavailable." };
   },
 
   // Perform Social Logins
   async handleSocialLogin(provider: "google" | "apple"): Promise<CribrUser> {
-    if (isRealSupabaseConfigured && supabase) {
+    if (supabase) {
       try {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: provider,
@@ -409,29 +355,12 @@ export const cribrAuth = {
       }
     }
 
-    // Return gorgeous simulated session if OAuth fails or is in preview sandbox
-    const socialUser: CribrUser = {
-      id: `social-${provider}-${Math.random().toString(36).substr(2, 9)}`,
-      email: `${provider.toLowerCase()}.${Math.random().toString(36).substr(2, 5)}@cribr.ai`,
-      fullName: provider === "google" ? "Google Partner" : "Apple Member",
-      phone: "+91 90000 12345",
-      avatarUrl: provider === "google" 
-        ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80"
-        : "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
-      createdAt: new Date().toISOString()
-    };
-
-    const users = localDb.getUsers();
-    localDb.saveUsers([...users, socialUser]);
-    localDb.setActiveSession(socialUser);
-    cribrAuditLogs.insertLog("USER_LOGIN_SUCCESS", `User ${socialUser.email} successfully authenticated via OAuth (${provider}).`);
-
-    return socialUser;
+    throw new Error("Authentication service unavailable.");
   },
 
   // Password reset implementation
   async sendPasswordResetEmail(email: string): Promise<{ success: boolean; error?: string }> {
-    if (isRealSupabaseConfigured && supabase) {
+    if (supabase) {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`
       });
@@ -439,20 +368,16 @@ export const cribrAuth = {
       cribrAuditLogs.insertLog("USER_PASSWORD_RESET_REQUEST", `Password reset link requested for ${email}.`);
       return { success: true };
     }
-    cribrAuditLogs.insertLog("USER_PASSWORD_RESET_REQUEST", `Password reset link requested (simulated) for ${email}.`);
-    return { success: true }; // simulated success
+    return { success: false, error: "Authentication service unavailable." };
   },
 
   // Sign out session
   async signOut(): Promise<void> {
-    const activeUser = localDb.getActiveSession();
-    if (isRealSupabaseConfigured && supabase) {
+    if (supabase) {
       await supabase.auth.signOut();
     }
     localDb.setActiveSession(null);
-    if (activeUser) {
-      cribrAuditLogs.insertLog("USER_LOGOUT", `User ${activeUser.email} signed out securely.`);
-    }
+    cribrAuditLogs.insertLog("USER_LOGOUT", `User session terminated.`);
   },
 
   getCurrentUser(): CribrUser | null {

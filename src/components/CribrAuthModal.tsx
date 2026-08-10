@@ -376,11 +376,6 @@ export default function CribrAuthModal({ onClose, onSuccess }: CribrAuthModalPro
                   )}
                 </button>
               </form>
-
-              {/* Demo Account Indicator */}
-              <div className="mt-8 text-center p-3 rounded-2xl bg-indigo-50/50 border border-indigo-100/30 text-[12px] text-indigo-700 font-medium">
-                Tip: Enter any password to check out the platform.
-              </div>
             </motion.div>
           )}
 
