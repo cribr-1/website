@@ -25,19 +25,68 @@ export interface UsePropertySearchResult {
  */
 function matchesSearchQuery(p: WhitelistedProject, query: string): boolean {
   if (!query) return true;
-  const q = query.toLowerCase();
-  return [
-    p.projectName,
-    p.builder,
-    p.locality,
-    p.area,
-    p.unitTypes,
-    p.reraNumber,
-    p.builderGrade,
-    p.googleReviewSummary,
-  ]
-    .filter(Boolean)
-    .some((val) => val.toLowerCase().includes(q));
+  const q = query.toLowerCase().trim();
+  
+  // Basic exact substring match (fast path)
+  const basicMatch = [
+    p.projectName, p.builder, p.locality, p.area, p.unitTypes, p.reraNumber, p.builderGrade
+  ].filter(Boolean).some((val) => val.toLowerCase().includes(q));
+  if (basicMatch) return true;
+
+  // Complex multi-word heuristic fallback (e.g., "3 bhk in bangalore under 1.5cr")
+  const bhkMatch = q.match(/(\d)\s*bhk/);
+  const requestedBhk = bhkMatch ? bhkMatch[1] : null;
+
+  const crMatch = q.match(/(\d+(?:\.\d+)?)\s*cr/);
+  const requestedCr = crMatch ? parseFloat(crMatch[1]) : null;
+  
+  const lakhMatch = q.match(/(\d+(?:\.\d+)?)\s*lakh/);
+  const requestedLakh = lakhMatch ? parseFloat(lakhMatch[1]) : null;
+
+  const noiseWords = ['in', 'at', 'near', 'under', 'for', 'bhk', 'cr', 'lakhs', 'lakh', 'budget'];
+  const terms = q.split(/\s+/).filter(t => !noiseWords.includes(t) && isNaN(Number(t)));
+
+  let matches = true;
+
+  // Verify Unit Type
+  if (requestedBhk && p.unitTypes) {
+    if (!p.unitTypes.replace(/\s/g, '').toLowerCase().includes(`${requestedBhk}bhk`)) {
+      matches = false;
+    }
+  }
+
+  // Verify Budget (Assumes "under X")
+  if (matches && (requestedCr || requestedLakh) && p.minPrice) {
+    const minStr = p.minPrice.toLowerCase();
+    const isCrore = minStr.includes('cr');
+    const isLakh = minStr.includes('lakh');
+    const val = parseFloat(minStr.replace(/[^0-9.]/g, ""));
+    
+    let dbPriceInCr = 999;
+    if (isCrore && !isNaN(val)) dbPriceInCr = val;
+    if (isLakh && !isNaN(val)) dbPriceInCr = val / 100;
+
+    let targetPriceInCr = 0;
+    if (requestedCr) targetPriceInCr = requestedCr;
+    if (requestedLakh) targetPriceInCr = requestedLakh / 100;
+
+    if (targetPriceInCr > 0 && dbPriceInCr > targetPriceInCr) {
+      matches = false; // Project minimum price is higher than requested budget
+    }
+  }
+
+  // Verify Text Keywords (locality, builder, name, area)
+  if (matches && terms.length > 0) {
+    const projectText = [p.projectName, p.builder, p.locality, p.area].filter(Boolean).join(" ").toLowerCase();
+    for (const term of terms) {
+      if (!projectText.includes(term)) {
+        matches = false;
+        break;
+      }
+    }
+  }
+
+  return matches;
 }
 
 /**
