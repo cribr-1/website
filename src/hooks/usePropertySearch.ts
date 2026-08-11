@@ -79,9 +79,9 @@ function matchesSearchQuery(p: WhitelistedProject, query: string): boolean {
 
   if (matches && terms.length > 0) {
     const projectText = [p.projectName, p.builder, p.locality, p.area].filter(Boolean).join(" ").toLowerCase();
-    // At least one keyword must match (relaxed: OR instead of AND)
-    const anyTermMatches = terms.some(term => projectText.includes(term));
-    if (!anyTermMatches) {
+    // All non-noise keywords must match (strict: AND)
+    const allTermsMatch = terms.every(term => projectText.includes(term));
+    if (!allTermsMatch) {
       matches = false;
     }
   }
@@ -277,17 +277,23 @@ export function usePropertySearch(searchQuery?: string): UsePropertySearchResult
   const { filteredProjects, isSuggestionMode } = useMemo(() => {
     const q = searchQuery?.trim() || "";
 
-    // If AI returned results, use them (apply category filter on top)
-    if (aiResults !== null && aiResults.length > 0) {
+    // 1. If AI ran and returned an array (even empty), we trust the AI results over client fallback.
+    if (aiResults !== null) {
+      if (aiResults.length === 0) {
+        // AI found no exact matches → suggestion mode
+        return { filteredProjects: [], isSuggestionMode: true };
+      }
+      
       const categoryFiltered = aiResults.filter(p => matchesCategory(p, selectedCategory));
       if (categoryFiltered.length > 0) {
         return { filteredProjects: categoryFiltered, isSuggestionMode: false };
       }
-      // AI had results but category filter killed them → show AI results without category
-      return { filteredProjects: aiResults, isSuggestionMode: false };
+      // AI had results but category filter killed them → show AI results without category as suggestion?
+      // Actually, if category filter kills it, it's 0 matches for this category. Suggestion mode!
+      return { filteredProjects: [], isSuggestionMode: true };
     }
 
-    // Client-side filtering (for simple queries or AI fallback)
+    // 2. Client-side filtering (for simple queries, or if AI failed/returned null)
     const clientFiltered = projects.filter((p) => {
       return matchesCategory(p, selectedCategory) && matchesSearchQuery(p, q);
     });
@@ -296,11 +302,12 @@ export function usePropertySearch(searchQuery?: string): UsePropertySearchResult
       return { filteredProjects: clientFiltered, isSuggestionMode: false };
     }
 
-    // Zero results → suggestion mode (show all projects)
+    // Zero results from client → suggestion mode
     if (q && projects.length > 0) {
       return { filteredProjects: [], isSuggestionMode: true };
     }
 
+    // Default (no query) → show all
     return { filteredProjects: projects, isSuggestionMode: false };
   }, [projects, aiResults, searchQuery, selectedCategory]);
 
