@@ -45,10 +45,12 @@ export default function PropertyExplorer({
     projects,
     filteredProjects: filteredProperties,
     isLoading,
+    isSearching,
     error,
     refresh: refreshProperties,
     selectedCategory,
     setSelectedCategory,
+    isSuggestionMode,
   } = usePropertySearch(searchQuery);
 
   const categories = ["All", "Luxury", "Affordable", "Ready to Move", "Investment"];
@@ -111,7 +113,7 @@ export default function PropertyExplorer({
           </div>
         </div>
 
-        {/* Property Cards Grid or Empty State */}
+        {/* Property Cards Grid or Suggestion Fallback */}
         {projects.length === 0 ? (
           <div className="bg-white rounded-[24px] border border-neutral-200/80 p-12 text-center space-y-4 shadow-xs max-w-xl mx-auto">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
@@ -133,27 +135,55 @@ export default function PropertyExplorer({
               <span>Refresh</span>
             </button>
           </div>
-        ) : filteredProperties.length === 0 ? (
-          <div className="bg-white rounded-[24px] border border-neutral-200/80 p-12 text-center space-y-2 max-w-md mx-auto">
-            <h4 className="text-lg font-display font-bold text-neutral-950">
-              No matching properties found.
-            </h4>
-            <p className="text-xs text-neutral-500">
-              Try switching your category filter or search query.
-            </p>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProperties.map((property, idx) => (
-              <PropertyCard
-                key={property.id}
-                property={property}
-                idx={idx}
-                onAnalyze={onAnalyze}
-                onSelectProperty={onSelectProperty}
-              />
-            ))}
-          </div>
+          <>
+            {/* AI Searching indicator */}
+            {isSearching && searchQuery && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mb-8 flex items-center justify-center gap-3 py-4"
+              >
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm font-medium text-blue-600">
+                  AI is analyzing your query...
+                </span>
+              </motion.div>
+            )}
+
+            {/* Friendly suggestion banner when no exact matches */}
+            {isSuggestionMode && searchQuery && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="mb-10 bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/40 rounded-[20px] border border-blue-100/80 p-6 md:p-8 text-center max-w-2xl mx-auto"
+              >
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-blue-600" />
+                  <h4 className="text-base font-display font-bold text-neutral-900">
+                    No exact matches for "{searchQuery}"
+                  </h4>
+                </div>
+                <p className="text-sm text-neutral-500 leading-relaxed">
+                  We couldn't find properties matching your exact criteria, but here are some verified projects you might like.
+                </p>
+              </motion.div>
+            )}
+
+            {/* Show filtered results, or ALL projects as suggestions when in suggestion mode */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {(filteredProperties.length > 0 ? filteredProperties : projects).map((property, idx) => (
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  idx={idx}
+                  onAnalyze={onAnalyze}
+                  onSelectProperty={onSelectProperty}
+                />
+              ))}
+            </div>
+          </>
         )}
 
         {/* Phase 2 - Result Set Grounded AI Assistant */}

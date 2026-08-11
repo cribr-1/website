@@ -147,10 +147,12 @@ export default function CribrMobileHome({
     projects: propertiesList,
     filteredProjects: filteredRankedProperties,
     isLoading: propertiesLoading,
+    isSearching,
     error: propertiesError,
     refresh: refreshProperties,
     selectedCategory,
     setSelectedCategory,
+    isSuggestionMode,
   } = usePropertySearch(searchQuery);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -624,17 +626,38 @@ export default function CribrMobileHome({
                         <span>Refresh</span>
                       </button>
                     </div>
-                  ) : filteredRankedProperties.length === 0 ? (
-                    <div className="bg-white rounded-[24px] border border-neutral-200/80 p-8 text-center space-y-2">
-                      <h4 className="text-base font-display font-bold text-neutral-950">
-                        No matching properties found.
-                      </h4>
-                      <p className="text-xs text-neutral-500">
-                        Try adjusting your search query or clear filters.
-                      </p>
-                    </div>
                   ) : (
-                    filteredRankedProperties.map((prop, idx) => {
+                    <>
+                      {/* AI Searching indicator */}
+                      {isSearching && searchQuery && (
+                        <div className="flex items-center justify-center gap-2 py-4">
+                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs font-medium text-blue-600">
+                            AI is analyzing your query...
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Friendly suggestion banner when no exact matches */}
+                      {isSuggestionMode && searchQuery && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/40 rounded-2xl border border-blue-100/80 p-5 text-center"
+                        >
+                          <div className="flex items-center justify-center gap-1.5 mb-1">
+                            <Sparkles className="w-4 h-4 text-blue-600" />
+                            <h4 className="text-sm font-display font-bold text-neutral-900">
+                              No exact matches for "{searchQuery}"
+                            </h4>
+                          </div>
+                          <p className="text-xs text-neutral-500 leading-relaxed">
+                            Here are some verified projects you might like.
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {(filteredRankedProperties.length > 0 ? filteredRankedProperties : propertiesList).map((prop, idx) => {
                       const p = prop;
                       return (
                         <motion.div
@@ -765,7 +788,9 @@ export default function CribrMobileHome({
                           </div>
                         </motion.div>
                       );
-                    }))}
+                    })}
+                    </>
+                   )}
                 </div>
               </section>
 
