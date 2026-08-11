@@ -207,8 +207,17 @@ export class ProjectService {
       } catch (err) {
         console.error("[ProjectService] Fuzzy search exception:", err);
       }
+      
+      // If a search was attempted but nothing was found, explicitly return empty array.
+      // Do NOT fall back to returning all projects, otherwise the frontend won't know it was a 0-result search.
+      return [];
     }
 
+    if (hasIntentFilters) {
+      return [];
+    }
+
+    // Only return all projects if there was absolutely no search criteria provided
     const { data: allProjects } = await this.client.from("projects").select("*").limit(16);
     return allProjects || [];
   }
