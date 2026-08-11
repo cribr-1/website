@@ -33,10 +33,7 @@ export default function Navigation({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems = [
-    { id: "hero", label: "Intelligence" },
-    { id: "explorer", label: "Explore" }
-  ];
+  const navItems: { id: string; label: string }[] = [];
 
   const handleItemClick = (id: string) => {
     onNavigate(id);
@@ -47,11 +44,10 @@ export default function Navigation({
   return (
     <nav
       id="cribr-navigation"
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${
-        isScrolled
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${isScrolled
           ? "py-3 glass-nav apple-shadow-lg scale-[0.99] rounded-b-2xl mt-0"
           : "py-6 bg-transparent border-b border-transparent"
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
         {/* Left: Brand Logo & Badge */}
@@ -71,9 +67,8 @@ export default function Navigation({
               <button
                 key={item.id}
                 onClick={() => handleItemClick(item.id)}
-                className={`text-[15px] font-medium tracking-tight transition-all duration-300 relative py-1 hover:text-apple-text-primary ${
-                  isActive ? "text-apple-text-primary" : "text-apple-text-secondary"
-                }`}
+                className={`text-[15px] font-medium tracking-tight transition-all duration-300 relative py-1 hover:text-apple-text-primary ${isActive ? "text-apple-text-primary" : "text-apple-text-secondary"
+                  }`}
               >
                 {item.label}
                 {isActive && (
@@ -164,7 +159,7 @@ export default function Navigation({
                 {item.label}
               </button>
             ))}
-            
+
             {currentUser ? (
               <button
                 onClick={() => {
