@@ -13,7 +13,6 @@ import {
   Scale,
   Activity,
   Heart,
-  ArrowDown,
   Calendar,
   X,
   Trash2
@@ -76,7 +75,7 @@ export default function App() {
     setCurrentPath("/");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  
+
   // Intelligence Report States
   const [activeReport, setActiveReport] = useState<PropertyReport | null>(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
@@ -104,7 +103,7 @@ export default function App() {
     "Check structural standards and safety score",
     "Run environmental and litigation audit"
   ];
-  
+
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Initialize and Sync Auth Session
@@ -328,12 +327,12 @@ export default function App() {
 
   if (isAdminMode) {
     return (
-      <AdminPanel 
+      <AdminPanel
         onClose={() => {
           window.history.pushState(null, "", "/");
           setIsAdminMode(false);
-        }} 
-        currentUser={currentUser} 
+        }}
+        currentUser={currentUser}
       />
     );
   }
@@ -356,7 +355,7 @@ export default function App() {
           setIsReportLoading={setIsReportLoading}
           onQuerySubmit={handleQuerySubmit}
           onSelectProperty={(prop) => navigateToProperty(prop.id)}
-          onBookVisit={() => {}}
+          onBookVisit={() => { }}
           handleSaveCurrentReport={handleSaveCurrentReport}
           onDownloadReport={() => {
             executeProtectedAction(() => {
@@ -427,7 +426,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-cribr-bg text-apple-text-primary font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900 pb-16">
-      
+
       {/* Dynamic Background Grid Pattern */}
       <div className="absolute inset-x-0 top-0 h-[1000px] bg-[radial-gradient(#0071E3_0.5px,transparent_0.5px)] [background-size:16px_16px] opacity-[0.03] pointer-events-none" />
 
@@ -624,19 +623,6 @@ export default function App() {
               </button>
             ))}
           </motion.div>
-
-          {/* Learn More Scroll Indicator */}
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="pt-16 cursor-pointer"
-            onClick={() => handleNavigate("explorer")}
-          >
-            <p className="text-[11px] font-mono tracking-widest uppercase text-apple-text-secondary leading-none mb-2">
-              Explore Vectors
-            </p>
-            <ArrowDown className="w-4 h-4 text-apple-text-secondary mx-auto" />
-          </motion.div>
         </div>
       </section>
 
@@ -656,13 +642,10 @@ export default function App() {
               <span className="font-display font-black text-xl text-apple-text-primary">
                 CRIBR
               </span>
-              <span className="text-[10px] uppercase font-mono tracking-wider text-apple-text-secondary border border-neutral-200 px-1.5 py-0.5 rounded">
-                Spatial Intelligence
-              </span>
             </div>
           </div>
           <p className="text-[13px] text-apple-text-secondary font-light text-center md:text-right">
-            © 2026 CRIBR Technologies Private Limited. Crafted in Apple Design style.
+            © 2026 CRIBR Technologies Private Limited.
           </p>
         </div>
       </footer>
