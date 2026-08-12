@@ -71,7 +71,7 @@ export default function PropertyExplorer({
               transition={{ duration: 0.4, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
               className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-neutral-950 leading-[1.15]"
             >
-              Verified Property Intelligence.
+              Verified Property
             </motion.h2>
 
             <motion.p
