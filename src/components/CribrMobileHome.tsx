@@ -470,7 +470,7 @@ export default function CribrMobileHome({
                     transition={{ duration: 0.4, delay: 0.05 }}
                     className="text-4xl sm:text-5xl font-display font-black tracking-tight text-neutral-950 leading-[1.08]"
                   >
-                    Search any property with AI
+                    Find the right property
                   </motion.h1>
 
                   <motion.p
