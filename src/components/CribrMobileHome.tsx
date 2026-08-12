@@ -479,7 +479,7 @@ export default function CribrMobileHome({
                     transition={{ duration: 0.4, delay: 0.1 }}
                     className="text-sm sm:text-base text-neutral-500 font-normal leading-relaxed"
                   >
-                    Get instant legal, pricing, construction and risk intelligence before visiting.
+                    Get instant legal, pricing, construction and risk information before visiting.
                   </motion.p>
                 </div>
 
