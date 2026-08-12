@@ -75,7 +75,7 @@ export default function App() {
     setCurrentPath("/");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
+  
   // Intelligence Report States
   const [activeReport, setActiveReport] = useState<PropertyReport | null>(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
@@ -103,7 +103,7 @@ export default function App() {
     "Check structural standards and safety score",
     "Run environmental and litigation audit"
   ];
-
+  
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Initialize and Sync Auth Session
@@ -327,12 +327,12 @@ export default function App() {
 
   if (isAdminMode) {
     return (
-      <AdminPanel
+      <AdminPanel 
         onClose={() => {
           window.history.pushState(null, "", "/");
           setIsAdminMode(false);
-        }}
-        currentUser={currentUser}
+        }} 
+        currentUser={currentUser} 
       />
     );
   }
@@ -355,7 +355,7 @@ export default function App() {
           setIsReportLoading={setIsReportLoading}
           onQuerySubmit={handleQuerySubmit}
           onSelectProperty={(prop) => navigateToProperty(prop.id)}
-          onBookVisit={() => { }}
+          onBookVisit={() => {}}
           handleSaveCurrentReport={handleSaveCurrentReport}
           onDownloadReport={() => {
             executeProtectedAction(() => {
@@ -426,7 +426,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-cribr-bg text-apple-text-primary font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900 pb-16">
-
+      
       {/* Dynamic Background Grid Pattern */}
       <div className="absolute inset-x-0 top-0 h-[1000px] bg-[radial-gradient(#0071E3_0.5px,transparent_0.5px)] [background-size:16px_16px] opacity-[0.03] pointer-events-none" />
 
@@ -466,7 +466,7 @@ export default function App() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg md:text-2xl text-neutral-600 max-w-3xl mx-auto font-normal leading-relaxed tracking-tight"
           >
-            CRIBR analyzes residential developments, title records, community sentiment, pricing trends, and neighborhood intelligence so buyers can make confident decisions.
+            CRIBR analyzes residential developments, title records, community sentiment, pricing trends, and neighborhood information so buyers can make confident decisions.
           </motion.p>
 
           {/* FLOATING SEARCH CAPSULE */}
