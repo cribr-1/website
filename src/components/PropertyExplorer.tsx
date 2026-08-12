@@ -241,19 +241,6 @@ function PropertyCard({ property, idx, onAnalyze, onSelectProperty }: PropertyCa
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
 
-        {/* Top Badges */}
-        <div className="absolute top-3 inset-x-3 flex items-center justify-between">
-          <div className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-mono font-bold shadow-xs">
-            <CheckCircle2 className="w-3 h-3 text-white" />
-            <span>RERA Registered ✓</span>
-          </div>
-
-          <div className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-neutral-900/90 backdrop-blur-md text-amber-300 text-[10px] font-mono font-bold border border-neutral-700/60 shadow-xs">
-            <Star className="w-3 h-3 text-amber-300 fill-amber-300" />
-            <span>{p.googleRating}</span>
-          </div>
-        </div>
-
         {/* Image Overlay Header */}
         <div className="absolute bottom-3 inset-x-3.5 text-white space-y-0.5">
           <div className="text-[11px] font-mono font-bold text-blue-300 uppercase tracking-wider">
