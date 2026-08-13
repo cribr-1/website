@@ -230,9 +230,9 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
     const newUrl = `${window.location.pathname}?${queryString}`;
 
     if (replace) {
-      window.history.replaceState({ cribrApp: true, isAdmin: true, tab: newTab, ...subState }, "", newUrl);
+      window.history.replaceState({ isAdmin: true, tab: newTab, ...subState }, "", newUrl);
     } else {
-      window.history.pushState({ cribrApp: true, isAdmin: true, tab: newTab, ...subState }, "", newUrl);
+      window.history.pushState({ isAdmin: true, tab: newTab, ...subState }, "", newUrl);
     }
   };
 
@@ -3280,7 +3280,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
       <AnimatePresence>
         {(isCreatePropertyOpen || editingProperty) && (
           <AdminCreatePropertyForm
-            initialData={editingProperty as any}
+            initialData={editingProperty}
             isAdminDark={isAdminDark}
             onClose={() => {
               setIsCreatePropertyOpen(false);
