@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useCribrNavigation } from "./hooks/useCribrNavigation";
 import {
   Sparkles,
   Search,
@@ -53,26 +54,16 @@ export default function App() {
   const [selectedDesktopProperty, setSelectedDesktopProperty] = useState<typeof FEATURED_PROPERTIES[0] | null>(null);
 
   // Router state
-  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  const { navigate, goBack, location } = useCribrNavigation();
+  const currentPath = location.pathname;
 
   const navigateToProperty = (propertyIdOrSlug: string) => {
-    const newPath = `/property/${propertyIdOrSlug}`;
-    window.history.pushState(null, "", newPath);
-    setCurrentPath(newPath);
+    navigate(`/property/${propertyIdOrSlug}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const navigateHome = () => {
-    window.history.pushState(null, "", "/");
-    setCurrentPath("/");
+    navigate("/");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   
@@ -312,7 +303,7 @@ export default function App() {
       <>
         <PropertyDetailsPage
           propertyIdOrSlug={propertyIdOrSlug}
-          onBack={navigateHome}
+          onBack={goBack}
           onNavigateProperty={navigateToProperty}
           savedHomes={savedHomes}
           onSaveHome={handleSaveHome}
@@ -325,12 +316,12 @@ export default function App() {
     );
   }
 
-  if (isAdminMode) {
+  const isAdminRoute = currentPath === "/admin" || currentPath.startsWith("/admin");
+  if (isAdminRoute) {
     return (
       <AdminPanel 
         onClose={() => {
-          window.history.pushState(null, "", "/");
-          setIsAdminMode(false);
+          navigate("/");
         }} 
         currentUser={currentUser} 
       />
