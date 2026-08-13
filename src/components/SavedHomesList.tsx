@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { SavedHome } from "../types";
 import { Trash2, Calendar, FileText, ChevronRight, X, Heart, Bell, BellOff } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -14,7 +13,6 @@ interface SavedHomesListProps {
 }
 
 export default function SavedHomesList({ savedHomes, onRemove, onLoadReport, onClose }: SavedHomesListProps) {
-  const navigate = useNavigate();
   const [selectedHomeForAlerts, setSelectedHomeForAlerts] = useState<SavedHome | null>(null);
 
   const getScoreBg = (score: number) => {
@@ -151,7 +149,6 @@ function SavedHomeItem({
   getScoreBg,
   onConfigureAlerts
 }: SavedHomeItemProps) {
-  const navigate = useNavigate();
   const [hasSub, setHasSub] = useState(false);
 
   // Sync internal subscription indicator
@@ -206,7 +203,8 @@ function SavedHomeItem({
         <h4
           onClick={() => {
             const slug = home.id || home.propertyName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            navigate(`/property/${slug}`);
+            window.history.pushState(null, "", `/property/${slug}`);
+            window.dispatchEvent(new Event("popstate"));
             onClose();
           }}
           className="text-[15px] font-display font-bold text-apple-text-primary truncate cursor-pointer hover:text-apple-blue transition-colors duration-200"
