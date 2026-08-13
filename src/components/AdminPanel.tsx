@@ -53,7 +53,9 @@ import {
   List,
   ChevronRight,
   LockKeyhole,
-  Laptop
+  Laptop,
+  Menu,
+  ArrowLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { INTELLIGENCE_MODULES } from "../data";
@@ -207,6 +209,140 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
   const [inventoryViewMode, setInventoryViewMode] = useState<"table" | "grid">("table");
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
   const [quickInspectProperty, setQuickInspectProperty] = useState<AdminProperty | null>(null);
+
+  // Mobile drawer state
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
+  // Helper for URL synchronization & pushState
+  const updateUrlAndNavigate = (
+    newTab: string, 
+    subState?: { id?: string; action?: string; search?: string; status?: string }, 
+    replace = false
+  ) => {
+    const params = new URLSearchParams();
+    params.set("tab", newTab);
+    if (subState?.id) params.set("id", subState.id);
+    if (subState?.action) params.set("action", subState.action);
+    if (subState?.search) params.set("search", subState.search);
+    if (subState?.status && subState.status !== "all") params.set("status", subState.status);
+
+    const queryString = params.toString();
+    const newUrl = `${window.location.pathname}?${queryString}`;
+
+    if (replace) {
+      window.history.replaceState({ cribrApp: true, isAdmin: true, tab: newTab, ...subState }, "", newUrl);
+    } else {
+      window.history.pushState({ cribrApp: true, isAdmin: true, tab: newTab, ...subState }, "", newUrl);
+    }
+  };
+
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(tabId);
+    setQuickInspectProperty(null);
+    setEditingProperty(null);
+    setSelectedUser(null);
+    setEditingBuilder(null);
+    setEditingLocality(null);
+    setIsCreatePropertyOpen(false);
+    setIsCreateLocalityOpen(false);
+    setIsMobileDrawerOpen(false); // Close drawer without creating extra history!
+
+    updateUrlAndNavigate(tabId);
+  };
+
+  const handleInspectProperty = (prop: AdminProperty) => {
+    setQuickInspectProperty(prop);
+    updateUrlAndNavigate(activeTab, { id: prop.id, action: "inspect", search: inventorySearch, status: inventoryStatusFilter });
+  };
+
+  const handleEditProperty = (prop: AdminProperty) => {
+    setEditingProperty(prop);
+    updateUrlAndNavigate(activeTab, { id: prop.id, action: "edit", search: inventorySearch, status: inventoryStatusFilter });
+  };
+
+  const handleInspectUser = (user: CribrUser) => {
+    setSelectedUser(user);
+    updateUrlAndNavigate(activeTab, { id: user.id, action: "user" });
+  };
+
+  const handleEditBuilder = (builder: Builder) => {
+    setEditingBuilder(builder);
+    updateUrlAndNavigate(activeTab, { id: builder.id, action: "edit" });
+  };
+
+  const handleEditLocality = (locality: Locality) => {
+    setEditingLocality(locality);
+    updateUrlAndNavigate(activeTab, { id: locality.id, action: "edit" });
+  };
+
+  const handleGoBack = () => {
+    if (quickInspectProperty || editingProperty || selectedUser || editingBuilder || editingLocality || isCreatePropertyOpen || isCreateLocalityOpen) {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        setQuickInspectProperty(null);
+        setEditingProperty(null);
+        setSelectedUser(null);
+        setEditingBuilder(null);
+        setEditingLocality(null);
+        setIsCreatePropertyOpen(false);
+        setIsCreateLocalityOpen(false);
+        updateUrlAndNavigate(activeTab, { search: inventorySearch, status: inventoryStatusFilter }, true);
+      }
+    } else if (activeTab !== "dashboard") {
+      handleTabClick("dashboard");
+    } else {
+      onClose();
+    }
+  };
+
+  // Sync state from URL on load and popstate
+  useEffect(() => {
+    const syncFromUrl = () => {
+      if (!window.location.pathname.startsWith("/admin")) return;
+
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab") || "dashboard";
+      const id = params.get("id");
+      const action = params.get("action");
+      const search = params.get("search");
+      const status = params.get("status");
+
+      setActiveTab(tab);
+      if (search !== null) setInventorySearch(search);
+      if (status !== null) setInventoryStatusFilter((status as any) || "all");
+
+      if (id) {
+        if (action === "inspect" || action === "view") {
+          const found = propertiesList.find(p => p.id === id);
+          if (found) setQuickInspectProperty(found);
+        } else if (action === "edit") {
+          const foundProp = propertiesList.find(p => p.id === id);
+          if (foundProp) setEditingProperty(foundProp);
+          const foundBuilder = buildersList.find(b => b.id === id);
+          if (foundBuilder) setEditingBuilder(foundBuilder);
+          const foundLoc = localitiesList.find(l => l.id === id);
+          if (foundLoc) setEditingLocality(foundLoc);
+        } else if (action === "user") {
+          const foundUser = usersList.find(u => u.id === id);
+          if (foundUser) setSelectedUser(foundUser);
+        }
+      } else {
+        setQuickInspectProperty(null);
+        setEditingProperty(null);
+        setSelectedUser(null);
+        setEditingBuilder(null);
+        setEditingLocality(null);
+        setIsCreatePropertyOpen(false);
+        setIsCreateLocalityOpen(false);
+      }
+    };
+
+    syncFromUrl();
+
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [propertiesList, usersList, buildersList, localitiesList]);
 
   // Version History tracker for properties
   const [versionHistory, setVersionHistory] = useState<Record<string, any[]>>({});
@@ -817,7 +953,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
 
   // Command Palette matching handler
   const handleCommandClick = (tab: string, searchVal?: string) => {
-    setActiveTab(tab);
+    handleTabClick(tab);
     if (searchVal) setGlobalSearch(searchVal);
     setShowCommandPalette(false);
   };
@@ -945,8 +1081,127 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
   return (
     <div className={`fixed inset-0 z-[200] flex overflow-hidden font-sans select-none ${isAdminDark ? "bg-[#090A0C] text-neutral-100" : "bg-[#F4F6F9] text-[#1D1E20]"}`}>
       
-      {/* 1. ENTERPRISE SIDEBAR */}
-      <aside className={`w-[260px] flex flex-col justify-between border-r shrink-0 z-30 transition-colors duration-300 ${isAdminDark ? "bg-[#0E1013] border-neutral-800" : "bg-white border-neutral-200"}`}>
+      {/* MOBILE DRAWER BACKDROP & SLIDE-IN SIDEBAR */}
+      <AnimatePresence>
+        {isMobileDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileDrawerOpen(false)}
+              className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-40 md:hidden"
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className={`fixed inset-y-0 left-0 z-50 w-72 flex flex-col justify-between border-r md:hidden shadow-2xl ${
+                isAdminDark ? "bg-[#0E1013] border-neutral-800 text-neutral-100" : "bg-white border-neutral-200 text-neutral-900"
+              }`}
+            >
+              <div className="p-5 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-4 border-b border-neutral-100/10 mb-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="font-display font-black tracking-tighter text-lg block leading-none text-indigo-600">
+                          CRIBR
+                        </span>
+                        <span className="text-[9px] font-mono uppercase font-bold text-neutral-400 block mt-0.5">
+                          Admin Terminal
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsMobileDrawerOpen(false)}
+                      className="p-2 hover:bg-neutral-500/10 rounded-xl"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <nav className="space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto pr-1 scrollbar-thin">
+                    <span className="px-3 text-[10px] font-mono tracking-widest uppercase text-neutral-400 font-black block mb-2">
+                      Operations Matrix
+                    </span>
+                    {[
+                      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+                      { id: "search_intelligence", label: "Search Intelligence", icon: Search },
+                      { id: "enquiries", label: "Leads & Enquiries", icon: Phone },
+                      { id: "properties", label: "Properties", icon: Building },
+                      { id: "projects", label: "Projects", icon: FolderOpen },
+                      { id: "bookings", label: "Bookings", icon: Calendar },
+                      { id: "users", label: "Users & Roles", icon: Users },
+                      { id: "localities", label: "Localities", icon: MapPin },
+                      { id: "reviews", label: "Reviews", icon: MessageSquare },
+                      { id: "notifications", label: "Notifications", icon: Bell },
+                      { id: "documents", label: "Documents Vault", icon: FileText },
+                      { id: "media", label: "Media Library", icon: ImageIcon },
+                      { id: "logs", label: "Audit Logs", icon: History }
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleTabClick(item.id)}
+                          className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold transition-all ${
+                            isActive
+                              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                              : isAdminDark
+                                ? "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                                : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <Icon className="w-4 h-4" />
+                            <span>{item.label}</span>
+                          </div>
+                          {item.id === "notifications" && notifications.filter(n => n.unread).length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full">
+                              {notifications.filter(n => n.unread).length}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </div>
+
+                <div className="pt-4 border-t border-neutral-100/10 space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <button 
+                      onClick={() => setIsAdminDark(!isAdminDark)}
+                      className="text-xs font-semibold text-neutral-400 flex items-center space-x-1.5"
+                    >
+                      {isAdminDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+                      <span>{isAdminDark ? "Light Mode" : "Dark Mode"}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem("cribr_admin_logged_in");
+                        setIsLoggedInAsAdmin(false);
+                        logAdminAction("ADMIN_LOGOUT", "Administrative session revoked manually");
+                      }}
+                      className="text-xs font-bold text-red-400 hover:text-red-500"
+                    >
+                      Log Out
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* 1. ENTERPRISE SIDEBAR (DESKTOP) */}
+      <aside className={`hidden md:flex w-[260px] flex-col justify-between border-r shrink-0 z-30 transition-colors duration-300 ${isAdminDark ? "bg-[#0E1013] border-neutral-800" : "bg-white border-neutral-200"}`}>
         
         {/* Sidebar Header */}
         <div className="p-6">
@@ -1025,7 +1280,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleTabClick(item.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-left text-[13px] font-medium transition-all ${
                   isActive
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
@@ -1084,14 +1339,37 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
       <main className="flex-grow flex flex-col overflow-hidden z-10">
         
         {/* TOP STATUS BAR */}
-        <header className={`h-16 border-b flex items-center justify-between px-8 z-20 ${isAdminDark ? "bg-[#0E1013] border-neutral-800" : "bg-white border-neutral-200"}`}>
-          <div className="flex items-center space-x-4">
-            <h4 className="text-sm font-display font-extrabold tracking-tight">
+        <header className={`h-16 border-b flex items-center justify-between px-4 md:px-8 z-20 ${isAdminDark ? "bg-[#0E1013] border-neutral-800" : "bg-white border-neutral-200"}`}>
+          <div className="flex items-center space-x-2.5 md:space-x-4">
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className={`p-2 rounded-xl border md:hidden transition-all ${
+                isAdminDark ? "border-neutral-800 bg-neutral-900 text-neutral-200 hover:bg-neutral-800" : "border-neutral-200 bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+              }`}
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Back Button on Mobile/Desktop when inside detail / edit view */}
+            {(quickInspectProperty || editingProperty || selectedUser || editingBuilder || editingLocality || isCreatePropertyOpen || isCreateLocalityOpen || activeTab !== "dashboard") && (
+              <button
+                onClick={handleGoBack}
+                className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 active:scale-95 transition-all shrink-0"
+                title="Go Back"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back</span>
+              </button>
+            )}
+
+            <h4 className="text-xs md:text-sm font-display font-extrabold tracking-tight truncate">
               {activeTab.toUpperCase()} PANEL
             </h4>
             
             {/* Global Search trigger inside Header */}
-            <div className="relative w-72">
+            <div className="relative hidden sm:block w-48 md:w-72">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input
                 type="text"
@@ -1109,7 +1387,16 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
           </div>
 
           {/* Quick System Action controllers */}
-          <div className="flex items-center space-x-3.5">
+          <div className="flex items-center space-x-2 md:space-x-3.5">
+            {/* Theme Switcher Button */}
+            <button 
+              onClick={() => setIsAdminDark(!isAdminDark)}
+              className={`p-2 rounded-xl border transition-all ${isAdminDark ? "border-neutral-800 hover:bg-neutral-800 text-amber-400" : "border-neutral-200 hover:bg-neutral-100 text-neutral-500"}`}
+              title="Switch Appearance Theme"
+            >
+              {isAdminDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {/* Notification Bell with counter */}
             <button
               onClick={() => setShowNotificationDrawer(!showNotificationDrawer)}
@@ -1541,7 +1828,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
                             <td className="p-4 text-right pr-6">
                               <div className="flex items-center justify-end space-x-2">
                                 <button 
-                                  onClick={() => setSelectedUser(user)}
+                                  onClick={() => handleInspectUser(user)}
                                   className="p-1.5 hover:bg-indigo-500/10 rounded-lg text-indigo-500"
                                   title="View User Timeline"
                                 >
@@ -1974,14 +2261,14 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
                                   <td className="p-4 text-right pr-6">
                                     <div className="flex items-center justify-end space-x-1.5">
                                       <button 
-                                        onClick={() => setQuickInspectProperty(prop)}
+                                        onClick={() => handleInspectProperty(prop)}
                                         className="p-1.5 hover:bg-indigo-500/10 rounded-lg text-indigo-500 transition-colors"
                                         title="Quick Inspection Drawer"
                                       >
                                         <Eye className="w-4 h-4" />
                                       </button>
                                       <button 
-                                        onClick={() => setEditingProperty(prop)}
+                                        onClick={() => handleEditProperty(prop)}
                                         className="p-1.5 hover:bg-indigo-500/10 rounded-lg text-indigo-500 transition-colors"
                                         title="Full 17-Section Form Editor"
                                       >
@@ -2101,7 +2388,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
                           {/* Card Footer Action Buttons */}
                           <div className="p-4 bg-neutral-50/5 border-t border-neutral-100/10 flex items-center justify-between gap-2">
                             <button
-                              onClick={() => setQuickInspectProperty(prop)}
+                              onClick={() => handleInspectProperty(prop)}
                               className="px-3 py-2 bg-neutral-200/20 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -2109,7 +2396,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
                             </button>
 
                             <button
-                              onClick={() => setEditingProperty(prop)}
+                              onClick={() => handleEditProperty(prop)}
                               className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -2217,7 +2504,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
                           <ExternalLink className="w-3 h-3" />
                         </a>
                         <button 
-                          onClick={() => setEditingBuilder(builder)}
+                          onClick={() => handleEditBuilder(builder)}
                           className="px-3 py-1 bg-neutral-100 hover:bg-neutral-200/50 rounded-lg font-semibold"
                         >
                           Modify Details
@@ -2470,7 +2757,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
 
                       <div className="pt-3 border-t border-neutral-100/10 text-right">
                         <button 
-                          onClick={() => setEditingLocality(loc)}
+                          onClick={() => handleEditLocality(loc)}
                           className="px-3 py-1 bg-neutral-100 hover:bg-neutral-200/50 rounded-lg text-xs font-semibold"
                         >
                           Modify Parameters
@@ -2993,7 +3280,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
       <AnimatePresence>
         {(isCreatePropertyOpen || editingProperty) && (
           <AdminCreatePropertyForm
-            initialData={editingProperty}
+            initialData={editingProperty as any}
             isAdminDark={isAdminDark}
             onClose={() => {
               setIsCreatePropertyOpen(false);
