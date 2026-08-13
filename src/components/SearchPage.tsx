@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useSearch } from "../../context/SearchContext";
 import { SearchInput } from "./SearchInput";
@@ -10,7 +9,6 @@ import { SearchLoadingAnimation } from "./SearchLoadingAnimation";
 import ResultContextAIAssistant from "./ResultContextAIAssistant";
 
 export const SearchPage: React.FC = () => {
-  const navigate = useNavigate();
   const {
     pageMode,
     setPageMode,
@@ -32,7 +30,8 @@ export const SearchPage: React.FC = () => {
     setPageMode(3);
     const idOrSlug = proj.id || proj.slug || (proj.name ? proj.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '');
     if (idOrSlug) {
-      navigate(`/property/${idOrSlug}`);
+      window.history.pushState(null, "", `/property/${idOrSlug}`);
+      window.dispatchEvent(new Event("popstate"));
     }
   };
 
