@@ -33,6 +33,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { PremiumProperty, PropertyReport, SavedHome } from "../types";
 import { usePropertySearch } from "../hooks/usePropertySearch";
 import { CribrUser } from "../lib/supabase";
+import { useCribrNavigation } from "../hooks/useCribrNavigation";
 import CribrIntelligenceReport from "./CribrIntelligenceReport";
 import PropertyIntelligenceDetailsModal from "./PropertyIntelligenceDetailsModal";
 import CribrMobileChat from "./CribrMobileChat";
@@ -133,7 +134,16 @@ export default function CribrMobileHome({
   onUnlockPremium,
   onSelectProperty
 }: CribrMobileHomeProps) {
-  const [activeTab, setActiveTab] = useState<"home" | "search" | "saved" | "chat" | "profile">("home");
+  const { navigate, goBack, location, searchParams } = useCribrNavigation();
+
+  // Active tab derived cleanly from location.pathname
+  const activeTab: "home" | "search" | "saved" | "chat" | "profile" =
+    location.pathname === "/search" ? "search"
+      : location.pathname === "/chat" ? "chat"
+      : location.pathname === "/saved" ? "saved"
+      : location.pathname === "/profile" ? "profile"
+      : "home";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchingActive, setIsSearchingActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -141,6 +151,40 @@ export default function CribrMobileHome({
   const [voiceText, setVoiceText] = useState("");
   const [statusIndex, setStatusIndex] = useState(0);
   const [selectedPropertyModal, setSelectedPropertyModal] = useState<any | null>(null);
+
+  // Sync search query from URL parameter ?q=
+  const urlQuery = searchParams.get("q") || "";
+  useEffect(() => {
+    if (urlQuery) {
+      setSearchQuery(urlQuery);
+      setIsSearchingActive(true);
+    } else if (location.pathname === "/search") {
+      setIsSearchingActive(true);
+    } else {
+      setIsSearchingActive(false);
+    }
+  }, [urlQuery, location.pathname]);
+
+  // Tab navigation handler
+  const handleTabSelect = (tabId: string) => {
+    if (tabId === "home") {
+      setIsSearchingActive(false);
+      navigate("/");
+    } else if (tabId === "search") {
+      setIsSearchingActive(true);
+      const q = searchQuery.trim() ? `?q=${encodeURIComponent(searchQuery.trim())}` : "";
+      navigate(`/search${q}`);
+    } else if (tabId === "chat") {
+      setIsSearchingActive(false);
+      navigate("/chat");
+    } else if (tabId === "saved") {
+      setIsSearchingActive(false);
+      navigate("/saved");
+    } else if (tabId === "profile") {
+      setIsSearchingActive(false);
+      navigate("/profile");
+    }
+  };
 
   // Shared property loading, search, and filtering hook
   const {
@@ -206,10 +250,10 @@ export default function CribrMobileHome({
   // Execute query handler
   const handleExecuteQuery = async (queryStr: string) => {
     if (!queryStr.trim()) return;
-    setSearchQuery(queryStr);
-    setIsSearchingActive(true); // Keep search UI open to show results
-    setActiveTab("home"); // ensure we are on home tab
-    // We don't need onQuerySubmit here since mobile handles search internally now via ResultContextAIAssistant
+    const trimmed = queryStr.trim();
+    setSearchQuery(trimmed);
+    setIsSearchingActive(true);
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
   // Search filtering is handled by the usePropertySearch hook above.
@@ -229,9 +273,9 @@ export default function CribrMobileHome({
         {/* Left: CRIBR Logo */}
         <div
           onClick={() => {
-            setActiveTab("home");
             setIsSearchingActive(false);
             setActiveReport(null);
+            navigate("/");
           }}
           className="flex items-center space-x-2 cursor-pointer active:scale-95 transition-transform"
         >
@@ -672,8 +716,7 @@ export default function CribrMobileHome({
                             if (onSelectProperty) {
                               onSelectProperty(prop);
                             } else {
-                              window.history.pushState(null, "", `/property/${p.id}`);
-                              window.dispatchEvent(new Event("popstate"));
+                              navigate(`/property/${p.id}`);
                             }
                           }}
                           className="w-full bg-white rounded-[24px] border border-neutral-200/80 overflow-hidden shadow-xs cursor-pointer group hover:border-blue-400 transition-all"
@@ -775,8 +818,7 @@ export default function CribrMobileHome({
                                   if (onSelectProperty) {
                                     onSelectProperty(prop);
                                   } else {
-                                    window.history.pushState(null, "", `/property/${p.id}`);
-                                    window.dispatchEvent(new Event("popstate"));
+                                    navigate(`/property/${p.id}`);
                                   }
                                 }}
                                 className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center space-x-1.5 transition-all shadow-xs active:scale-98 cursor-pointer"
@@ -977,7 +1019,7 @@ export default function CribrMobileHome({
                   <Heart className="w-8 h-8 text-neutral-300 mx-auto" />
                   <p className="text-xs font-medium text-neutral-600">No saved properties yet.</p>
                   <button
-                    onClick={() => setActiveTab("home")}
+                    onClick={() => navigate("/")}
                     className="px-4 py-2 bg-neutral-950 text-white rounded-xl text-xs font-semibold"
                   >
                     Explore Properties
@@ -994,7 +1036,7 @@ export default function CribrMobileHome({
                 onRemoveSaved={onRemoveSaved}
                 onBookVisit={onBookVisit}
                 onBackToHome={() => {
-                  setActiveTab("home");
+                  navigate("/");
                 }}
                 initialQuery={searchQuery}
               />
@@ -1084,13 +1126,7 @@ export default function CribrMobileHome({
           return (
             <button
               key={tab.id}
-              onClick={() => {
-                setIsSearchingActive(false);
-                setActiveTab(tab.id as any);
-                if (tab.id === "search") {
-                  setIsSearchingActive(true);
-                }
-              }}
+              onClick={() => handleTabSelect(tab.id)}
               className="flex flex-col items-center justify-center relative focus:outline-none"
             >
               <div
