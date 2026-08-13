@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useCribrNavigation } from "./hooks/useCribrNavigation";
 import {
   Sparkles,
   Search,
@@ -54,16 +53,28 @@ export default function App() {
   const [selectedDesktopProperty, setSelectedDesktopProperty] = useState<typeof FEATURED_PROPERTIES[0] | null>(null);
 
   // Router state
-  const { navigate, goBack, location } = useCribrNavigation();
-  const currentPath = location.pathname;
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      setCurrentPath(path);
+      setIsAdminMode(path === "/admin" || path.startsWith("/admin"));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const navigateToProperty = (propertyIdOrSlug: string) => {
-    navigate(`/property/${propertyIdOrSlug}`);
+    const newPath = `/property/${propertyIdOrSlug}`;
+    window.history.pushState(null, "", newPath);
+    setCurrentPath(newPath);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const navigateHome = () => {
-    navigate("/");
+    window.history.pushState(null, "", "/");
+    setCurrentPath("/");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   
@@ -303,7 +314,7 @@ export default function App() {
       <>
         <PropertyDetailsPage
           propertyIdOrSlug={propertyIdOrSlug}
-          onBack={goBack}
+          onBack={navigateHome}
           onNavigateProperty={navigateToProperty}
           savedHomes={savedHomes}
           onSaveHome={handleSaveHome}
@@ -316,12 +327,12 @@ export default function App() {
     );
   }
 
-  const isAdminRoute = currentPath === "/admin" || currentPath.startsWith("/admin");
-  if (isAdminRoute) {
+  if (isAdminMode) {
     return (
       <AdminPanel 
         onClose={() => {
-          navigate("/");
+          window.history.pushState(null, "", "/");
+          setIsAdminMode(false);
         }} 
         currentUser={currentUser} 
       />
