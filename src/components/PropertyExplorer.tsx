@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { mapToWhitelistedProject } from "../lib/projectDataMapper";
 import { usePropertySearch } from "../hooks/usePropertySearch";
 import {
@@ -211,13 +210,13 @@ interface PropertyCardProps {
 
 function PropertyCard({ property, idx, onAnalyze, onSelectProperty }: PropertyCardProps) {
   const p = mapToWhitelistedProject(property);
-  const navigate = useNavigate();
 
   const handleOpenDetails = () => {
     if (onSelectProperty) {
       onSelectProperty(property);
     } else {
-      navigate(`/property/${p.id}`);
+      window.history.pushState(null, "", `/property/${p.id}`);
+      window.dispatchEvent(new Event("popstate"));
     }
   };
 
