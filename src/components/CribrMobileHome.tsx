@@ -332,7 +332,7 @@ export default function CribrMobileHome({
 
                 <div className="flex items-center justify-between pt-2.5 px-1">
                   <span className="text-[11px] font-mono text-neutral-400 font-medium">
-                    {filteredRankedProperties.length} Intelligence Results Found
+                    {filteredRankedProperties.length} Information Results Found
                   </span>
                   <button
                     onClick={() => setIsSearchingActive(false)}
@@ -346,7 +346,7 @@ export default function CribrMobileHome({
               {/* RANKED RESULTS LIST */}
               <div className="space-y-4">
                 <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold px-1">
-                  Ranked Intelligence Matrix
+                  Ranked Information Matrix
                 </div>
 
                 {filteredRankedProperties.map((item, idx) => (
@@ -360,15 +360,14 @@ export default function CribrMobileHome({
                     onClick={() => {
                       setSelectedPropertyModal(item);
                     }}
-                    className="bg-white rounded-[24px] p-4 border border-neutral-200/70 shadow-xs flex items-center gap-4 cursor-pointer hover:border-blue-300 transition-all relative overflow-hidden"
+                    className="bg-white rounded-[24px] p-4 border border-neutral-200/70 shadow-xs flex items-center gap-3.5 cursor-pointer hover:border-blue-300 transition-all relative overflow-hidden"
                   >
-                    {/* Rank Badge */}
-                    <div className="absolute top-3 left-3 z-10 px-2 py-0.5 bg-neutral-950 text-white font-mono font-black text-[10px] rounded-lg shadow-2xs">
-                      #{idx + 1}
-                    </div>
-
                     {/* Left Image Thumbnail */}
                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 relative">
+                      {/* Rank Badge safely nested inside image thumbnail */}
+                      <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 bg-neutral-950/90 backdrop-blur-xs text-white font-mono font-black text-[9px] rounded-md shadow-2xs">
+                        #{idx + 1}
+                      </div>
                       <motion.img
                         layoutId={`property-img-${item.id}`}
                         src={item.image}
@@ -384,16 +383,16 @@ export default function CribrMobileHome({
 
                     {/* Content Center */}
                     <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex items-center space-x-1.5">
-                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-mono font-bold rounded-md border border-emerald-200/50 flex items-center">
-                          <Check className="w-3 h-3 mr-0.5 text-emerald-600" /> Verified
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-mono font-bold rounded-md border border-emerald-200/50 flex items-center shrink-0">
+                          <Check className="w-2.5 h-2.5 mr-0.5 text-emerald-600" /> Verified
                         </span>
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-mono font-bold rounded-md border border-blue-200/50">
+                        <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[9px] font-mono font-bold rounded-md border border-blue-200/50 shrink-0 truncate max-w-[110px]">
                           {item.possessionDate}
                         </span>
                       </div>
 
-                      <h4 className="text-base font-bold text-neutral-950 truncate tracking-tight">
+                      <h4 className="text-sm sm:text-base font-bold text-neutral-950 truncate tracking-tight">
                         {item.projectName}
                       </h4>
                       <p className="text-xs text-neutral-500 truncate font-medium">
@@ -405,12 +404,12 @@ export default function CribrMobileHome({
                     </div>
 
                     {/* Score Right */}
-                    <div className="flex flex-col items-end justify-between shrink-0 self-stretch py-1">
-                      <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200/60 flex flex-col items-center justify-center text-center">
+                    <div className="flex flex-col items-end justify-between shrink-0 self-stretch py-0.5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-blue-50 border border-blue-200/60 flex flex-col items-center justify-center text-center">
                         <span className="text-xs font-mono font-black text-blue-700 leading-none">
                           {item.timelineReliabilityRatio}
                         </span>
-                        <span className="text-[8px] font-mono uppercase text-blue-500 font-semibold mt-0.5">
+                        <span className="text-[7px] font-mono uppercase text-blue-500 font-semibold mt-0.5">
                           Score
                         </span>
                       </div>
