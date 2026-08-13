@@ -55,7 +55,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
       <div className="bg-white border border-neutral-200/90 rounded-2xl p-6 md:p-8 shadow-xs space-y-3">
         <div className="flex items-center space-x-2 text-blue-600 text-xs font-bold uppercase tracking-wider font-mono">
           <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
-          <span>CRIBR AI Real Estate Intelligence</span>
+          <span>CRIBR AI Real Estate Information</span>
         </div>
 
         <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-900 tracking-tight">
