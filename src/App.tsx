@@ -30,6 +30,7 @@ import CribrMobileHome from "./components/CribrMobileHome";
 import CribrAiSearchPage from "./components/CribrAiSearchPage";
 import PropertyIntelligenceDetailsModal from "./components/PropertyIntelligenceDetailsModal";
 import PropertyDetailsPage from "./components/PropertyDetailsPage";
+import ErrorBoundary from "./components/Common/ErrorBoundary";
 import { SearchProvider } from "./context/SearchContext";
 import { FEATURED_PROPERTIES } from "./data";
 import { cribrAuth, CribrUser, localDb } from "./lib/supabase";
@@ -302,6 +303,20 @@ export default function App() {
   // Smooth Navigation Link handler
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
+    if (sectionId === "admin") {
+      setIsAdminMode(true);
+      window.history.pushState(null, "", "/admin");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (sectionId === "hero") {
+      if (currentPath !== "/") {
+        navigateHome();
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      return;
+    }
     const target = document.getElementById(sectionId);
     if (target) {
       target.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -311,7 +326,7 @@ export default function App() {
   if (currentPath.startsWith("/property/")) {
     const propertyIdOrSlug = currentPath.replace("/property/", "").split("/")[0] || "";
     return (
-      <>
+      <ErrorBoundary fallbackTitle="Unable to load project details" fallbackMessage="Failed to render property details view. Please return to the homepage or try again.">
         <PropertyDetailsPage
           propertyIdOrSlug={propertyIdOrSlug}
           onBack={navigateHome}
@@ -323,7 +338,7 @@ export default function App() {
           onCompare={(p) => showToast(`Added ${p.name} to comparison matrix`, "info")}
         />
         <CribrToastContainer />
-      </>
+      </ErrorBoundary>
     );
   }
 
