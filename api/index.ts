@@ -1,2 +1,3 @@
+// @ts-ignore
 import app from "../dist/server.cjs";
-export default app.default || app;
+export default (app as any)?.default || app;
