@@ -637,28 +637,35 @@ export default function CribrMobileHome({
                         </div>
                       )}
 
-                      {/* Friendly suggestion banner when no exact matches */}
-                      {isSuggestionMode && searchQuery && (
+                      {/* If a search query is active and returns 0 matching results */}
+                      {searchQuery && filteredRankedProperties.length === 0 ? (
                         <motion.div
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/40 rounded-2xl border border-blue-100/80 p-5 text-center"
+                          className="bg-white rounded-2xl border border-neutral-200/80 p-6 text-center space-y-3 shadow-2xs"
                         >
-                          <div className="flex items-center justify-center gap-1.5 mb-1">
-                            <Sparkles className="w-4 h-4 text-blue-600" />
-                            <h4 className="text-sm font-display font-bold text-neutral-900">
-                              No exact matches for "{searchQuery}"
-                            </h4>
+                          <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto border border-neutral-200">
+                            <Building2 className="w-6 h-6" />
                           </div>
-                          <p className="text-xs text-neutral-500 leading-relaxed">
-                            Here are some verified projects you might like.
-                          </p>
+                          <div className="space-y-1">
+                            <h4 className="text-base font-display font-bold text-neutral-900">
+                              No matching projects found
+                            </h4>
+                            <p className="text-xs text-neutral-500 leading-relaxed">
+                              No verified projects match "{searchQuery}".
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setSearchQuery("")}
+                            className="px-4 py-2 bg-neutral-950 text-white text-xs font-semibold rounded-xl shadow-xs"
+                          >
+                            View all properties
+                          </button>
                         </motion.div>
-                      )}
-
-                      {(filteredRankedProperties.length > 0 ? filteredRankedProperties : propertiesList).map((prop, idx) => {
-                      const p = prop;
-                      return (
+                      ) : (
+                        filteredRankedProperties.map((prop, idx) => {
+                          const p = prop;
+                          return (
                         <motion.div
                           key={p.id}
                           layoutId={`property-card-${p.id}`}
@@ -787,10 +794,11 @@ export default function CribrMobileHome({
                           </div>
                         </motion.div>
                       );
-                    })}
-                    </>
-                   )}
-                </div>
+                    })
+                  )}
+                </>
+              )}
+            </div>
               </section>
 
               {/* 6. TRENDING SEARCHES */}
