@@ -33,7 +33,11 @@ export default function Navigation({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems: { id: string; label: string }[] = [];
+  const navItems = [
+    { id: "hero", label: "Home" },
+    { id: "explorer", label: "Explore Projects" },
+    { id: "admin", label: "Admin Portal" },
+  ];
 
   const handleItemClick = (id: string) => {
     onNavigate(id);
