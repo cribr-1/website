@@ -3280,7 +3280,7 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
       <AnimatePresence>
         {(isCreatePropertyOpen || editingProperty) && (
           <AdminCreatePropertyForm
-            initialData={editingProperty}
+            initialData={editingProperty as any}
             isAdminDark={isAdminDark}
             onClose={() => {
               setIsCreatePropertyOpen(false);
