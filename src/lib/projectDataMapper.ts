@@ -648,4 +648,3 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
     images: Array.isArray(p.images) && p.images.length > 0 ? p.images : [heroImg],
   };
 }
-
