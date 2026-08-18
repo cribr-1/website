@@ -113,7 +113,7 @@ export default function PropertyExplorer({
           </div>
         </div>
 
-        {/* Property Cards Grid or Suggestion Fallback */}
+        {/* Property Cards Grid or Empty Search State */}
         {projects.length === 0 ? (
           <div className="bg-white rounded-[24px] border border-neutral-200/80 p-12 text-center space-y-4 shadow-xs max-w-xl mx-auto">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
@@ -151,38 +151,48 @@ export default function PropertyExplorer({
               </motion.div>
             )}
 
-            {/* Friendly suggestion banner when no exact matches */}
-            {isSuggestionMode && searchQuery && (
+            {/* If a search query is active and returns 0 matching results */}
+            {searchQuery && filteredProperties.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className="mb-10 bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/40 rounded-[20px] border border-blue-100/80 p-6 md:p-8 text-center max-w-2xl mx-auto"
+                className="bg-white rounded-[24px] border border-neutral-200/80 p-12 text-center space-y-4 shadow-xs max-w-xl mx-auto my-8"
               >
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Sparkles className="w-5 h-5 text-blue-600" />
-                  <h4 className="text-base font-display font-bold text-neutral-900">
-                    No exact matches for "{searchQuery}"
-                  </h4>
+                <div className="w-16 h-16 rounded-2xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto border border-neutral-200">
+                  <Building className="w-8 h-8" />
                 </div>
-                <p className="text-sm text-neutral-500 leading-relaxed">
-                  We couldn't find properties matching your exact criteria, but here are some verified projects you might like.
-                </p>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-display font-bold text-neutral-950">
+                    No matching projects found
+                  </h3>
+                  <p className="text-sm text-neutral-500 max-w-sm mx-auto font-normal leading-relaxed">
+                    No verified projects match "{searchQuery}". Try searching for another locality or builder.
+                  </p>
+                </div>
+                {onClearSearch && (
+                  <button
+                    onClick={onClearSearch}
+                    className="px-6 py-2.5 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center space-x-2"
+                  >
+                    <span>View all projects</span>
+                  </button>
+                )}
               </motion.div>
+            ) : (
+              /* Show only genuine matching filtered results */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredProperties.map((property, idx) => (
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    idx={idx}
+                    onAnalyze={onAnalyze}
+                    onSelectProperty={onSelectProperty}
+                  />
+                ))}
+              </div>
             )}
-
-            {/* Show filtered results, or ALL projects as suggestions when in suggestion mode */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {(filteredProperties.length > 0 ? filteredProperties : projects).map((property, idx) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  idx={idx}
-                  onAnalyze={onAnalyze}
-                  onSelectProperty={onSelectProperty}
-                />
-              ))}
-            </div>
           </>
         )}
 
