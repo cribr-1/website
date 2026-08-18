@@ -140,17 +140,23 @@ export class ProjectService {
   async searchProjects(intent: any, originalQuery: string = ""): Promise<any[]> {
     if (!this.client) return [];
 
-    const hasIntentFilters = intent.locality || intent.builderName || intent.maxPriceINR || intent.minPriceINR || intent.minBuilderGrade || intent.unitType;
+    const rawLocality = (intent.locality || "").trim();
+    const rawBuilder = (intent.builderName || "").trim();
+    const rawText = (originalQuery || "").trim();
+
+    const hasIntentFilters = rawLocality || rawBuilder || intent.maxPriceINR || intent.minPriceINR || intent.minBuilderGrade || intent.unitType;
 
     if (hasIntentFilters) {
       try {
         let dbQuery = this.client.from("projects").select("*");
 
-        if (intent.locality) {
-          dbQuery = dbQuery.ilike("locality", `%${intent.locality}%`);
+        if (rawLocality) {
+          // Normalize locality: extract core keyword if e.g. "Sarjapur Road" -> "sarjapur"
+          const cleanLoc = rawLocality.toLowerCase().replace(/road|junction|hub|east|west|north|south|extension/gi, "").trim() || rawLocality;
+          dbQuery = dbQuery.or(`locality.ilike.%${rawLocality}%,location.ilike.%${rawLocality}%,city.ilike.%${rawLocality}%,locality.ilike.%${cleanLoc}%,location.ilike.%${cleanLoc}%`);
         }
-        if (intent.builderName) {
-          dbQuery = dbQuery.ilike("builder_name", `%${intent.builderName}%`);
+        if (rawBuilder) {
+          dbQuery = dbQuery.or(`builder_name.ilike.%${rawBuilder}%,name.ilike.%${rawBuilder}%`);
         }
         if (intent.maxPriceINR && intent.maxPriceINR > 0) {
           dbQuery = dbQuery.lte("min_price", intent.maxPriceINR);
@@ -161,7 +167,7 @@ export class ProjectService {
 
         const { data, error } = await dbQuery.limit(50);
 
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
           let filtered = data;
           if (intent.unitType && filtered.length > 0) {
             filtered = filtered.filter((p: any) => {
@@ -184,20 +190,31 @@ export class ProjectService {
       }
     }
 
-    const rawText = originalQuery.trim();
     if (rawText) {
       try {
-        const { data: nameHits } = await this.client.from("projects").select("*").ilike("name", `%${rawText}%`).limit(10);
-        const { data: builderHits } = await this.client.from("projects").select("*").ilike("builder_name", `%${rawText}%`).limit(10);
-        const { data: localityHits } = await this.client.from("projects").select("*").ilike("locality", `%${rawText}%`).limit(10);
-        const { data: reraHits } = await this.client.from("projects").select("*").ilike("rera_number", `%${rawText}%`).limit(10);
+        const terms = rawText
+          .split(/[\s,]+/)
+          .map((t) => t.trim())
+          .filter((t) => t.length > 1);
 
+        const queries = [rawText, ...terms];
         const seen = new Set<string>();
         const combined: any[] = [];
-        for (const row of [...(nameHits || []), ...(builderHits || []), ...(localityHits || []), ...(reraHits || [])]) {
-          if (!seen.has(row.id)) {
-            seen.add(row.id);
-            combined.push(row);
+
+        for (const q of queries) {
+          const { data: hits } = await this.client
+            .from("projects")
+            .select("*")
+            .or(`name.ilike.%${q}%,builder_name.ilike.%${q}%,locality.ilike.%${q}%,location.ilike.%${q}%,rera_number.ilike.%${q}%`)
+            .limit(15);
+
+          if (hits) {
+            for (const row of hits) {
+              if (!seen.has(row.id)) {
+                seen.add(row.id);
+                combined.push(row);
+              }
+            }
           }
         }
 
@@ -209,7 +226,6 @@ export class ProjectService {
       }
       
       // If a search was attempted but nothing was found, explicitly return empty array.
-      // Do NOT fall back to returning all projects, otherwise the frontend won't know it was a 0-result search.
       return [];
     }
 
