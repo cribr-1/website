@@ -1,6 +1,6 @@
 {
-  "name": "Remix CRIBR",
-  "description": "India\u0027s first AI-powered Property Intelligence Platform, providing deep insights into builders, legal compliance, neighborhood sentiment, and market trends.",
+  "name": "CRIBR",
+  "description": "Real estate intelligence and verified residential discovery platform",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
