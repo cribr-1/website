@@ -36,7 +36,6 @@ export default function Navigation({
   const navItems = [
     { id: "hero", label: "Home" },
     { id: "explorer", label: "Explore Projects" },
-    { id: "admin", label: "Admin Portal" },
   ];
 
   const handleItemClick = (id: string) => {
