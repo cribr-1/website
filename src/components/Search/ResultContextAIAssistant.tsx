@@ -10,7 +10,7 @@ interface ResultContextAIAssistantProps {
   onSelectProperty?: (property: any) => void;
 }
 
-export default function ResultContextAIAssistant({
+function ResultContextAIAssistant({
   searchQuery,
   activeFilters = {},
   currentProjects,
@@ -185,3 +185,5 @@ export default function ResultContextAIAssistant({
     </div>
   );
 }
+
+export default React.memo(ResultContextAIAssistant);
