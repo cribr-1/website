@@ -48,7 +48,7 @@ export default function ProjectAIAssistant({ project }: ProjectAIAssistantProps)
           </div>
           <div>
             <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-              AI Project Advisor
+              Project Advisor
               <span className="text-[10px] uppercase font-mono tracking-wider bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">
                 Grounded Facts
               </span>
@@ -143,7 +143,7 @@ export default function ProjectAIAssistant({ project }: ProjectAIAssistantProps)
           >
             <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5 mb-2">
               <span className="text-xs font-semibold text-blue-600 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" /> AI Verified Analysis
+                <Sparkles className="w-4 h-4" /> Verified Analysis
               </span>
               <span className="text-[10px] text-neutral-500 font-mono">
                 {project.name} Factsheet
