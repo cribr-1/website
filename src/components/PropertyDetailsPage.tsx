@@ -42,8 +42,6 @@ export default function PropertyDetailsPage({
   onSaveProperty,
   isSaved = false
 }: PropertyDetailsPageProps) {
-  const [loading, setLoading] = useState(true);
-
   // Find matching property dynamically
   const allProperties = getFeaturedProperties();
   const normalizedSlug = propertyIdOrSlug.toLowerCase().trim();
@@ -58,43 +56,9 @@ export default function PropertyDetailsPage({
         p.name.toLowerCase() === normalizedSlug.replace(/-/g, " ")
     ) || allProperties[0];
 
-  // Loading skeleton effect
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 250);
-    return () => clearTimeout(timer);
+    window.scrollTo(0, 0);
   }, [propertyIdOrSlug]);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [propertyIdOrSlug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FAFAFC] font-sans text-neutral-900 pb-20">
-        <div className="h-[380px] w-full bg-neutral-900 animate-pulse relative">
-          <div className="absolute top-6 left-6 w-10 h-10 rounded-full bg-neutral-800" />
-          <div className="absolute bottom-6 left-6 space-y-2">
-            <div className="w-32 h-4 bg-neutral-800 rounded-md" />
-            <div className="w-64 h-8 bg-neutral-800 rounded-lg" />
-            <div className="w-48 h-4 bg-neutral-800 rounded-md" />
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
-          <div className="h-64 bg-white rounded-[28px] border border-neutral-200 p-6 animate-pulse space-y-4">
-            <div className="w-48 h-6 bg-neutral-200 rounded-md" />
-            <div className="grid grid-cols-2 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-8 bg-neutral-100 rounded-lg" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (!rawProperty) {
     return (
