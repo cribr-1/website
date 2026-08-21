@@ -48,38 +48,38 @@ function ResultContextAIAssistant({
   }
 
   return (
-    <div className="mt-12 bg-gradient-to-br from-blue-900/5 via-neutral-900 to-blue-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-blue-800/30 font-sans relative overflow-hidden">
-      {/* Background Subtle Glow */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="mt-12 bg-white text-neutral-900 rounded-3xl p-6 sm:p-8 shadow-xs border border-neutral-200/90 font-sans relative overflow-hidden">
+      {/* Background Subtle Gradient */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50/50 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative z-10">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              Result-Set AI Assistant
-              <span className="text-[10px] uppercase font-mono tracking-wider bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-full">
+            <h3 className="text-lg font-bold text-neutral-950 flex items-center gap-2">
+              Result-Set Assistant
+              <span className="text-[10px] uppercase font-mono tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-semibold">
                 Grounded in Database
               </span>
             </h3>
-            <p className="text-xs text-neutral-400 mt-0.5">
+            <p className="text-xs text-neutral-500 mt-0.5">
               Answering questions strictly about these {currentProjects.length} active property matches
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs text-neutral-400 bg-neutral-800/80 px-3 py-1.5 rounded-full border border-neutral-700/50">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+        <div className="flex items-center space-x-2 text-xs text-neutral-600 bg-neutral-50 px-3 py-1.5 rounded-full border border-neutral-200/80">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
           <span>Zero Hallucination Policy</span>
         </div>
       </div>
 
       {/* Quick Prompt Chips */}
       <div className="mb-6 relative z-10">
-        <p className="text-xs font-semibold text-neutral-300 mb-2 uppercase tracking-wider">
+        <p className="text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">
           Suggested Comparison Prompts:
         </p>
         <div className="flex flex-wrap gap-2">
@@ -96,11 +96,11 @@ function ResultContextAIAssistant({
                 disabled={loading}
                 className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer border ${
                   isSelected
-                    ? "bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-500/20"
-                    : "bg-neutral-800/90 text-neutral-200 border-neutral-700/70 hover:bg-neutral-700 hover:border-neutral-600"
+                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                    : "bg-neutral-50 text-neutral-700 border-neutral-200/80 hover:bg-neutral-100 hover:border-neutral-300"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5 text-blue-400" />
+                <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-blue-600"}`} />
                 <span>{chip.label}</span>
               </button>
             );
@@ -121,15 +121,15 @@ function ResultContextAIAssistant({
           value={userQuestion}
           onChange={(e) => setUserQuestion(e.target.value)}
           placeholder="Ask anything about these search results (e.g. Which project is safer?)"
-          className="flex-1 bg-neutral-800/90 border border-neutral-700/80 rounded-2xl px-4 py-3 text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-blue-500 transition-colors"
+          className="flex-1 bg-neutral-50/80 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors"
         />
         <button
           type="submit"
           disabled={loading || !userQuestion.trim()}
-          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium px-5 py-3 rounded-2xl flex items-center space-x-2 text-sm transition-colors cursor-pointer shadow-lg shadow-blue-600/20"
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium px-5 py-3 rounded-2xl flex items-center space-x-2 text-sm transition-colors cursor-pointer shadow-xs"
         >
           {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          <span>Ask AI</span>
+          <span>Ask</span>
         </button>
       </form>
 
@@ -140,9 +140,9 @@ function ResultContextAIAssistant({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="bg-neutral-800/60 border border-blue-500/30 rounded-2xl p-5 flex items-center space-x-3 text-sm text-blue-300"
+            className="bg-blue-50/60 border border-blue-200/70 rounded-2xl p-5 flex items-center space-x-3 text-sm text-blue-700"
           >
-            <RefreshCw className="w-5 h-5 animate-spin text-blue-400" />
+            <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
             <span>Evaluating {currentProjects.length} property records & comparing RERA filings...</span>
           </motion.div>
         )}
@@ -151,29 +151,29 @@ function ResultContextAIAssistant({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-neutral-950/80 border border-neutral-800 rounded-2xl p-6 relative z-10 text-neutral-200 text-sm leading-relaxed space-y-3"
+            className="bg-neutral-50/70 border border-neutral-200 rounded-2xl p-6 relative z-10 text-neutral-800 text-sm leading-relaxed space-y-3"
           >
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-3">
-              <span className="text-xs font-semibold text-blue-400 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" /> AI Grounded Evaluation Report
+            <div className="flex items-center justify-between border-b border-neutral-200/70 pb-3 mb-3">
+              <span className="text-xs font-semibold text-blue-600 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4" /> Grounded Evaluation Report
               </span>
-              <span className="text-[10px] text-neutral-400 font-mono">
-                Source: Supabase Master Registry
+              <span className="text-[10px] text-neutral-500 font-mono">
+                Source: Master Registry
               </span>
             </div>
             
-            <div className="prose prose-invert prose-sm max-w-none space-y-2 whitespace-pre-wrap">
+            <div className="prose prose-neutral prose-sm max-w-none text-neutral-800 space-y-2 whitespace-pre-wrap">
               {answer}
             </div>
 
             {/* Active Property Badges */}
-            <div className="mt-4 pt-4 border-t border-neutral-800/80 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-neutral-400 font-medium">Grounded Matches:</span>
+            <div className="mt-4 pt-4 border-t border-neutral-200/70 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-neutral-500 font-medium">Grounded Matches:</span>
               {currentProjects.slice(0, 5).map((p) => (
                 <button
                   key={p.id}
                   onClick={() => onSelectProperty && onSelectProperty(p)}
-                  className="bg-neutral-800 hover:bg-neutral-700 text-blue-300 border border-neutral-700 text-xs px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer"
+                  className="bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 text-xs px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer"
                 >
                   {p.name || p.title}
                 </button>
