@@ -231,23 +231,17 @@ function PropertyCard({ property, idx, onAnalyze, onSelectProperty }: PropertyCa
   };
 
   return (
-    <motion.article
-      layoutId={`property-card-${p.id}`}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.4, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+    <article
       onClick={handleOpenDetails}
-      className="bg-white rounded-[24px] border border-neutral-200/80 overflow-hidden shadow-xs hover:border-blue-400 hover:shadow-md transition-all duration-300 flex flex-col group cursor-pointer"
+      className="bg-white rounded-[24px] border border-neutral-200/80 overflow-hidden shadow-xs hover:border-blue-400 hover:shadow-md transition-all duration-200 flex flex-col group cursor-pointer"
     >
       {/* Property Image & Header */}
       <div className="relative h-56 w-full overflow-hidden bg-neutral-100">
-        <motion.img
-          layoutId={`property-img-${p.id}`}
+        <img
           src={p.image}
           alt={p.projectName}
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
 
@@ -346,7 +340,7 @@ function PropertyCard({ property, idx, onAnalyze, onSelectProperty }: PropertyCa
             onClick={() => {
               handleOpenDetails();
             }}
-            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center space-x-2 shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 cursor-pointer"
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center space-x-2 shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-150 cursor-pointer"
           >
             <span>View Project Overview</span>
             <ArrowRight className="w-4 h-4" />
@@ -367,6 +361,6 @@ function PropertyCard({ property, idx, onAnalyze, onSelectProperty }: PropertyCa
           </button>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
