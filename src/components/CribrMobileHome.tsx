@@ -666,14 +666,8 @@ export default function CribrMobileHome({
                         filteredRankedProperties.map((prop, idx) => {
                           const p = prop;
                           return (
-                        <motion.div
+                        <div
                           key={p.id}
-                          layoutId={`property-card-${p.id}`}
-                          initial={{ opacity: 0, y: 16 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.3, delay: idx * 0.05 }}
-                          whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             if (onSelectProperty) {
                               onSelectProperty(prop);
@@ -682,16 +676,15 @@ export default function CribrMobileHome({
                               window.dispatchEvent(new Event("popstate"));
                             }
                           }}
-                          className="w-full bg-white rounded-[24px] border border-neutral-200/80 overflow-hidden shadow-xs cursor-pointer group hover:border-blue-400 transition-all"
+                          className="w-full bg-white rounded-[24px] border border-neutral-200/80 overflow-hidden shadow-xs cursor-pointer group hover:border-blue-400 active:scale-[0.99] transition-all duration-150"
                         >
                           {/* Large Hero Image */}
                           <div className="h-[190px] w-full relative overflow-hidden bg-neutral-100">
-                            <motion.img
-                              layoutId={`property-img-${p.id}`}
+                            <img
                               src={p.image}
                               alt={p.projectName}
                               referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
 
@@ -792,7 +785,7 @@ export default function CribrMobileHome({
                               </button>
                             </div>
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     })
                   )}
