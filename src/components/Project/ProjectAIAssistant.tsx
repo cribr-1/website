@@ -139,18 +139,18 @@ export default function ProjectAIAssistant({ project }: ProjectAIAssistantProps)
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-neutral-900 text-neutral-100 rounded-2xl p-5 text-sm leading-relaxed space-y-3 shadow-inner"
+            className="bg-white border border-neutral-200/90 text-neutral-900 rounded-2xl p-5 text-sm leading-relaxed space-y-3 shadow-xs"
           >
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5 mb-2">
-              <span className="text-xs font-semibold text-blue-400 flex items-center gap-1.5">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5 mb-2">
+              <span className="text-xs font-semibold text-blue-600 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4" /> AI Verified Analysis
               </span>
-              <span className="text-[10px] text-neutral-400 font-mono">
+              <span className="text-[10px] text-neutral-500 font-mono">
                 {project.name} Factsheet
               </span>
             </div>
 
-            <div className="prose prose-invert prose-sm max-w-none space-y-2 whitespace-pre-wrap">
+            <div className="prose prose-neutral prose-sm max-w-none text-neutral-800 space-y-2 whitespace-pre-wrap">
               {answer}
             </div>
           </motion.div>
