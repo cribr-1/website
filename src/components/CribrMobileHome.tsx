@@ -665,6 +665,9 @@ export default function CribrMobileHome({
                       ) : (
                         filteredRankedProperties.map((prop, idx) => {
                           const p = prop;
+                          const isSaved = savedHomes.some(
+                            (h) => h.id === p.id || (h.propertyName && h.propertyName.toLowerCase() === p.projectName.toLowerCase())
+                          );
                           return (
                         <div
                           key={p.id}
@@ -689,15 +692,33 @@ export default function CribrMobileHome({
                             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
 
                             {/* Top Badges */}
-                            <div className="absolute top-3 inset-x-3.5 flex items-center justify-between">
+                            <div className="absolute top-3 inset-x-3.5 flex items-center justify-between z-10">
                               <div className="px-2.5 py-1 bg-emerald-600 text-white text-[10px] font-mono font-bold rounded-full flex items-center space-x-1 shadow-xs">
                                 <Check className="w-3 h-3 text-white" />
                                 <span>RERA Registered ✓</span>
                               </div>
 
-                              <div className="px-2.5 py-1 bg-neutral-900/90 text-amber-300 border border-neutral-700/60 text-[10px] font-mono font-bold rounded-full flex items-center space-x-1 shadow-xs">
-                                <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
-                                <span>{p.googleRating}</span>
+                              <div className="flex items-center space-x-1.5">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSaveHome(prop as unknown as PremiumProperty);
+                                  }}
+                                  className={`p-2 rounded-full backdrop-blur-md transition-all duration-200 shadow-sm cursor-pointer ${
+                                    isSaved
+                                      ? "bg-rose-500 text-white hover:bg-rose-600"
+                                      : "bg-black/50 text-white/90 hover:bg-black/70"
+                                  }`}
+                                  title={isSaved ? "Saved" : "Save Property (Login required)"}
+                                >
+                                  <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-current" : ""}`} />
+                                </button>
+
+                                <div className="px-2.5 py-1 bg-neutral-900/90 text-amber-300 border border-neutral-700/60 text-[10px] font-mono font-bold rounded-full flex items-center space-x-1 shadow-xs">
+                                  <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
+                                  <span>{p.googleRating}</span>
+                                </div>
                               </div>
                             </div>
 
