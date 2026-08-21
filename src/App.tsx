@@ -215,39 +215,29 @@ export default function App() {
   }, []);
 
   // Save/Bookmark Homes interaction (Protected)
-  const handleSaveHome = (property: PremiumProperty | any) => {
-    const propId = property.id;
-    const propName = property.name || property.projectName || "Property";
-    const propDev = property.developer || property.builder || "Verified Developer";
-    const propLoc = property.location || property.locality || "Bangalore";
-    const propScore = property.score || property.confidenceScore || 89;
-
+  const handleSaveHome = (property: PremiumProperty) => {
     executeProtectedAction(() => {
-      const alreadySaved = savedHomes.some(
-        (h) => h.id === propId || (h.propertyName && h.propertyName.toLowerCase() === propName.toLowerCase())
-      );
+      const alreadySaved = savedHomes.some((h) => h.id === property.id);
       if (alreadySaved) {
-        const updated = savedHomes.filter(
-          (h) => h.id !== propId && (!h.propertyName || h.propertyName.toLowerCase() !== propName.toLowerCase())
-        );
+        const updated = savedHomes.filter((h) => h.id !== property.id);
         setSavedHomes(updated);
         localStorage.setItem("cribr_saved_homes", JSON.stringify(updated));
-        showToast(`Removed "${propName}" from saved list.`, "info");
+        showToast(`Removed "${property.name}" from saved list.`, "info");
       } else {
         const newSaved: SavedHome = {
-          id: propId,
-          propertyName: propName,
-          developer: propDev,
-          city: propLoc,
-          overallScore: propScore,
+          id: property.id,
+          propertyName: property.name,
+          developer: property.developer,
+          city: property.location || "N/A",
+          overallScore: property.score || 89,
           savedAt: new Date().toISOString()
         };
         const updated = [...savedHomes, newSaved];
         setSavedHomes(updated);
         localStorage.setItem("cribr_saved_homes", JSON.stringify(updated));
-        showToast(`Saved "${propName}" to your library.`, "success");
+        showToast(`Saved "${property.name}" to your library.`, "success");
       }
-    }, `save "${propName}" to your collection`);
+    }, "save property listings");
   };
 
   // Remove saved home (Internal)
@@ -347,55 +337,6 @@ export default function App() {
           onAskAI={handleQuerySubmit}
           onCompare={(p) => showToast(`Added ${p.name} to comparison matrix`, "info")}
         />
-
-        {/* Portals and Modals */}
-        <AnimatePresence>
-          {isAuthModalOpen && (
-            <CribrAuthModal
-              onClose={() => {
-                setIsAuthModalOpen(false);
-                setPostLoginAction(null);
-              }}
-              onSuccess={handleAuthSuccess}
-            />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {isDashboardDrawerOpen && (
-            <CribrDashboardDrawer
-              isOpen={isDashboardDrawerOpen}
-              onClose={() => setIsDashboardDrawerOpen(false)}
-              currentUser={currentUser!}
-              onSignOut={async () => {
-                await cribrAuth.signOut();
-                setIsDashboardDrawerOpen(false);
-                showToast("Signed out of your Cribr account.", "info");
-              }}
-              savedPropertyIds={savedHomes.map((h) => h.id)}
-              onRemoveSavedProperty={(id) => {
-                handleRemoveSaved(id);
-                showToast("Removed saved property.", "info");
-              }}
-              onSelectPropertyToAnalyze={(propertyName) => {
-                setIsDashboardDrawerOpen(false);
-                handleQuerySubmit(propertyName);
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {isSavedDrawerOpen && (
-            <SavedHomesList
-              savedHomes={savedHomes}
-              onRemove={handleRemoveSaved}
-              onLoadReport={handleQuerySubmit}
-              onClose={() => setIsSavedDrawerOpen(false)}
-            />
-          )}
-        </AnimatePresence>
-
         <CribrToastContainer />
       </ErrorBoundary>
     );
@@ -509,11 +450,7 @@ export default function App() {
       {/* Navigation */}
       <Navigation
         savedCount={savedHomes.length}
-        onOpenSaved={() => {
-          executeProtectedAction(() => {
-            setIsSavedDrawerOpen(true);
-          }, "view your saved properties library");
-        }}
+        onOpenSaved={() => setIsSavedDrawerOpen(true)}
         activeSection={activeSection}
         onNavigate={handleNavigate}
         currentUser={currentUser}
@@ -712,8 +649,6 @@ export default function App() {
         onSelectProperty={(p) => navigateToProperty(p.id)}
         searchQuery={searchQuery}
         onClearSearch={() => setSearchQuery("")}
-        savedHomes={savedHomes}
-        onSaveProperty={handleSaveHome}
       />
 
       {/* FOOTER */}
@@ -792,7 +727,14 @@ export default function App() {
           handleQuerySubmit(query);
         }}
         onSaveProperty={(prop) => {
-          handleSaveHome(prop);
+          const isAlreadySaved = savedHomes.some((h) => h.id === prop.id);
+          if (isAlreadySaved) {
+            handleRemoveSaved(prop.id);
+            showToast(`Removed ${prop.name} from saved properties`, "info");
+          } else {
+            handleSaveHome(prop);
+            showToast(`Saved ${prop.name} to your collection`, "success");
+          }
         }}
         isSaved={savedHomes.some((h) => h.id === selectedDesktopProperty?.id)}
         onSelectRelatedProperty={(relProp) => {
