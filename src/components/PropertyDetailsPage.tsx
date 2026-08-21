@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
@@ -114,11 +113,12 @@ export default function PropertyDetailsPage({
   const handleToggleSave = () => {
     if (onSaveProperty) {
       onSaveProperty(rawProperty);
-    } else if (onSaveHome) {
-      onSaveHome(rawProperty as PremiumProperty);
     } else if (isSavedComputed && onRemoveSaved) {
       onRemoveSaved(p.id);
       showToast(`Removed ${p.projectName} from saved properties`, "info");
+    } else if (onSaveHome) {
+      onSaveHome(rawProperty as PremiumProperty);
+      showToast(`Saved ${p.projectName} to collection`, "success");
     }
   };
 
