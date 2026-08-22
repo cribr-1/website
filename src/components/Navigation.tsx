@@ -1,192 +1,207 @@
-import { useState, useEffect } from "react";
-import { Sparkles, ShieldCheck, Heart, Menu, X, User } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { CribrUser } from "../lib/supabase";
+/**
+ * CRIBR Centralized Navigation & History Manager
+ * Ensures predictable, app-like SPA routing, tracks internal CRIBR route stack,
+ * and prevents users from being dropped out of CRIBR when pressing Back.
+ */
 
-interface NavigationProps {
-  savedCount: number;
-  onOpenSaved: () => void;
-  activeSection: string;
-  onNavigate: (sectionId: string) => void;
-  currentUser: CribrUser | null;
-  onOpenDashboard: () => void;
-  onSignInClick: () => void;
+const HISTORY_STORAGE_KEY = "cribr_navigation_history_v1";
+
+export function normalizePath(path: string): string {
+  if (!path) return "/";
+  let p = path.trim();
+  // Strip query string and hash for path normalization if needed, or keep clean path
+  const [pathname] = p.split("?");
+  let clean = pathname || "/";
+  if (!clean.startsWith("/")) clean = "/" + clean;
+  if (clean.length > 1 && clean.endsWith("/")) clean = clean.slice(0, -1);
+  return clean;
 }
 
-export default function Navigation({
-  savedCount,
-  onOpenSaved,
-  activeSection,
-  onNavigate,
-  currentUser,
-  onOpenDashboard,
-  onSignInClick,
-}: NavigationProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+function getStoredHistory(): string[] {
+  try {
+    const raw = sessionStorage.getItem(HISTORY_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(normalizePath);
+      }
+    }
+  } catch (e) {
+    // Ignore storage errors
+  }
+  return [normalizePath(window.location.pathname)];
+}
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+function saveStoredHistory(history: string[]): void {
+  try {
+    sessionStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+  } catch (e) {
+    // Ignore storage errors
+  }
+}
 
-  const navItems = [
-    { id: "hero", label: "Home" },
-    { id: "explorer", label: "Explore Projects" },
-  ];
+let internalHistory: string[] = getStoredHistory();
 
-  const handleItemClick = (id: string) => {
-    onNavigate(id);
-    setMobileMenuOpen(false);
+/**
+ * Initialize history tracking on application startup.
+ * Seeds a root '/' fallback entry if the user landed directly on a sub-route
+ * so that both internal Back and browser Back stay within CRIBR.
+ */
+export function initNavigation(): void {
+  const currentPath = normalizePath(window.location.pathname);
+
+  if (internalHistory.length <= 1) {
+    if (currentPath !== "/") {
+      internalHistory = ["/", currentPath];
+      saveStoredHistory(internalHistory);
+      try {
+        window.history.replaceState({ cribr: true, path: "/" }, "", "/");
+        window.history.pushState({ cribr: true, path: currentPath }, "", currentPath);
+      } catch (e) {
+        // Fallback
+      }
+    } else {
+      internalHistory = ["/"];
+      saveStoredHistory(internalHistory);
+      try {
+        window.history.replaceState({ cribr: true, path: "/" }, "", "/");
+      } catch (e) {
+        // Fallback
+      }
+    }
+  } else {
+    // Sync current path into history if needed
+    if (internalHistory[internalHistory.length - 1] !== currentPath) {
+      internalHistory.push(currentPath);
+      saveStoredHistory(internalHistory);
+    }
+  }
+}
+
+type RouteListener = (path: string) => void;
+const listeners = new Set<RouteListener>();
+
+export function subscribeToRoute(listener: RouteListener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
   };
+}
 
+function notifyRouteListeners(path: string): void {
+  listeners.forEach((fn) => {
+    try {
+      fn(path);
+    } catch (e) {
+      console.error("[CRIBR Route Listener Error]", e);
+    }
+  });
+  window.dispatchEvent(new CustomEvent("cribr_route_change", { detail: { path } }));
+}
 
-  return (
-    <nav
-      id="cribr-navigation"
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${isScrolled
-          ? "py-3 glass-nav apple-shadow-lg scale-[0.99] rounded-b-2xl mt-0"
-          : "py-6 bg-transparent border-b border-transparent"
-        }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
-        {/* Left: Brand Logo & Badge */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => handleItemClick("hero")}>
-          <div className="flex items-center space-x-1">
-            <span className="font-display font-bold tracking-tight text-2xl text-apple-text-primary">
-              CRIBR
-            </span>
-          </div>
-        </div>
+/**
+ * Navigate to a specific CRIBR route using SPA pushState / replaceState.
+ */
+export function navigate(toPath: string, options?: { replace?: boolean; scroll?: boolean; silent?: boolean }): void {
+  const target = normalizePath(toPath);
+  const current = normalizePath(window.location.pathname);
 
-        {/* Center: Desktop Navigation */}
-        <div className="hidden lg:flex items-center space-x-8">
-          {navItems.map((item) => {
-            const isActive = activeSection === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleItemClick(item.id)}
-                className={`text-[15px] font-medium tracking-tight transition-all duration-300 relative py-1 hover:text-apple-text-primary ${isActive ? "text-apple-text-primary" : "text-apple-text-secondary"
-                  }`}
-              >
-                {item.label}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeNavLine"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-apple-blue rounded-full"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
+  if (options?.replace) {
+    if (internalHistory.length > 0) {
+      internalHistory[internalHistory.length - 1] = target;
+    } else {
+      internalHistory = [target];
+    }
+    saveStoredHistory(internalHistory);
+    try {
+      window.history.replaceState({ cribr: true, path: target }, "", target);
+    } catch (e) {
+      // Ignore
+    }
+  } else {
+    if (current !== target) {
+      internalHistory.push(target);
+      saveStoredHistory(internalHistory);
+      try {
+        window.history.pushState({ cribr: true, path: target }, "", target);
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }
 
-        {/* Right: Actions */}
-        <div className="flex items-center space-x-4">
-          {/* Saved Homes Button */}
-          <button
-            onClick={onOpenSaved}
-            className="flex items-center space-x-2 px-4 py-2 rounded-full border border-neutral-200/80 bg-white/50 hover:bg-white text-apple-text-primary hover:scale-105 active:scale-95 transition-all duration-300 relative group"
-          >
-            <Heart className={`w-4 h-4 transition-colors duration-300 ${savedCount > 0 ? "fill-rose-500 text-rose-500" : "text-apple-text-secondary group-hover:text-rose-500"}`} />
-            <span className="text-14 font-medium hidden sm:inline text-apple-text-secondary group-hover:text-apple-text-primary">Saved</span>
-            {savedCount > 0 && (
-              <span className="flex items-center justify-center w-5 h-5 bg-apple-blue text-white text-[10px] font-mono font-bold rounded-full animate-pulse">
-                {savedCount}
-              </span>
-            )}
-          </button>
+  if (options?.scroll !== false) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-          {/* User Portal Access / Trigger Button */}
-          {currentUser ? (
-            <button
-              onClick={onOpenDashboard}
-              className="flex items-center space-x-2 px-3 py-1.5 rounded-full border border-neutral-200/80 bg-neutral-50/50 hover:bg-white text-apple-text-primary hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 shadow-sm"
-            >
-              {currentUser.avatarUrl ? (
-                <img
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.fullName}
-                  referrerPolicy="no-referrer"
-                  className="w-5.5 h-5.5 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-5.5 h-5.5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-apple-blue text-[11px] font-bold">
-                  {currentUser.fullName.charAt(0)}
-                </div>
-              )}
-              <span className="text-[13px] font-semibold text-apple-text-secondary hover:text-apple-text-primary hidden sm:inline pr-1">
-                Account
-              </span>
-            </button>
-          ) : (
-            <button
-              onClick={onSignInClick}
-              className="px-5 py-2 rounded-full bg-apple-blue hover:brightness-110 active:scale-[0.98] text-white text-[13.5px] font-semibold tracking-tight transition-all duration-300 shadow-sm"
-            >
-              Sign In
-            </button>
-          )}
+  if (!options?.silent) {
+    notifyRouteListeners(target);
+  }
+}
 
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-full border border-neutral-200/80 bg-white/50 hover:bg-white text-apple-text-primary transition-all duration-300"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
+/**
+ * Controlled Back Navigation
+ * Determines if there is a valid previous CRIBR route.
+ * If yes -> returns to previous CRIBR route.
+ * If no -> safely navigates to fallback (default '/').
+ * Guarantees the user is NEVER thrown outside CRIBR.
+ */
+export function goBack(fallbackPath: string = "/"): void {
+  const safeFallback = normalizePath(fallbackPath);
 
-      {/* Mobile Drawer */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="lg:hidden absolute top-full left-0 w-full glass-panel text-apple-text-primary shadow-2xl py-6 px-8 flex flex-col space-y-4 border-b border-neutral-200"
-          >
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleItemClick(item.id)}
-                className="text-left py-2.5 text-lg font-medium border-b border-neutral-100 last:border-0 hover:text-apple-blue transition-colors duration-200"
-              >
-                {item.label}
-              </button>
-            ))}
+  if (internalHistory.length > 1) {
+    internalHistory.pop(); // Remove current route
+    saveStoredHistory(internalHistory);
+    const prevRoute = internalHistory[internalHistory.length - 1] || safeFallback;
 
-            {currentUser ? (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenDashboard();
-                }}
-                className="mt-4 w-full py-3.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-apple-text-primary text-center font-bold text-[15px] transition-all"
-              >
-                My Account Drawer
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onSignInClick();
-                }}
-                className="mt-4 w-full py-3.5 rounded-full bg-apple-blue text-white text-center font-bold text-[15px] transition-all"
-              >
-                Sign In
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
-  );
+    try {
+      window.history.replaceState({ cribr: true, path: prevRoute }, "", prevRoute);
+    } catch (e) {
+      // Fallback
+    }
+
+    notifyRouteListeners(prevRoute);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    // No previous internal route exists -> Navigate safely to fallback / Home
+    internalHistory = [safeFallback];
+    saveStoredHistory(internalHistory);
+    try {
+      window.history.replaceState({ cribr: true, path: safeFallback }, "", safeFallback);
+    } catch (e) {
+      // Fallback
+    }
+    notifyRouteListeners(safeFallback);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+/**
+ * Returns the previous CRIBR path from internal history, or fallback if none.
+ */
+export function getPreviousPath(fallbackPath: string = "/"): string {
+  if (internalHistory.length > 1) {
+    return internalHistory[internalHistory.length - 2];
+  }
+  return normalizePath(fallbackPath);
+}
+
+/**
+ * Handle browser PopState event (Browser Back / Forward buttons).
+ */
+export function handlePopStateEvent(): string {
+  const currentPath = normalizePath(window.location.pathname);
+
+  if (internalHistory.length > 0 && internalHistory[internalHistory.length - 1] !== currentPath) {
+    const prevIdx = internalHistory.lastIndexOf(currentPath);
+    if (prevIdx !== -1) {
+      internalHistory = internalHistory.slice(0, prevIdx + 1);
+    } else {
+      internalHistory.push(currentPath);
+    }
+    saveStoredHistory(internalHistory);
+  }
+
+  notifyRouteListeners(currentPath);
+  return currentPath;
 }
