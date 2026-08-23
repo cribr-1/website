@@ -95,6 +95,14 @@ class CribrLocalDatabase {
     this.setStorageItem("cribr_sim_bookings", bookings);
   }
 
+  getUsers(): CribrUser[] {
+    return this.getStorageItem<CribrUser[]>("cribr_sim_users", []);
+  }
+
+  saveUsers(users: CribrUser[]): void {
+    this.setStorageItem("cribr_sim_users", users);
+  }
+
   getActiveSession(): CribrUser | null {
     const sessionData = this.getStorageItem<any>("cribr_active_session", null);
     if (!sessionData) return null;
@@ -387,10 +395,12 @@ export const cribrAuth = {
 
 // 2. PROJECTS & PORTFOLIO ENGINE (DATABASE-DRIVEN - CRIBR AUTHORITATIVE)
 export const cribrProperties = {
-  // Fetch published projects from Supabase projects table.
+  // Fetch published projects from Supabase projects table or verified master data.
   // Returns normalized WhitelistedProject[] via mapToWhitelistedProject.
-  // On failure returns an empty array — callers handle error state.
   async getProperties(): Promise<any[]> {
+    const { mapToWhitelistedProject } = await import("./projectDataMapper");
+    const { MASTER_PROJECTS } = await import("../data");
+
     if (isRealSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -399,18 +409,18 @@ export const cribrProperties = {
           .order("created_at", { ascending: false });
 
         if (!error && data && data.length > 0) {
-          const { mapToWhitelistedProject } = await import("./projectDataMapper");
           return data.map(p => mapToWhitelistedProject(p));
         }
 
         if (error) {
-          console.error("[cribrProperties] Supabase query error:", error.message);
+          console.warn("[cribrProperties] Supabase query error, using master projects:", error.message);
         }
       } catch (err) {
-        console.error("[cribrProperties] Failed to load projects from Supabase:", err);
+        console.warn("[cribrProperties] Failed to load projects from Supabase, using master projects:", err);
       }
     }
-    return [];
+
+    return MASTER_PROJECTS.map(p => mapToWhitelistedProject(p));
   }
 };
 
