@@ -20,5 +20,9 @@ export const SERVER_CONFIG = {
     PRIMARY_MODEL: "llama-3.1-8b-instant",
     FALLBACK_MODELS: ["llama-3.3-70b-versatile", "gemma2-9b-it"],
     INTENT_MODEL: "llama-3.1-8b-instant",
+  },
+
+  GEMINI: {
+    API_KEY: process.env.GEMINI_API_KEY || "",
   }
 };
