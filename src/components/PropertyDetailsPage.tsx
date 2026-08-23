@@ -51,10 +51,12 @@ export default function PropertyDetailsPage({
       (p) =>
         p.id.toLowerCase() === normalizedSlug ||
         p.id.toLowerCase() === cleanSlug ||
+        p.id.toLowerCase() === `proj-${cleanSlug}` ||
         p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === normalizedSlug ||
         p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === cleanSlug ||
-        p.name.toLowerCase() === normalizedSlug.replace(/-/g, " ")
-    ) || allProperties[0];
+        p.name.toLowerCase() === normalizedSlug.replace(/-/g, " ") ||
+        (p.reraNumber && p.reraNumber.toLowerCase() === normalizedSlug)
+    );
 
   useEffect(() => {
     window.scrollTo(0, 0);
