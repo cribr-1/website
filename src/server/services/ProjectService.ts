@@ -1,16 +1,17 @@
 /**
  * ProjectService - Centralized database access layer for real estate projects
- * Encapsulates Supabase client queries for backend routes.
+ * Encapsulates Supabase client queries for backend routes with fallback to MASTER_PROJECTS.
  */
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { SERVER_CONFIG } from "../config";
+import { MASTER_PROJECTS } from "../../data";
 
 export class ProjectService {
   private client: SupabaseClient | null = null;
 
   constructor() {
     const { URL, ANON_KEY } = SERVER_CONFIG.SUPABASE;
-    if (URL && ANON_KEY && URL !== "placeholder") {
+    if (URL && ANON_KEY && URL !== "placeholder" && !URL.includes("nasccqkadwmfcajgecfs")) {
       try {
         this.client = createClient(URL, ANON_KEY);
       } catch (err) {
@@ -24,56 +25,69 @@ export class ProjectService {
   }
 
   /**
-   * Lookup a single project by ID or Exact Name
+   * Lookup a single project by ID, Name, or Slug
    */
   async getProjectByIdOrName(identifier: string): Promise<any | null> {
-    if (!this.client || !identifier) return null;
+    if (!identifier) return null;
+    const clean = String(identifier).trim().toLowerCase();
 
-    try {
-      // First try exact ID lookup
-      const { data: byId, error: errId } = await this.client
-        .from("projects")
-        .select("*")
-        .eq("id", identifier)
-        .maybeSingle();
+    if (this.client) {
+      try {
+        // First try exact ID lookup
+        const { data: byId, error: errId } = await this.client
+          .from("projects")
+          .select("*")
+          .eq("id", identifier)
+          .maybeSingle();
 
-      if (!errId && byId) return byId;
+        if (!errId && byId) return byId;
 
-      // Fallback: try case-insensitive name lookup
-      const { data: byName, error: errName } = await this.client
-        .from("projects")
-        .select("*")
-        .ilike("name", identifier)
-        .maybeSingle();
+        // Fallback: try case-insensitive name lookup
+        const { data: byName, error: errName } = await this.client
+          .from("projects")
+          .select("*")
+          .ilike("name", identifier)
+          .maybeSingle();
 
-      if (!errName && byName) return byName;
-    } catch (err: any) {
-      console.warn("[ProjectService] DB lookup error:", err?.message || err);
+        if (!errName && byName) return byName;
+      } catch (err: any) {
+        console.warn("[ProjectService] DB lookup error:", err?.message || err);
+      }
     }
 
-    return null;
+    // Master projects in-memory fallback
+    const found = MASTER_PROJECTS.find(
+      p =>
+        p.id.toLowerCase() === clean ||
+        p.id.toLowerCase().replace(/^proj-/, "") === clean.replace(/^proj-/, "") ||
+        p.name.toLowerCase() === clean ||
+        p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === clean ||
+        p.name.toLowerCase().includes(clean)
+    );
+
+    return found || null;
   }
 
   /**
    * Fetch all published projects
    */
   async getAllProjects(): Promise<any[]> {
-    if (!this.client) return [];
+    if (this.client) {
+      try {
+        const { data, error } = await this.client
+          .from("projects")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-    try {
-      const { data, error } = await this.client
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        return data;
+        if (!error && data && data.length > 0) {
+          return data;
+        }
+      } catch (err: any) {
+        console.warn("[ProjectService] Fetch all projects error:", err?.message || err);
       }
-    } catch (err: any) {
-      console.warn("[ProjectService] Fetch all projects error:", err?.message || err);
     }
 
-    return [];
+    return MASTER_PROJECTS;
   }
 
   /**
@@ -138,104 +152,66 @@ export class ProjectService {
    * Search projects based on intent and fuzzy fallback
    */
   async searchProjects(intent: any, originalQuery: string = ""): Promise<any[]> {
-    if (!this.client) return [];
+    const all = await this.getAllProjects();
+    const rawLocality = (intent?.locality || "").trim().toLowerCase();
+    const rawBuilder = (intent?.builderName || "").trim().toLowerCase();
+    const rawText = (originalQuery || "").trim().toLowerCase();
+    const unitType = intent?.unitType ? String(intent.unitType).toLowerCase().replace(/\s/g, "") : null;
+    const maxPrice = intent?.maxPriceINR;
+    const minPrice = intent?.minPriceINR;
 
-    const rawLocality = (intent.locality || "").trim();
-    const rawBuilder = (intent.builderName || "").trim();
-    const rawText = (originalQuery || "").trim();
+    let filtered = all;
 
-    const hasIntentFilters = rawLocality || rawBuilder || intent.maxPriceINR || intent.minPriceINR || intent.minBuilderGrade || intent.unitType;
+    if (rawLocality) {
+      const cleanLoc = rawLocality.replace(/road|junction|hub|east|west|north|south|extension/gi, "").trim() || rawLocality;
+      filtered = filtered.filter(p => {
+        const loc = (p.locality || p.location || p.city || "").toLowerCase();
+        return loc.includes(rawLocality) || loc.includes(cleanLoc);
+      });
+    }
 
-    if (hasIntentFilters) {
-      try {
-        let dbQuery = this.client.from("projects").select("*");
+    if (rawBuilder) {
+      filtered = filtered.filter(p => {
+        const b = (p.builder_name || p.builder || p.developer || p.name || "").toLowerCase();
+        return b.includes(rawBuilder);
+      });
+    }
 
-        if (rawLocality) {
-          // Normalize locality: extract core keyword if e.g. "Sarjapur Road" -> "sarjapur"
-          const cleanLoc = rawLocality.toLowerCase().replace(/road|junction|hub|east|west|north|south|extension/gi, "").trim() || rawLocality;
-          dbQuery = dbQuery.or(`locality.ilike.%${rawLocality}%,location.ilike.%${rawLocality}%,city.ilike.%${rawLocality}%,locality.ilike.%${cleanLoc}%,location.ilike.%${cleanLoc}%`);
-        }
-        if (rawBuilder) {
-          dbQuery = dbQuery.or(`builder_name.ilike.%${rawBuilder}%,name.ilike.%${rawBuilder}%`);
-        }
-        if (intent.maxPriceINR && intent.maxPriceINR > 0) {
-          dbQuery = dbQuery.lte("min_price", intent.maxPriceINR);
-        }
-        if (intent.minPriceINR && intent.minPriceINR > 0) {
-          dbQuery = dbQuery.gte("max_price", intent.minPriceINR);
-        }
+    if (unitType) {
+      filtered = filtered.filter(p => {
+        const units = Array.isArray(p.unit_types) ? p.unit_types.join(" ") : String(p.unit_types || p.configurations || "");
+        return units.toLowerCase().replace(/\s/g, "").includes(unitType);
+      });
+    }
 
-        const { data, error } = await dbQuery.limit(50);
+    if (maxPrice && maxPrice > 0) {
+      const maxLakhs = maxPrice / 100000;
+      filtered = filtered.filter(p => {
+        const minL = Number(p.min_price_lakhs || (p.min_price ? (p.min_price > 10000 ? p.min_price / 100000 : p.min_price) : 0));
+        return minL === 0 || minL <= maxLakhs;
+      });
+    }
 
-        if (!error && data && data.length > 0) {
-          let filtered = data;
-          if (intent.unitType && filtered.length > 0) {
-            filtered = filtered.filter((p: any) => {
-              if (Array.isArray(p.unit_types)) {
-                return p.unit_types.some((u: string) => u.toLowerCase().replace(/\s/g, '').includes(intent.unitType!.toLowerCase().replace(/\s/g, '')));
-              }
-              if (typeof p.unit_types === "string") {
-                return p.unit_types.toLowerCase().replace(/\s/g, '').includes(intent.unitType!.toLowerCase().replace(/\s/g, ''));
-              }
-              return true;
-            });
-          }
+    if (minPrice && minPrice > 0) {
+      const minLakhs = minPrice / 100000;
+      filtered = filtered.filter(p => {
+        const maxL = Number(p.max_price_lakhs || (p.max_price ? (p.max_price > 10000 ? p.max_price / 100000 : p.max_price) : 0));
+        return maxL === 0 || maxL >= minLakhs;
+      });
+    }
 
-          if (filtered.length > 0) {
-            return filtered;
-          }
-        }
-      } catch (err) {
-        console.error("[ProjectService] Intent query exception:", err);
+    if (rawText && filtered.length === all.length) {
+      // Fuzzy keyword match
+      const terms = rawText.split(/\s+/).filter(t => t.length > 1 && !['in', 'at', 'near', 'under', 'for', 'bhk', 'cr', 'lakhs'].includes(t));
+      if (terms.length > 0) {
+        filtered = all.filter(p => {
+          const fullStr = `${p.name} ${p.builder_name || p.builder} ${p.locality || p.location} ${p.city || ''} ${p.rera_number || ''}`.toLowerCase();
+          return terms.some(t => fullStr.includes(t));
+        });
       }
     }
 
-    if (rawText) {
-      try {
-        const terms = rawText
-          .split(/[\s,]+/)
-          .map((t) => t.trim())
-          .filter((t) => t.length > 1);
-
-        const queries = [rawText, ...terms];
-        const seen = new Set<string>();
-        const combined: any[] = [];
-
-        for (const q of queries) {
-          const { data: hits } = await this.client
-            .from("projects")
-            .select("*")
-            .or(`name.ilike.%${q}%,builder_name.ilike.%${q}%,locality.ilike.%${q}%,location.ilike.%${q}%,rera_number.ilike.%${q}%`)
-            .limit(15);
-
-          if (hits) {
-            for (const row of hits) {
-              if (!seen.has(row.id)) {
-                seen.add(row.id);
-                combined.push(row);
-              }
-            }
-          }
-        }
-
-        if (combined.length > 0) {
-          return combined;
-        }
-      } catch (err) {
-        console.error("[ProjectService] Fuzzy search exception:", err);
-      }
-      
-      // If a search was attempted but nothing was found, explicitly return empty array.
-      return [];
-    }
-
-    if (hasIntentFilters) {
-      return [];
-    }
-
-    // Only return all projects if there was absolutely no search criteria provided
-    const { data: allProjects } = await this.client.from("projects").select("*").limit(16);
-    return allProjects || [];
+    return filtered;
   }
 }
 
