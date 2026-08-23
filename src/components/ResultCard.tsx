@@ -1,11 +1,11 @@
 import React from "react";
-import { SearchResponse, FullProject } from "../../types/search";
+import { SearchResponse, FullProject } from "../types/search";
 import { ProjectRow } from "./ProjectRow";
-import { FollowUpChip } from "../Common/FollowUpChip";
-import { MapView } from "../Map/MapView";
-import { BuilderProfileView } from "../Builder/BuilderProfileView";
-import { LocalityAnalysisView } from "../Locality/LocalityAnalysisView";
-import { ComparisonView } from "../Compare/ComparisonView";
+import { FollowUpChip } from "./Common/FollowUpChip";
+import { MapView } from "./Map/MapView";
+import { BuilderProfileView } from "./Builder/BuilderProfileView";
+import { LocalityAnalysisView } from "./Locality/LocalityAnalysisView";
+import { ComparisonView } from "./Compare/ComparisonView";
 import { Sparkles, LayoutList, Map, ArrowLeft, ShieldCheck } from "lucide-react";
 
 interface ResultCardProps {
@@ -169,4 +169,5 @@ export const ResultCard: React.FC<ResultCardProps> = ({
 };
 
 export default ResultCard;
+
 
