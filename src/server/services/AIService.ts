@@ -129,22 +129,25 @@ export class AIService {
   }
 
   private async callLLM(systemPrompt: string, userMessage: string, temperature = 0.25): Promise<string | null> {
-    // 1. Try Gemini first if available
+    // 1. Try Gemini with fallback models if available
     const gemini = this.initGemini();
     if (gemini) {
-      try {
-        const response = await gemini.models.generateContent({
-          model: "gemini-3.7-flash",
-          contents: `${systemPrompt}\n\n${userMessage}`,
-        });
-        const text = response.text?.trim();
-        if (text) return cleanLLMContent(text);
-      } catch (geminiErr: any) {
-        console.warn("[AIService] Gemini call error:", geminiErr?.message || geminiErr);
+      const geminiModels = ["gemini-2.5-flash", "gemini-2.5-pro"];
+      for (const model of geminiModels) {
+        try {
+          const response = await gemini.models.generateContent({
+            model,
+            contents: `${systemPrompt}\n\n${userMessage}`,
+          });
+          const text = response.text?.trim();
+          if (text) return cleanLLMContent(text);
+        } catch (geminiErr: any) {
+          console.warn(`[AIService] Gemini model ${model} call error:`, geminiErr?.message || geminiErr);
+        }
       }
     }
 
-    // 2. Try Groq as fallback
+    // 2. Try Groq as fallback if API key is provided
     const groq = this.initGroq();
     if (groq) {
       const models = [SERVER_CONFIG.GROQ.PRIMARY_MODEL, ...SERVER_CONFIG.GROQ.FALLBACK_MODELS];
@@ -511,3 +514,4 @@ CRITICAL:
 }
 
 export const aiService = new AIService();
+
