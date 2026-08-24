@@ -175,7 +175,7 @@ function ResultContextAIAssistant({
                   onClick={() => onSelectProperty && onSelectProperty(p)}
                   className="bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 text-xs px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer"
                 >
-                  {p.name || p.title}
+                  {p.projectName || p.name || p.title}
                 </button>
               ))}
             </div>
