@@ -13,8 +13,11 @@ import {
 import { PremiumProperty, SavedHome } from "../types";
 import { showToast } from "./CribrToast";
 import { getFeaturedProperties } from "../data";
-import { mapToWhitelistedProject } from "../lib/projectDataMapper";
-import { findMatchingProperty, getPropertyAsync } from "../lib/projectLookup";
+import {
+  mapToWhitelistedProject,
+  findMatchingProperty,
+  getPropertyAsync
+} from "../lib/projectDataMapper";
 import ProjectOverviewContent from "./ProjectOverviewContent";
 import ProjectAIAssistant from "./Project/ProjectAIAssistant";
 
