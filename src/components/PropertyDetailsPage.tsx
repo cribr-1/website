@@ -7,14 +7,14 @@ import {
   MapPin,
   Building2,
   AlertTriangle,
-  Search,
-  Star
+  Star,
+  ArrowRight
 } from "lucide-react";
-import { motion } from "motion/react";
 import { PremiumProperty, SavedHome } from "../types";
 import { showToast } from "./CribrToast";
 import { getFeaturedProperties } from "../data";
 import { mapToWhitelistedProject } from "../lib/projectDataMapper";
+import { findMatchingProperty, getPropertyAsync } from "../lib/projectLookup";
 import ProjectOverviewContent from "./ProjectOverviewContent";
 import ProjectAIAssistant from "./Project/ProjectAIAssistant";
 
@@ -42,25 +42,67 @@ export default function PropertyDetailsPage({
   onSaveProperty,
   isSaved = false
 }: PropertyDetailsPageProps) {
-  // Find matching property dynamically
-  const allProperties = getFeaturedProperties();
-  const normalizedSlug = propertyIdOrSlug.toLowerCase().trim();
-  const cleanSlug = normalizedSlug.replace(/^proj-/, "");
-  const rawProperty =
-    allProperties.find(
-      (p) =>
-        p.id.toLowerCase() === normalizedSlug ||
-        p.id.toLowerCase() === cleanSlug ||
-        p.id.toLowerCase() === `proj-${cleanSlug}` ||
-        p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === normalizedSlug ||
-        p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === cleanSlug ||
-        p.name.toLowerCase() === normalizedSlug.replace(/-/g, " ") ||
-        (p.reraNumber && p.reraNumber.toLowerCase() === normalizedSlug)
-    );
+  const [resolvedProperty, setResolvedProperty] = useState<any | null>(() => {
+    return findMatchingProperty(propertyIdOrSlug);
+  });
+  const [isSearchingAsync, setIsSearchingAsync] = useState(false);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    const syncFound = findMatchingProperty(propertyIdOrSlug);
+    if (syncFound) {
+      setResolvedProperty(syncFound);
+      return;
+    }
+
+    let isMounted = true;
+    setIsSearchingAsync(true);
+    getPropertyAsync(propertyIdOrSlug).then((prop) => {
+      if (isMounted) {
+        setResolvedProperty(prop);
+        setIsSearchingAsync(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, [propertyIdOrSlug]);
+
+  const rawProperty = resolvedProperty;
+  const allAvailableProperties = getFeaturedProperties();
+
+  if (isSearchingAsync) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFC] font-sans text-neutral-900 flex flex-col justify-between">
+        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="flex items-center space-x-2 text-neutral-700 hover:text-neutral-950 font-bold text-xs transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Explorer</span>
+          </button>
+          <span className="font-display font-black text-lg text-neutral-950">
+            CRIBR
+          </span>
+        </header>
+
+        <main className="max-w-xl mx-auto px-6 py-24 text-center space-y-4 flex-1 flex flex-col justify-center items-center">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center animate-pulse">
+            <Building2 className="w-6 h-6 animate-spin" />
+          </div>
+          <h2 className="text-xl font-bold font-display text-neutral-950">
+            Locating Property Records...
+          </h2>
+          <p className="text-xs text-neutral-500 font-mono">
+            Searching regulatory registries and master datasets for &ldquo;{propertyIdOrSlug}&rdquo;
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   if (!rawProperty) {
     return (
@@ -71,31 +113,59 @@ export default function PropertyDetailsPage({
             className="flex items-center space-x-2 text-neutral-700 hover:text-neutral-950 font-bold text-xs transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>Back to Explorer</span>
           </button>
           <span className="font-display font-black text-lg text-neutral-950">
             CRIBR
           </span>
         </header>
 
-        <main className="max-w-xl mx-auto px-6 py-16 text-center space-y-6 flex-1 flex flex-col justify-center items-center">
-          <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
-            <AlertTriangle className="w-10 h-10" />
+        <main className="max-w-3xl mx-auto px-6 py-12 text-center space-y-8 flex-1 flex flex-col justify-center items-center">
+          <div className="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
+            <AlertTriangle className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-display font-black text-neutral-950 tracking-tight">
-              Property Not Found
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-neutral-950 tracking-tight">
+              Property &ldquo;{propertyIdOrSlug}&rdquo; Not Found
             </h1>
-            <p className="text-sm text-neutral-500 font-normal">
-              This property is unavailable or has been removed.
+            <p className="text-sm text-neutral-500 font-normal max-w-md mx-auto">
+              We couldn&apos;t find this specific property identifier in the current verified registry. Explore our top verified properties below:
             </p>
           </div>
+
+          {/* Quick jump to available properties */}
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+            {allAvailableProperties.slice(0, 4).map((prop) => {
+              const mapped = mapToWhitelistedProject(prop);
+              return (
+                <div
+                  key={mapped.id}
+                  onClick={() => onNavigateProperty(mapped.id)}
+                  className="p-4 bg-white rounded-2xl border border-neutral-200 hover:border-blue-500 hover:shadow-md transition-all cursor-pointer flex items-center justify-between group"
+                >
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-mono font-bold text-blue-600 uppercase">
+                      {mapped.builder}
+                    </div>
+                    <div className="text-sm font-bold text-neutral-950 group-hover:text-blue-600 transition-colors">
+                      {mapped.projectName}
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      {mapped.locality}, {mapped.area}
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all shrink-0 ml-2" />
+                </div>
+              );
+            })}
+          </div>
+
           <button
             onClick={onBack}
-            className="px-6 py-3 bg-neutral-950 text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition-colors cursor-pointer flex items-center space-x-2"
+            className="px-6 py-3 bg-neutral-950 text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition-colors cursor-pointer flex items-center space-x-2 shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Explorer</span>
+            <span>Return to Property Explorer</span>
           </button>
         </main>
       </div>
