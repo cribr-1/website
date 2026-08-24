@@ -54,7 +54,7 @@ export default function ProjectAIAssistant({ project }: ProjectAIAssistantProps)
               </span>
             </h3>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Ask deep questions about <strong className="text-neutral-800">{project.name || project.title}</strong>
+              Ask deep questions about <strong className="text-neutral-800">{project.name || project.projectName || project.title}</strong>
             </p>
           </div>
         </div>
