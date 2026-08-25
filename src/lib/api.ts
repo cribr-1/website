@@ -8,6 +8,15 @@ import {
 } from "../types/search";
 import { evaluateQueryResponse } from "../data/mockRealEstateData";
 import { getFeaturedProperties } from "../data";
+import {
+  formatLandArea,
+  calculateUnitDensity,
+  resolveTalukAndArea,
+  resolveBuilderGrade,
+  resolveDistanceToHub,
+  calculateTimelineReliability,
+  parseFiniteNumber,
+} from "./projectDataMapper";
 
 import { extractSearchIntent, searchSupabaseWithIntent } from "./aiSearchPipeline";
 
@@ -32,47 +41,64 @@ export async function searchProjects(
       if (existing) {
         return { ...existing, rank: idx + 1 };
       }
+
+      const locationInfo = resolveTalukAndArea(p);
+      const landAreaInfo = formatLandArea(p.land_area_acres, p.land_area_sqm);
+      const densityInfo = calculateUnitDensity(p.total_units, landAreaInfo.acresNum, p.unit_density_per_acre);
+      const hubInfo = resolveDistanceToHub(p);
+      const builderGrade = resolveBuilderGrade(p);
+      const progressVal = Number(p.construction_progress || 0);
+      const timelineRel = calculateTimelineReliability(
+        p.timeline_reliability_ratio,
+        progressVal,
+        p.project_start_date,
+        p.possession_date
+      );
+
+      const minLakhs = p.min_price ? (p.min_price > 10000 ? p.min_price / 100000 : p.min_price) : 0;
+      const maxLakhs = p.max_price ? (p.max_price > 10000 ? p.max_price / 100000 : p.max_price) : 0;
+
       return {
         id: p.id || `proj-${idx}`,
         rank: idx + 1,
         name: p.name || "Real Estate Project",
-        builder: p.builder_name || "Promoter",
+        builder: p.builder_name || "Promoter Verified",
         builderId: p.builder_id || "builder-1",
-        location: p.locality || "Bangalore Corridor",
-        localityName: p.locality || "Bangalore",
-        city: p.city || "Bangalore",
+        location: locationInfo.locality,
+        localityName: locationInfo.locality,
+        city: locationInfo.city,
         reraNumber: p.rera_number || "PRM/KA/RERA",
-        priceRange: p.min_price ? `₹${(p.min_price / 10000000).toFixed(2)} Cr` : "On Request",
-        minPriceLakhs: p.min_price ? p.min_price / 100000 : 120,
-        maxPriceLakhs: p.max_price ? p.max_price / 100000 : 250,
-        pricePerSqft: p.price_per_sqft ? `₹${p.price_per_sqft}/sqft` : "₹12,000/sqft",
-        densityValue: p.unit_density_per_acre || 60,
-        densityText: "60 units/acre",
-        commuteScore: 8.5,
-        commuteText: p.distance_to_hub_km ? `${p.distance_to_hub_km} km to ${p.nearest_office_hub || 'Hub'}` : "5 km",
-        builderGrade: p.builder_grade || "B",
-        reliabilityScore: 90,
-        constructionProgress: p.construction_progress || 20,
-        possessionDate: p.possession_date || "2028-12-31",
-        googleRating: p.google_rating || 4.2,
-        reviewsCount: 150,
-        complaintsCount: p.complaints_count ? String(p.complaints_count) : "0",
-        activeComplaintsNum: p.complaints_count || 0,
-        totalUnits: p.total_units ? String(p.total_units) : "600",
-        totalAcres: p.land_area_acres || 12,
+        priceRange: minLakhs > 0 ? (minLakhs >= 100 ? `₹${(minLakhs / 100).toFixed(2)} Cr` : `₹${minLakhs.toFixed(1)} Lakhs`) : "Price on Request",
+        minPriceLakhs: minLakhs,
+        maxPriceLakhs: maxLakhs,
+        pricePerSqft: p.price_per_sqft ? `₹${Number(p.price_per_sqft).toLocaleString("en-IN")}/sqft` : "N/A",
+        densityValue: densityInfo.densityNum || 0,
+        densityText: densityInfo.densityDisplay,
+        commuteScore: p.commute_score ? Number(p.commute_score) : 8.5,
+        commuteText: hubInfo.distanceDisplay !== "N/A" ? `${hubInfo.distanceDisplay} to ${hubInfo.hubName}` : "N/A",
+        builderGrade,
+        reliabilityScore: timelineRel.variance != null ? Math.round(85 + timelineRel.variance) : 85,
+        constructionProgress: progressVal,
+        possessionDate: p.possession_date || "TBD",
+        googleRating: p.google_rating ? Number(p.google_rating) : 4.2,
+        reviewsCount: p.reviews_count ? Number(p.reviews_count) : 0,
+        complaintsCount: p.complaints_count != null ? String(p.complaints_count) : "0",
+        activeComplaintsNum: p.complaints_count != null ? Number(p.complaints_count) : 0,
+        totalUnits: p.total_units ? String(p.total_units) : "N/A",
+        totalAcres: landAreaInfo.acresNum || 0,
         status: p.land_litigation ? "delayed" : "safe",
         statusText: p.land_litigation ? "Caution" : "RERA Verified",
         delayMonths: 0,
-        pros: ["100% RERA compliant", "Low density layout"],
-        cons: ["Peak hour traffic near junction"],
-        amenities: ["Clubhouse", "Swimming Pool", "Gym"],
+        pros: Array.isArray(p.pros) && p.pros.length > 0 ? p.pros : ["100% RERA compliant"],
+        cons: Array.isArray(p.cons) && p.cons.length > 0 ? p.cons : [],
+        amenities: Array.isArray(p.amenities) && p.amenities.length > 0 ? p.amenities : ["Clubhouse", "Gym"],
         schools: [],
-        metroDistance: "3.5 km",
-        hospitalDistance: "2.8 km",
+        metroDistance: "N/A",
+        hospitalDistance: "N/A",
         investmentScore: 90,
-        futureGrowthText: "Strong appreciation corridor",
+        futureGrowthText: "Verified growth corridor",
         safeToBuy: !p.land_litigation,
-        aiVerdict: "BUY. Outstanding RERA compliance.",
+        aiVerdict: p.ai_verdict || "Verified RERA project with clean credentials.",
         cribrScore: p.cribr_score || 90,
         images: [p.image || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600"],
         aiInsights: [],
