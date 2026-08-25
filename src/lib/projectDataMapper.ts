@@ -1521,59 +1521,66 @@ export function findMatchingProperty(slugOrId: string, customList?: any[]): any 
     }
   }
 
+  const rawSlug = normalizeSlug(raw);
   const rawAlpha = normalizeAlphanumeric(raw);
   const cleanAlpha = normalizeAlphanumeric(clean);
 
-  // Level 1: Exact matches
+  // Tier 1: Strict Exact ID, exact Slug, exact Name, or exact RERA match (Preserves phase specificity)
   for (const p of allProperties) {
     const pId = String(p.id || "").toLowerCase();
-    const pCleanId = cleanSlugKey(pId);
     const pName = String(p.name || p.projectName || "").toLowerCase();
     const pNameSlug = normalizeSlug(pName);
-    const pCleanNameSlug = normalizeSlug(cleanSlugKey(pName));
     const pRera = String(p.reraNumber || p.rera_number || "").toLowerCase();
 
     if (
       pId === raw ||
-      pId === `proj-${cleanSlug}` ||
       pId === `proj-${raw}` ||
-      pCleanId === clean ||
-      pCleanId === raw ||
-      pCleanId === cleanSlug ||
-      pNameSlug === raw ||
-      pNameSlug === cleanSlug ||
-      pCleanNameSlug === cleanSlug ||
+      pId === `proj-${rawSlug}` ||
+      pNameSlug === rawSlug ||
       pName === raw ||
-      pName === decoded ||
-      (pRera && (pRera === raw || pRera === clean))
+      pName === decoded.toLowerCase() ||
+      (pRera && pRera === raw)
     ) {
       return p;
     }
   }
 
-  // Level 2: Alphanumeric match
+  // Tier 2: Exact Alphanumeric match (ignoring dashes/spaces, but keeping phase tokens)
   for (const p of allProperties) {
     const pIdAlpha = normalizeAlphanumeric(p.id || "");
-    const pCleanIdAlpha = normalizeAlphanumeric(cleanSlugKey(p.id || ""));
     const pNameAlpha = normalizeAlphanumeric(p.name || p.projectName || "");
-    const pCleanNameAlpha = normalizeAlphanumeric(cleanSlugKey(p.name || p.projectName || ""));
     const pReraAlpha = normalizeAlphanumeric(p.reraNumber || p.rera_number || "");
 
     if (
       pIdAlpha === rawAlpha ||
-      pIdAlpha === cleanAlpha ||
-      pCleanIdAlpha === cleanAlpha ||
-      pCleanIdAlpha === rawAlpha ||
       pNameAlpha === rawAlpha ||
-      pNameAlpha === cleanAlpha ||
-      pCleanNameAlpha === cleanAlpha ||
-      (pReraAlpha && (pReraAlpha === rawAlpha || pReraAlpha === cleanAlpha))
+      (pReraAlpha && pReraAlpha === rawAlpha)
     ) {
       return p;
     }
   }
 
-  // Level 3: Prefix / StartsWith match
+  // Tier 3: Phase-stripped fallback match (only if no exact phase match was found)
+  for (const p of allProperties) {
+    const pId = String(p.id || "").toLowerCase();
+    const pCleanId = cleanSlugKey(pId);
+    const pName = String(p.name || p.projectName || "").toLowerCase();
+    const pCleanNameSlug = normalizeSlug(cleanSlugKey(pName));
+    const pCleanIdAlpha = normalizeAlphanumeric(pCleanId);
+    const pCleanNameAlpha = normalizeAlphanumeric(cleanSlugKey(pName));
+
+    if (
+      pCleanId === clean ||
+      pCleanId === cleanSlug ||
+      pCleanNameSlug === cleanSlug ||
+      pCleanIdAlpha === cleanAlpha ||
+      pCleanNameAlpha === cleanAlpha
+    ) {
+      return p;
+    }
+  }
+
+  // Tier 4: Prefix / StartsWith match (requiring at least 5 alphanumeric characters)
   for (const p of allProperties) {
     const pIdAlpha = normalizeAlphanumeric(p.id || "");
     const pCleanIdAlpha = normalizeAlphanumeric(cleanSlugKey(p.id || ""));
@@ -1581,18 +1588,16 @@ export function findMatchingProperty(slugOrId: string, customList?: any[]): any 
     const pCleanNameAlpha = normalizeAlphanumeric(cleanSlugKey(p.name || p.projectName || ""));
 
     if (
-      (cleanAlpha.length >= 5 && pCleanIdAlpha.startsWith(cleanAlpha)) ||
-      (cleanAlpha.length >= 5 && pCleanNameAlpha.startsWith(cleanAlpha)) ||
       (rawAlpha.length >= 5 && pIdAlpha.startsWith(rawAlpha)) ||
       (rawAlpha.length >= 5 && pNameAlpha.startsWith(rawAlpha)) ||
-      (cleanAlpha.length >= 5 && cleanAlpha.startsWith(pCleanIdAlpha)) ||
-      (cleanAlpha.length >= 5 && cleanAlpha.startsWith(pCleanNameAlpha))
+      (cleanAlpha.length >= 5 && pCleanIdAlpha.startsWith(cleanAlpha)) ||
+      (cleanAlpha.length >= 5 && pCleanNameAlpha.startsWith(cleanAlpha))
     ) {
       return p;
     }
   }
 
-  // Level 4: Token keyword match
+  // Tier 5: Token keyword match
   const tokens = clean
     .split(/[^a-z0-9]+/)
     .filter((t) => t.length > 2 && !["proj", "project", "bangalore", "road"].includes(t));
@@ -1640,3 +1645,4 @@ export async function getPropertyAsync(slugOrId: string): Promise<any | null> {
     return null;
   }
 }
+
