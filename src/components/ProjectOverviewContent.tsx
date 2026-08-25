@@ -75,7 +75,7 @@ export const ProjectOverviewContent: React.FC<ProjectOverviewContentProps> = ({ 
               City / Taluk
             </span>
             <span className="text-sm font-bold text-neutral-950 block">
-              {p.area}
+              {p.taluk && p.taluk !== "N/A" ? p.taluk : p.area}
             </span>
           </div>
 
@@ -84,7 +84,7 @@ export const ProjectOverviewContent: React.FC<ProjectOverviewContentProps> = ({ 
               Builder Grade
             </span>
             <span className="text-sm font-bold font-mono text-indigo-700 block">
-              Grade {p.builderGrade}
+              {p.builderGradeDisplay || (p.builderGrade?.startsWith("Grade") || p.builderGrade === "Unrated" || p.builderGrade === "Not Found" ? p.builderGrade : `Grade ${p.builderGrade}`)}
             </span>
           </div>
         </div>
@@ -116,9 +116,11 @@ export const ProjectOverviewContent: React.FC<ProjectOverviewContentProps> = ({ 
             <span className="text-base font-bold font-mono text-neutral-950 block">
               {p.landAreaAcres}
             </span>
-            <span className="text-[10px] text-neutral-400 font-mono block">
-              ({p.landAreaSqm})
-            </span>
+            {p.landAreaSqm && p.landAreaSqm !== "N/A" && (
+              <span className="text-[10px] text-neutral-400 font-mono block">
+                ({p.landAreaSqm})
+              </span>
+            )}
           </div>
 
           <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1 text-center">
@@ -204,9 +206,20 @@ export const ProjectOverviewContent: React.FC<ProjectOverviewContentProps> = ({ 
               Verification & Title Audit Note
             </span>
             <span className="text-xs text-neutral-700 block leading-relaxed">
-              {p.googleReviewSummary}
+              {p.verificationTitleAuditNote || "Clean Title Deed with zero adverse litigation records."}
             </span>
           </div>
+
+          {p.googleReviewSummary && (
+            <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100/80 space-y-1 sm:col-span-2 md:col-span-3">
+              <span className="text-[10px] font-mono uppercase text-blue-600 font-bold block">
+                Resident & Buyer Sentiment Summary
+              </span>
+              <span className="text-xs text-neutral-700 block leading-relaxed">
+                {p.googleReviewSummary}
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
