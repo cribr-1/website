@@ -33,13 +33,15 @@ interface PropertyExplorerProps {
   onSelectProperty?: (property: any) => void;
   searchQuery?: string;
   onClearSearch?: () => void;
+  onCompare?: (property: any) => void;
 }
 
 export default function PropertyExplorer({
   onAnalyze,
   onSelectProperty,
   searchQuery,
-  onClearSearch
+  onClearSearch,
+  onCompare
 }: PropertyExplorerProps) {
   const {
     projects,
@@ -189,6 +191,7 @@ export default function PropertyExplorer({
                     idx={idx}
                     onAnalyze={onAnalyze}
                     onSelectProperty={onSelectProperty}
+                    onCompare={onCompare}
                   />
                 ))}
               </div>
@@ -216,9 +219,10 @@ interface PropertyCardProps {
   idx: number;
   onAnalyze: (q: string) => void;
   onSelectProperty?: (p: any) => void;
+  onCompare?: (p: any) => void;
 }
 
-function PropertyCard({ property, idx, onAnalyze, onSelectProperty }: PropertyCardProps) {
+function PropertyCard({ property, idx, onAnalyze, onSelectProperty, onCompare }: PropertyCardProps) {
   const p = mapToWhitelistedProject(property);
 
   const handleOpenDetails = () => {
@@ -345,6 +349,19 @@ function PropertyCard({ property, idx, onAnalyze, onSelectProperty }: PropertyCa
             <span>View Project Overview</span>
             <ArrowRight className="w-4 h-4" />
           </button>
+
+          {onCompare && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCompare(property);
+              }}
+              className="p-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition-colors cursor-pointer"
+              title="Add to Comparison"
+            >
+              <Layers className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             onClick={(e) => {

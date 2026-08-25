@@ -619,6 +619,65 @@ CRITICAL:
     const systemPrompt = "You are CRIBR AI Property Advisor. Answer only real estate questions concisely.";
     return this.callLLM(systemPrompt, query, 0.25);
   }
+
+  /**
+   * Compare multiple projects using verified structured data
+   */
+  async compareProjectsWithAI(projects: any[]): Promise<any | null> {
+    if (!projects || projects.length < 2) return null;
+
+    const systemPrompt = `You are CRIBR AI, an expert real estate comparative analyst.
+Your task is to analyze ${projects.length} verified real estate projects and output a structured JSON comparison.
+
+RULES:
+1. ONLY use the provided project data. Never invent facts, prices, risks, or legal status.
+2. If data is missing, output "Not available".
+3. Return ONLY valid JSON matching the exact schema provided.
+4. Output no markdown wrapping like \`\`\`json. Just the raw JSON string.
+
+SCHEMA:
+{
+  "overallRecommendation": "string - paragraph explaining which project is generally best and why",
+  "bestForInvestment": "string - name of project and reason",
+  "bestForEndUse": "string - name of project and reason",
+  "bestBuilder": "string - name of project with most reliable builder",
+  "bestConnectivity": "string - name of project and reason",
+  "bestValue": "string - name of project and reason",
+  "lowestRisk": "string - name of project and reason",
+  "projects": [
+    {
+      "projectId": "string (the exact ID of the project)",
+      "strengths": ["string", "string"],
+      "risks": ["string", "string"],
+      "analysis": "string - paragraph summarizing this project's unique position in the comparison"
+    }
+  ],
+  "headToHead": [
+    "string - bullet point comparing two or more projects on a specific vector (e.g. Price vs Value)",
+    "string - bullet point..."
+  ],
+  "finalVerdict": "string - one sentence summarizing the final decision framework"
+}`;
+
+    const userMessage = `Here is the verified data for the projects to compare:\n\n${datasetToMarkdown(projects)}\n\nOutput ONLY the JSON object.`;
+
+    const rawResponse = await this.callLLM(systemPrompt, userMessage, 0.2);
+    if (!rawResponse) return null;
+
+    try {
+      // Clean up markdown if the LLM still wrapped it
+      let jsonString = rawResponse;
+      if (jsonString.startsWith("```json")) {
+        jsonString = jsonString.replace(/^```json/, "").replace(/```$/, "");
+      } else if (jsonString.startsWith("```")) {
+         jsonString = jsonString.replace(/^```/, "").replace(/```$/, "");
+      }
+      return JSON.parse(jsonString.trim());
+    } catch (e) {
+      console.error("[AIService] Failed to parse comparison JSON:", e, rawResponse);
+      return null;
+    }
+  }
 }
 
 export const aiService = new AIService();

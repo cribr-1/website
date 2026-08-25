@@ -30,6 +30,8 @@ import CribrMobileHome from "./components/CribrMobileHome";
 import CribrAiSearchPage from "./components/CribrAiSearchPage";
 import PropertyIntelligenceDetailsModal from "./components/PropertyIntelligenceDetailsModal";
 import PropertyDetailsPage from "./components/PropertyDetailsPage";
+import CribrComparePage from "./components/CribrComparePage";
+import CompareFloatingBar from "./components/CompareFloatingBar";
 import ErrorBoundary from "./components/Common/ErrorBoundary";
 import { SearchProvider } from "./context/SearchContext";
 import { FEATURED_PROPERTIES } from "./data";
@@ -50,6 +52,7 @@ export default function App() {
 
   const [activeSection, setActiveSection] = useState("explorer");
   const [savedHomes, setSavedHomes] = useState<SavedHome[]>([]);
+  const [compareList, setCompareList] = useState<string[]>([]);
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
   const [selectedDesktopProperty, setSelectedDesktopProperty] = useState<typeof FEATURED_PROPERTIES[0] | null>(null);
 
@@ -71,6 +74,27 @@ export default function App() {
     window.history.pushState(null, "", newPath);
     setCurrentPath(newPath);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const navigateToCompare = () => {
+    window.history.pushState(null, "", "/compare");
+    setCurrentPath("/compare");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleToggleCompare = (id: string, name: string) => {
+    setCompareList(prev => {
+      if (prev.includes(id)) {
+        showToast(`Removed ${name} from comparison`, "info");
+        return prev.filter(p => p !== id);
+      }
+      if (prev.length >= 4) {
+        showToast("You can compare a maximum of 4 projects", "warning");
+        return prev;
+      }
+      showToast(`Added ${name} to comparison`, "success");
+      return [...prev, id];
+    });
   };
 
   const navigateHome = () => {
@@ -335,7 +359,20 @@ export default function App() {
           onSaveHome={handleSaveHome}
           onRemoveSaved={handleRemoveSaved}
           onAskAI={handleQuerySubmit}
-          onCompare={(p) => showToast(`Added ${p.name} to comparison matrix`, "info")}
+          onCompare={(p) => handleToggleCompare(p.id, p.name)}
+        />
+        <CribrToastContainer />
+      </ErrorBoundary>
+    );
+  }
+
+  if (currentPath === "/compare") {
+    return (
+      <ErrorBoundary fallbackTitle="Comparison Error" fallbackMessage="Unable to load comparison matrix.">
+        <CribrComparePage 
+          compareList={compareList} 
+          onBack={navigateHome} 
+          onRemoveProject={(id) => setCompareList(prev => prev.filter(p => p !== id))}
         />
         <CribrToastContainer />
       </ErrorBoundary>
@@ -744,6 +781,15 @@ export default function App() {
 
       {/* TOAST SYSTEM LAUNCHER */}
       <CribrToastContainer />
+
+      {/* COMPARE FLOATING BAR */}
+      <CompareFloatingBar 
+        compareList={compareList}
+        projectsData={FEATURED_PROPERTIES}
+        onRemove={(id) => setCompareList(prev => prev.filter(p => p !== id))}
+        onClear={() => setCompareList([])}
+        onCompare={navigateToCompare}
+      />
     </div>
   );
 }
