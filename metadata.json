@@ -1,6 +1,6 @@
 {
-  "name": "CRIBR",
-  "description": "Real estate intelligence and verified residential discovery platform",
+  "name": "cribr v4",
+  "description": "CRIBR - Real estate intelligence platform with verified RERA data, builder due-diligence, construction timelines, and pricing analysis.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
