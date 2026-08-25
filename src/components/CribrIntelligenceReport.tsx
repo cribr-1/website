@@ -486,43 +486,49 @@ export default function CribrIntelligenceReport({
             </div>
 
             {/* Pros and Cons Column Split */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              {/* Pros */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-emerald-50/10 border border-emerald-200/30 p-8 flex flex-col space-y-6">
-                <div className="flex items-center space-x-2 text-emerald-600">
-                  <CheckCircle2 className="w-5 h-5 fill-emerald-50 text-emerald-600" />
-                  <h4 className="text-[14px] font-mono uppercase tracking-wider font-bold">
-                    Strategic Advantages
-                  </h4>
-                </div>
-                <ul className="space-y-4">
-                  {report.pros.map((pro, index) => (
-                    <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2.5 flex-shrink-0" />
-                      <span className="font-light leading-relaxed">{pro}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {(report.pros?.length > 0 || report.cons?.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                {/* Pros */}
+                {report.pros?.length > 0 && (
+                  <div className="p-8 md:p-10 rounded-[32px] bg-emerald-50/10 border border-emerald-200/30 p-8 flex flex-col space-y-6">
+                    <div className="flex items-center space-x-2 text-emerald-600">
+                      <CheckCircle2 className="w-5 h-5 fill-emerald-50 text-emerald-600" />
+                      <h4 className="text-[14px] font-mono uppercase tracking-wider font-bold">
+                        Strategic Advantages
+                      </h4>
+                    </div>
+                    <ul className="space-y-4">
+                      {report.pros.map((pro, index) => (
+                        <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2.5 flex-shrink-0" />
+                          <span className="font-light leading-relaxed">{pro}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              {/* Cons */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-amber-50/10 border border-amber-200/30 p-8 flex flex-col space-y-6">
-                <div className="flex items-center space-x-2 text-amber-600">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
-                  <h4 className="text-[14px] font-mono uppercase tracking-wider font-bold">
-                    Risk Assessment Warnings
-                  </h4>
-                </div>
-                <ul className="space-y-4">
-                  {report.cons.map((con, index) => (
-                    <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary">
-                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2.5 flex-shrink-0" />
-                      <span className="font-light leading-relaxed">{con}</span>
-                    </li>
-                  ))}
-                </ul>
+                {/* Cons */}
+                {report.cons?.length > 0 && (
+                  <div className="p-8 md:p-10 rounded-[32px] bg-amber-50/10 border border-amber-200/30 p-8 flex flex-col space-y-6">
+                    <div className="flex items-center space-x-2 text-amber-600">
+                      <AlertTriangle className="w-5 h-5 text-amber-600" />
+                      <h4 className="text-[14px] font-mono uppercase tracking-wider font-bold">
+                        Risk Assessment Warnings
+                      </h4>
+                    </div>
+                    <ul className="space-y-4">
+                      {report.cons.map((con, index) => (
+                        <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary">
+                          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2.5 flex-shrink-0" />
+                          <span className="font-light leading-relaxed">{con}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
             {/* Comparative Matrix table if it exists */}
             {report.comparativeMatrix && report.comparativeMatrix.length > 0 && (

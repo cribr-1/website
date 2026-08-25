@@ -242,13 +242,17 @@ export default function PropertyDetailsPage({
       {/* Main Page Container */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         {/* Hero Image Banner */}
-        <div className="relative h-64 sm:h-96 w-full rounded-[28px] overflow-hidden bg-neutral-900 shadow-lg">
-          <img
-            src={p.image}
-            alt={p.projectName}
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover"
-          />
+        <div className="relative h-64 sm:h-96 w-full rounded-[28px] overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
+          {p.image ? (
+            <img
+              src={p.image}
+              alt={p.projectName}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <Building2 className="w-16 h-16 text-slate-700 opacity-50" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
           {/* Top Overlay Badges */}

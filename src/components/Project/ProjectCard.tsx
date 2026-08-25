@@ -171,30 +171,34 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               className="space-y-6"
             >
               {/* Executive Verdict Callout */}
-              <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-6 rounded-2xl space-y-3 shadow-lg">
-                <div className="flex items-center gap-2 text-blue-300 text-xs font-semibold uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
-                  <span>CRIBR AI Executive Verdict</span>
+              {project.aiVerdict && (
+                <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-6 rounded-2xl space-y-3 shadow-lg">
+                  <div className="flex items-center gap-2 text-blue-300 text-xs font-semibold uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+                    <span>CRIBR AI Executive Verdict</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-200">
+                    {project.aiVerdict}
+                  </p>
+                  <div className="text-xs text-slate-400 font-mono pt-2 border-t border-slate-800">
+                    Investment Yield Score: <span className="text-emerald-400 font-bold">{project.investmentScore || "N/A"}/100</span> • {project.futureGrowthText}
+                  </div>
                 </div>
-                <p className="text-sm leading-relaxed text-slate-200">
-                  {project.aiVerdict}
-                </p>
-                <div className="text-xs text-slate-400 font-mono pt-2 border-t border-slate-800">
-                  Investment Yield Score: <span className="text-emerald-400 font-bold">{project.investmentScore}/100</span> • {project.futureGrowthText}
-                </div>
-              </div>
+              )}
 
               {/* AI Insights Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {project.aiInsights.map((insight, idx) => (
-                  <AiInsightCard
-                    key={idx}
-                    type={insight.type}
-                    title={insight.title}
-                    description={insight.description}
-                  />
-                ))}
-              </div>
+              {project.aiInsights && project.aiInsights.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {project.aiInsights.map((insight, idx) => (
+                    <AiInsightCard
+                      key={idx}
+                      type={insight.type}
+                      title={insight.title}
+                      description={insight.description}
+                    />
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -221,57 +225,68 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               className="space-y-6"
             >
               {/* Amenities Grid */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  Clubhouse & Lifestyle Amenities
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {project.amenities.map((amenity, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/80 text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-                      <span>{amenity}</span>
-                    </div>
-                  ))}
+              {project.amenities && project.amenities.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    Clubhouse & Lifestyle Amenities
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {project.amenities.map((amenity, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/80 text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                        <span>{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Nearby Infrastructure */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-2">
-                    <School className="w-4 h-4 text-blue-500" /> Top Schools Nearby
-                  </div>
-                  <ul className="space-y-1 text-slate-600 dark:text-slate-400">
-                    {project.schools.map((s, idx) => (
-                      <li key={idx} className="flex justify-between">
-                        <span>{s.name}</span>
-                        <span className="font-mono text-slate-400">{s.distance}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {(project.schools && project.schools.length > 0 || project.metroDistance || project.hospitalDistance) && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
+                  
+                  {project.schools && project.schools.length > 0 && (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-2">
+                        <School className="w-4 h-4 text-blue-500" /> Top Schools Nearby
+                      </div>
+                      <ul className="space-y-1 text-slate-600 dark:text-slate-400">
+                        {project.schools.map((s, idx) => (
+                          <li key={idx} className="flex justify-between">
+                            <span>{s.name}</span>
+                            <span className="font-mono text-slate-400">{s.distance}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-2">
-                    <Train className="w-4 h-4 text-emerald-500" /> Metro & Transit
-                  </div>
-                  <p className="text-slate-600 dark:text-slate-400">
-                    {project.metroDistance}
-                  </p>
-                </div>
+                  {project.metroDistance && (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-2">
+                        <Train className="w-4 h-4 text-emerald-500" /> Metro & Transit
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400">
+                        {project.metroDistance}
+                      </p>
+                    </div>
+                  )}
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-2">
-                    <Hospital className="w-4 h-4 text-rose-500" /> Healthcare
-                  </div>
-                  <p className="text-slate-600 dark:text-slate-400">
-                    {project.hospitalDistance}
-                  </p>
+                  {project.hospitalDistance && (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-2">
+                        <Hospital className="w-4 h-4 text-rose-500" /> Healthcare
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400">
+                        {project.hospitalDistance}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </motion.div>
           )}
 
