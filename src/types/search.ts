@@ -126,6 +126,20 @@ export interface FullProject {
   timeline: TimelineItem[];
   documents: DocumentItem[];
   reviews: ReviewItem[];
+  taluk?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  projectStartDate?: string;
+  nearestOfficeHub?: string;
+  distanceToHubKm?: number;
+  builderReliability?: number;
+  complaints_on_project?: number;
+  landAreaSqm?: string;
+  landLitigation?: boolean;
+  landLitigationStatus?: string;
+  googleReviewSummary?: string;
+  verificationTitleAuditNote?: string;
+  property_title_summary?: string;
 }
 
 export interface BuilderProfile {

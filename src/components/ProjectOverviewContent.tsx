@@ -72,7 +72,7 @@ export const ProjectOverviewContent: React.FC<ProjectOverviewContentProps> = ({ 
 
           <div className="p-3.5 bg-neutral-50/80 rounded-xl border border-neutral-100 space-y-1">
             <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold block">
-              City / Taluk
+              Taluk / Area
             </span>
             <span className="text-sm font-bold text-neutral-950 block">
               {p.taluk && p.taluk !== "N/A" ? p.taluk : p.area}

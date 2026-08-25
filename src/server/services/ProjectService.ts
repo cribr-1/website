@@ -55,14 +55,14 @@ export class ProjectService {
       }
     }
 
-    // Master projects in-memory fallback
+    // Master projects in-memory fallback - STRICT EXACT MATCHING ONLY
     const found = MASTER_PROJECTS.find(
       p =>
         p.id.toLowerCase() === clean ||
         p.id.toLowerCase().replace(/^proj-/, "") === clean.replace(/^proj-/, "") ||
+        (p.slug && (p.slug.toLowerCase() === clean || p.slug.toLowerCase().replace(/^proj-/, "") === clean.replace(/^proj-/, ""))) ||
         p.name.toLowerCase() === clean ||
-        p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === clean ||
-        p.name.toLowerCase().includes(clean)
+        p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") === clean.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
     );
 
     return found || null;

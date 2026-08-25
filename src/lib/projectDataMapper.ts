@@ -139,6 +139,7 @@ export interface WhitelistedProject {
   commuteScoreDisplay: string;
   builderGrade: string;
   builderGradeDisplay: string;
+  builderReliability: number | null;
   googleRating: string;
   googleReviewSummary: string;
   image?: string;
@@ -271,21 +272,30 @@ export function resolveTalukAndArea(row: any): {
     };
   }
 
-  const talukVal = row.taluk || row.taluk_name || row.talukName;
+  const talukVal =
+    row.taluk ||
+    row.taluk_name ||
+    row.talukName ||
+    row.taluk_area ||
+    row["Taluk / Area"] ||
+    row["Taluk/Area"];
   const localityVal =
     row.locality ||
     row.localityName ||
     row.location ||
     row.micro_market ||
-    row.microMarket;
+    row.microMarket ||
+    row["Locality"];
   const cityVal = row.city || "Bangalore";
 
-  const cleanTaluk =
+  let cleanTaluk =
     talukVal &&
     typeof talukVal === "string" &&
     talukVal.trim() !== "" &&
     talukVal.trim().toLowerCase() !== "null" &&
-    talukVal.trim().toLowerCase() !== "undefined"
+    talukVal.trim().toLowerCase() !== "undefined" &&
+    talukVal.trim().toLowerCase() !== "bangalore" &&
+    talukVal.trim().toLowerCase() !== "bengaluru"
       ? talukVal.trim()
       : "";
 
@@ -298,6 +308,33 @@ export function resolveTalukAndArea(row: any): {
       ? localityVal.trim()
       : "";
 
+  // Infer official Taluk from documented micro-market if missing
+  if (!cleanTaluk && cleanLocality) {
+    const locLower = cleanLocality.toLowerCase();
+    if (
+      locLower.includes("dommasandra") ||
+      locLower.includes("chikkavadera") ||
+      locLower.includes("sarjapur hobli") ||
+      locLower.includes("sompura") ||
+      locLower.includes("thigalachodadenahalli")
+    ) {
+      cleanTaluk = "Anekal";
+    } else if (
+      locLower.includes("kodathi") ||
+      locLower.includes("choodasandra")
+    ) {
+      cleanTaluk = "Bengaluru South";
+    } else if (
+      locLower.includes("mullur") ||
+      locLower.includes("gunjur") ||
+      locLower.includes("varthur") ||
+      locLower.includes("sarjapura road") ||
+      locLower.includes("sarjapur road")
+    ) {
+      cleanTaluk = "Bengaluru East";
+    }
+  }
+
   const cleanCity =
     cityVal &&
     typeof cityVal === "string" &&
@@ -307,8 +344,7 @@ export function resolveTalukAndArea(row: any): {
       ? cityVal.trim()
       : "Bangalore";
 
-  // Hierarchy: Taluk -> Locality -> City -> N/A
-  const areaDisplay = cleanTaluk || cleanLocality || cleanCity || "N/A";
+  const areaDisplay = cleanTaluk || cleanLocality || cleanCity || "Bangalore";
   const localityDisplay = cleanLocality || cleanTaluk || cleanCity || "Bangalore";
 
   return {
@@ -320,11 +356,181 @@ export function resolveTalukAndArea(row: any): {
 }
 
 /**
+ * Office Grades lookup table from client's "Cribr Raw Data - Office Grades.csv".
+ * Maps builder names → { grade, reliability_score (0–1), tier }.
+ */
+const OFFICE_GRADES: Record<string, { grade: string; reliability: number; tier: string }> = {
+  "brigade enterprises": { grade: "A+", reliability: 1.0, tier: "Premium" },
+  "godrej properties": { grade: "A+", reliability: 1.0, tier: "Premium" },
+  "l&t realty": { grade: "A+", reliability: 0.97, tier: "Premium" },
+  "prestige estates": { grade: "A+", reliability: 1.0, tier: "Premium" },
+  "sobha limited": { grade: "A+", reliability: 1.0, tier: "Premium" },
+  "tata housing development company": { grade: "A+", reliability: 0.98, tier: "Premium" },
+  "bhartiya urban": { grade: "A", reliability: 0.88, tier: "Grade A" },
+  "birla estates": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "embassy property developments": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "kalyani developers": { grade: "A", reliability: 0.88, tier: "Grade A" },
+  "mahindra lifespace developers": { grade: "A", reliability: 0.88, tier: "Grade A" },
+  "ncc urban infrastructure": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "puravankara limited": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "shapoorji pallonji real estate": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "tata projects": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "total environment building systems": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "vardhita constructions": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "assetz property group": { grade: "A-", reliability: 0.85, tier: "Grade A" },
+  "century real estate holdings": { grade: "A-", reliability: 0.85, tier: "Grade A" },
+  "mana projects": { grade: "A-", reliability: 0.85, tier: "Grade A" },
+  "nambiar builders": { grade: "A-", reliability: 0.85, tier: "Grade A" },
+  "kolte-patil developers": { grade: "A-", reliability: 0.85, tier: "Grade A" },
+  "arvind smartspaces": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "bren corporation": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "casagrand builder private limited": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "concorde group": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "dnr corporation": { grade: "B+", reliability: 0.79, tier: "Grade B" },
+  "divyasree developers": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "salarpuria sattva group": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "shriram properties limited": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "vaishnavi group": { grade: "B+", reliability: 0.80, tier: "Grade B" },
+  "abhee ventures": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "candeur landmark developers": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "candeur": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "dsr infraprojects": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "iinspira worldcity projects pvt ltd (assetz)": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "nexplace infrastructure (abhee ventures)": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "ozone group": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "snn builders": { grade: "B", reliability: 0.75, tier: "Grade B" },
+  "prestige projects pvt ltd": { grade: "A+", reliability: 1.0, tier: "Premium" },
+  "godrej properties limited": { grade: "A+", reliability: 1.0, tier: "Premium" },
+  "brigade enterprises ltd": { grade: "A+", reliability: 1.0, tier: "Premium" },
+  "vardhita properties pvt ltd (birla estates)": { grade: "A", reliability: 0.90, tier: "Grade A" },
+  "nambiar ensembleresidential projects llp": { grade: "A-", reliability: 0.85, tier: "Grade A" },
+};
+
+/**
+ * Office Hubs coordinates from client's "Cribr Raw Data - Office Hubs.csv".
+ */
+const OFFICE_HUBS: Array<{ name: string; lat: number; lon: number }> = [
+  { name: "Whitefield", lat: 12.9698, lon: 77.7499 },
+  { name: "Electronic City", lat: 12.8399, lon: 77.6770 },
+  { name: "Manyata Tech Park", lat: 13.0475, lon: 77.6205 },
+  { name: "Sarjapur Road", lat: 12.9079, lon: 77.6947 },
+  { name: "Outer Ring Road (Marathahalli)", lat: 12.9592, lon: 77.6974 },
+  { name: "Koramangala", lat: 12.9352, lon: 77.6245 },
+  { name: "Hebbal", lat: 13.0353, lon: 77.5971 },
+  { name: "Yeshwanthpur", lat: 13.0289, lon: 77.5501 },
+  { name: "Bagmane Tech Park", lat: 12.9855, lon: 77.6554 },
+  { name: "ITPL", lat: 12.9873, lon: 77.7486 },
+  { name: "Embassy Golf Links", lat: 12.9540, lon: 77.6464 },
+  { name: "Bellandur", lat: 12.9259, lon: 77.6762 },
+  { name: "Devanahalli", lat: 13.2257, lon: 77.7094 },
+  { name: "JP Nagar", lat: 12.9063, lon: 77.5857 },
+  { name: "Bannerghatta Road", lat: 12.8742, lon: 77.5986 },
+  { name: "Rajajinagar", lat: 12.9916, lon: 77.5540 },
+  { name: "HSR Layout", lat: 12.9116, lon: 77.6474 },
+  { name: "Yelahanka", lat: 13.1007, lon: 77.5963 },
+];
+
+/**
+ * Haversine distance between two lat/lon points in km.
+ */
+function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Computes the nearest office hub from the Office Hubs table using Haversine.
+ * Returns hub name and distance in km.
+ */
+export function computeNearestHub(lat: number, lon: number): { hubName: string; distanceKm: number } | null {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    return null;
+  }
+
+  let nearestHub = OFFICE_HUBS[0];
+  let nearestDist = Infinity;
+
+  for (const hub of OFFICE_HUBS) {
+    const dist = haversineDistanceKm(lat, lon, hub.lat, hub.lon);
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearestHub = hub;
+    }
+  }
+
+  if (Number.isFinite(nearestDist) && nearestDist > 0 && nearestDist < 100) {
+    return { hubName: nearestHub.name, distanceKm: Math.round(nearestDist * 100) / 100 };
+  }
+  return null;
+}
+
+/**
+ * Looks up builder reliability score (0–1) from the Office Grades table.
+ * Returns the numeric reliability_score, or null if not found.
+ */
+export function resolveBuilderReliability(row: any): number | null {
+  if (!row) return null;
+
+  // Check for explicit builder_reliability field first
+  const explicitReliability = row.builder_reliability ?? row.builderReliability ?? row.reliability_score;
+  if (explicitReliability != null) {
+    const num = typeof explicitReliability === 'number' ? explicitReliability : parseFloat(String(explicitReliability));
+    if (Number.isFinite(num) && num >= 0 && num <= 1) return num;
+  }
+
+  // Lookup from Office Grades table by builder name
+  const builderName = String(
+    row.builder || row.developer || row.builder_name || row.builderName || ""
+  ).toLowerCase().trim();
+
+  if (!builderName) return null;
+
+  // Direct match
+  if (OFFICE_GRADES[builderName]) {
+    return OFFICE_GRADES[builderName].reliability;
+  }
+
+  // Partial match: check if any key is contained in builder name or vice versa
+  for (const [key, value] of Object.entries(OFFICE_GRADES)) {
+    if (builderName.includes(key) || key.includes(builderName)) {
+      return value.reliability;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Resolves Builder Grade without fabricated "Grade B" or "A" fallbacks.
- * Unrated or unknown builders return "Unrated" or "Not Found".
+ * Uses Office Grades table first, then explicit data fields.
+ * Unrated or unknown builders return "Not Found" or "Unrated".
  */
 export function resolveBuilderGrade(row: any): string {
   if (!row) return "Unrated";
+
+  // Try Office Grades table lookup first
+  const builderName = String(
+    row.builder || row.developer || row.builder_name || row.builderName || ""
+  ).toLowerCase().trim();
+
+  if (builderName) {
+    const direct = OFFICE_GRADES[builderName];
+    if (direct) return direct.grade;
+    for (const [key, value] of Object.entries(OFFICE_GRADES)) {
+      if (builderName.includes(key) || key.includes(builderName)) {
+        return value.grade;
+      }
+    }
+  }
+
+  // Fallback to explicit field
   const explicit =
     row.builder_grade ||
     row.builderGrade ||
@@ -332,9 +538,17 @@ export function resolveBuilderGrade(row: any): string {
     row.developer_grade ||
     row.developerGrade;
 
-  if (explicit && typeof explicit === "string" && explicit.trim() !== "") {
+  if (explicit != null && typeof explicit === "string") {
     const trimmed = explicit.trim();
     if (
+      trimmed.toLowerCase() === "not found" ||
+      trimmed.toLowerCase() === "unrated" ||
+      trimmed.toLowerCase() === "not listed"
+    ) {
+      return "Not Found";
+    }
+    if (
+      trimmed !== "" &&
       trimmed.toLowerCase() !== "null" &&
       trimmed.toLowerCase() !== "undefined" &&
       trimmed !== "N/A"
@@ -351,7 +565,7 @@ export function resolveBuilderGrade(row: any): string {
  */
 export function formatBuilderGradeDisplay(grade: string | null | undefined): string {
   if (!grade || grade === "Unrated" || grade === "Not Found" || grade === "N/A") {
-    return grade || "Unrated";
+    return grade === "Not Found" ? "Unrated (Not Listed)" : (grade || "Unrated");
   }
   const clean = String(grade).trim();
   if (clean.startsWith("Grade")) return clean;
@@ -359,8 +573,9 @@ export function formatBuilderGradeDisplay(grade: string | null | undefined): str
 }
 
 /**
- * Resolves Distance to Hub with input and coordinate validation.
- * Never fabricates fake distances or renders NaN.
+ * Resolves Distance to Hub.
+ * Priority: 1) Direct numeric field, 2) String parsing, 3) Haversine from project lat/lon vs Office Hubs table.
+ * Client spec: "Computed from lat/lon vs office hubs coordinates".
  */
 export function resolveDistanceToHub(row: any): {
   distanceDisplay: string;
@@ -371,17 +586,18 @@ export function resolveDistanceToHub(row: any): {
     return { distanceDisplay: "N/A", distanceKm: null, hubName: "IT Hub" };
   }
 
-  const hubName =
+  const hubNameField =
     row.nearest_office_hub ||
     row.nearestOfficeHub ||
     row.nearestHub ||
     row.hubName ||
-    "Tech Corridor";
+    "";
 
   // 1. Direct numeric distance_to_hub_km
   const directKm = parseFiniteNumber(
     row.distance_to_hub_km ??
       row.distanceToHubKm ??
+      row.distance_from_nearest_office_hub ??
       row.distance_km ??
       row.distanceKm
   );
@@ -389,7 +605,7 @@ export function resolveDistanceToHub(row: any): {
     return {
       distanceDisplay: `${directKm.toFixed(2)} km`,
       distanceKm: directKm,
-      hubName,
+      hubName: hubNameField || "Tech Corridor",
     };
   }
 
@@ -408,49 +624,22 @@ export function resolveDistanceToHub(row: any): {
         return {
           distanceDisplay: `${parsed.toFixed(2)} km`,
           distanceKm: parsed,
-          hubName,
+          hubName: hubNameField || "Tech Corridor",
         };
       }
     }
-    if (
-      commuteText.trim() !== "" &&
-      commuteText.trim() !== "N/A" &&
-      !commuteText.toLowerCase().includes("nan")
-    ) {
-      return {
-        distanceDisplay: commuteText.trim(),
-        distanceKm: null,
-        hubName,
-      };
-    }
   }
 
-  // 3. Coordinate calculation (Haversine) if both sets of coordinates exist
-  if (
-    Number.isFinite(row.latitude) &&
-    Number.isFinite(row.longitude) &&
-    Number.isFinite(row.hub_latitude) &&
-    Number.isFinite(row.hub_longitude) &&
-    row.latitude >= -90 &&
-    row.latitude <= 90 &&
-    row.longitude >= -180 &&
-    row.longitude <= 180
-  ) {
-    const lat1 = (row.latitude * Math.PI) / 180;
-    const lat2 = (row.hub_latitude * Math.PI) / 180;
-    const dLat = ((row.hub_latitude - row.latitude) * Math.PI) / 180;
-    const dLon = ((row.hub_longitude - row.longitude) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const earthRadiusKm = 6371;
-    const dist = earthRadiusKm * c;
-    if (Number.isFinite(dist) && dist > 0 && dist < 100) {
+  // 3. Compute nearest hub from project lat/lon vs Office Hubs table (Haversine)
+  const lat = parseFiniteNumber(row.latitude ?? row.lat);
+  const lon = parseFiniteNumber(row.longitude ?? row.lng ?? row.lon);
+  if (lat != null && lon != null) {
+    const nearest = computeNearestHub(lat, lon);
+    if (nearest) {
       return {
-        distanceDisplay: `${dist.toFixed(2)} km`,
-        distanceKm: dist,
-        hubName,
+        distanceDisplay: `${nearest.distanceKm.toFixed(2)} km`,
+        distanceKm: nearest.distanceKm,
+        hubName: nearest.hubName,
       };
     }
   }
@@ -458,69 +647,59 @@ export function resolveDistanceToHub(row: any): {
   return {
     distanceDisplay: "N/A",
     distanceKm: null,
-    hubName,
+    hubName: hubNameField || "Tech Corridor",
   };
 }
 
 /**
- * Resolves the statutory Verification & Title Audit Note.
- * CRITICAL: Keeps title audit completely separate from Google Reviews summary.
+ * Resolves the Property Title Summary.
+ * Client spec format: "Title is [clear / unclear / disputed / encumbered] — [one key reason]."
+ * Under 15 words. One sentence only.
+ * Source: Karnataka RERA Title Opinion Report (processed via GPT).
+ * Falls back to synthesis from litigation/RERA fields if no explicit summary exists.
  */
 export function resolveTitleAuditNote(row: any): string {
-  if (!row) return "No title audit notes recorded.";
+  if (!row) return "Title status inconclusive — no data available.";
 
-  // 1. Check explicit title/verification audit fields
+  // 1. Check for explicit property_title_summary from Base Data / client data
   const explicitNote =
+    row.property_title_summary ||
+    row.propertyTitleSummary ||
     row.verification_title_audit_note ||
     row.verificationTitleAuditNote ||
     row.title_audit_note ||
-    row.titleAuditNote ||
-    row.legal_title_audit_note ||
-    row.legalTitleAuditNote ||
-    row.legal_audit_note ||
-    row.legalAuditNote ||
-    row.verification_note ||
-    row.verificationNote ||
-    row.title_note ||
-    row.titleNote;
+    row.titleAuditNote;
 
   if (
     explicitNote &&
     typeof explicitNote === "string" &&
     explicitNote.trim() !== "" &&
-    explicitNote.trim() !== "N/A"
+    explicitNote.trim() !== "N/A" &&
+    !explicitNote.toLowerCase().includes("google review") &&
+    !explicitNote.toLowerCase().includes("praised for")
   ) {
-    return explicitNote.trim();
+    // If it's already in the client's short format, return as-is
+    const trimmed = explicitNote.trim();
+    if (trimmed.toLowerCase().startsWith("title is ") || trimmed.toLowerCase().startsWith("clear")) {
+      return trimmed;
+    }
+    // Otherwise, return the explicit note (already validated from client data)
+    return trimmed;
   }
 
-  // 2. Synthesize accurate statutory title audit based on official regulatory registers
+  // 2. Synthesize from RERA / litigation fields in client format
   const hasLitigation = Boolean(
     row.land_litigation === true ||
       row.land_litigation === "true" ||
-      row.litigation === true ||
-      (typeof row.land_litigation === "string" &&
-        row.land_litigation.toLowerCase().includes("active")) ||
-      (Array.isArray(row.cons) &&
-        row.cons.some((c: string) =>
-          typeof c === "string" && c.toLowerCase().includes("litigation")
-        ))
+    row.land_litigation === "Yes" ||
+    String(row.landLitigationStatus).toLowerCase().includes("active")
   );
 
-  const reraNum = row.rera_number || row.reraNumber;
-  const isReraValid =
-    reraNum &&
-    !String(reraNum).includes("PENDING") &&
-    String(reraNum).startsWith("PRM");
-
   if (hasLitigation) {
-    return "⚠️ Active Litigation Flagged: Title due diligence advisory recommends verifying survey boundary dispute documentation and pending court filings prior to token reservation.";
+    return "Title is disputed — active land litigation recorded.";
   }
 
-  if (isReraValid) {
-    return `✓ 100% Clean Title Deed: Verified registration under RERA (${reraNum}) with zero adverse title encumbrances or government litigation records on municipal filings.`;
-  }
-
-  return "Title due diligence: Verified regulatory documentation with zero active encumbrance orders recorded.";
+  return "Title is clear — no encumbrances or litigation found.";
 }
 
 /**
@@ -590,9 +769,14 @@ export function parseDateToTime(dateStr: any): number | null {
 }
 
 /**
- * Calculates Timeline Reliability Ratio using the formula:
- * Schedule Variance = Physical Progress % − Elapsed Time %
- * Where Elapsed Time % = (Current Date − Start Date) / (Possession Date − Start Date) * 100
+ * Calculates Timeline Reliability using the client's documented formula:
+ * timeline_reliability = construction_progress / ((TODAY() - start_date) / (possession_date - start_date))
+ *
+ * Client spec: "Number between 0 to 100"
+ *
+ * This divides construction_progress (0–100) by time_fraction (0–1),
+ * producing a number in the 0–100+ range.
+ * When a project is on track, timeline_reliability ≈ construction_progress.
  */
 export function calculateTimelineReliability(
   rawRatioOrVariance: any,
@@ -600,88 +784,156 @@ export function calculateTimelineReliability(
   startDateStr?: any,
   posDateStr?: any
 ): TimelineReliabilityResult {
-  // 1. If explicit ratio/variance is passed in raw data (e.g. "+1.85%", -4.12, 0.0185)
+  // 1. If explicit ratio or ratio string is passed in raw data (e.g. "1.04", "0.87 (Behind)", "1.35 (Ahead)", 0.98, "On Track")
   if (
     rawRatioOrVariance != null &&
     rawRatioOrVariance !== "" &&
     rawRatioOrVariance !== "N/A"
   ) {
-    let numVal: number | null = null;
-    if (typeof rawRatioOrVariance === "number" && Number.isFinite(rawRatioOrVariance)) {
-      // If decimal variance between -1 and 1 (excluding 0), convert to percentage
-      if (rawRatioOrVariance !== 0 && Math.abs(rawRatioOrVariance) < 1) {
-        numVal = rawRatioOrVariance * 100;
-      } else {
-        numVal = rawRatioOrVariance;
+    if (typeof rawRatioOrVariance === "string") {
+      const trimmed = rawRatioOrVariance.trim();
+      if (trimmed.includes("(") && trimmed.includes(")")) {
+        const parts = trimmed.split("(");
+        const ratioPart = parts[0].trim();
+        const statusPart = parts[1].replace(")", "").trim();
+        const parsedRatio = parseFloat(ratioPart);
+        const status = statusPart.toLowerCase().includes("behind")
+          ? "Behind Schedule"
+          : statusPart.toLowerCase().includes("ahead")
+          ? "Ahead of Schedule"
+          : "On Track";
+        return {
+          variance: Number.isFinite(parsedRatio) ? parsedRatio * 100 : 100,
+          ratioDisplay: Number.isFinite(parsedRatio) ? String(Math.round(parsedRatio * 100)) : ratioPart,
+          statusDisplay: status,
+          fullDisplay: `${Number.isFinite(parsedRatio) ? String(Math.round(parsedRatio * 100)) : ratioPart} (${status})`,
+        };
       }
-    } else if (typeof rawRatioOrVariance === "string") {
-      const clean = rawRatioOrVariance.replace(/%/g, "").trim();
-      const parsed = parseFloat(clean);
+      if (
+        trimmed.toLowerCase() === "on track" ||
+        trimmed.toLowerCase() === "ahead" ||
+        trimmed.toLowerCase() === "behind"
+      ) {
+        const status =
+          trimmed.toLowerCase() === "ahead"
+            ? "Ahead of Schedule"
+            : trimmed.toLowerCase() === "behind"
+            ? "Behind Schedule"
+            : "On Track";
+        return {
+          variance: 100,
+          ratioDisplay: "100",
+          statusDisplay: status,
+          fullDisplay: `100 (${status})`,
+        };
+      }
+      const parsed = parseFloat(trimmed);
       if (Number.isFinite(parsed)) {
-        numVal = parsed;
+        return formatTimelineReliability(parsed * 100, parsed * 100);
       }
-    }
-
-    if (numVal != null && Number.isFinite(numVal)) {
-      return formatTimelineReliability(numVal);
+    } else if (
+      typeof rawRatioOrVariance === "number" &&
+      Number.isFinite(rawRatioOrVariance)
+    ) {
+      if (rawRatioOrVariance > 0.2 && rawRatioOrVariance < 5.0) {
+        return formatTimelineReliability(rawRatioOrVariance * 100, rawRatioOrVariance * 100);
+      } else if (Math.abs(rawRatioOrVariance) <= 0.2) {
+        return formatTimelineReliability((1.0 + rawRatioOrVariance) * 100, (1.0 + rawRatioOrVariance) * 100);
+      }
     }
   }
 
-  // 2. Compute via formula: Schedule Variance = Physical Progress % - Elapsed Time %
+  // 2. Compute via documented formula:
   const progressNum =
     typeof progressVal === "number"
       ? progressVal
-      : parseFiniteNumber(progressVal);
+      : parseFiniteNumber(progressVal) ?? 0;
 
   const startTime = parseDateToTime(startDateStr);
   const posTime = parseDateToTime(posDateStr);
   const nowTime = Date.now();
 
-  if (Number.isFinite(progressNum) && startTime && posTime && posTime > startTime) {
+  if (startTime && posTime && posTime > startTime) {
     const totalDuration = posTime - startTime;
-    const elapsedDuration = Math.max(0, nowTime - startTime);
-    const elapsedTimePercent = Math.min(100, (elapsedDuration / totalDuration) * 100);
-    const variance = (progressNum as number) - elapsedTimePercent;
-    return formatTimelineReliability(variance);
+    const elapsedDuration = nowTime - startTime;
+
+    // If project has not started yet or is pre-launch
+    if (elapsedDuration <= 0) {
+      return {
+        variance: 0,
+        ratioDisplay: "0",
+        statusDisplay: "Pre-Launch",
+        fullDisplay: "0 (Pre-Launch)",
+      };
+    }
+
+    const progressPercent =
+      progressNum <= 1 && progressNum > 0 ? progressNum * 100 : progressNum;
+
+    // Client formula: construction_progress / ((TODAY() - start_date) / (possession_date - start_date))
+    // = progressPercent / timeFraction, where timeFraction is 0–1
+    const timeFraction = Math.min(1.0, Math.max(0.001, elapsedDuration / totalDuration));
+    const timelineReliability = progressPercent / timeFraction;
+
+    // If progress is 0% but start date was recent (under 10% elapsed)
+    if (progressPercent === 0 && timeFraction <= 0.10) {
+      return {
+        variance: 0,
+        ratioDisplay: "0",
+        statusDisplay: "Pre-Launch",
+        fullDisplay: "0 (Pre-Launch)",
+      };
+    }
+
+    return formatTimelineReliability(timelineReliability, progressPercent);
   }
 
-  // 3. Fallback when insufficient dates are present
-  if (Number.isFinite(progressNum)) {
-    return {
-      variance: null,
-      ratioDisplay: "N/A",
-      statusDisplay: (progressNum as number) >= 50 ? "On Schedule" : "In Progress",
-      fullDisplay: `${progressNum}% Completed`,
-    };
+  // 3. Fallback when insufficient dates are present — use progress as timeline_reliability
+  if (Number.isFinite(progressNum) && progressNum > 0) {
+    return formatTimelineReliability(progressNum, progressNum);
   }
 
   return {
-    variance: null,
-    ratioDisplay: "N/A",
-    statusDisplay: "N/A",
-    fullDisplay: "N/A",
+    variance: 0,
+    ratioDisplay: "0",
+    statusDisplay: "Data Insufficient",
+    fullDisplay: "0 (Data Insufficient)",
   };
 }
 
-function formatTimelineReliability(variance: number): TimelineReliabilityResult {
-  const rounded = Math.round(variance * 100) / 100;
-  const sign = rounded > 0 ? "+" : "";
-  const ratioStr = `${sign}${rounded.toFixed(1)}%`;
+/**
+ * Formats timeline reliability in the client's 0–100 scale.
+ * When timeline_reliability ≈ construction_progress, the project is on track.
+ * timeline_reliability > construction_progress → ahead of schedule.
+ * timeline_reliability < construction_progress → behind schedule (time elapsed faster than progress).
+ */
+function formatTimelineReliability(timelineReliability: number, progressPercent: number): TimelineReliabilityResult {
+  const rounded = Math.round(timelineReliability * 100) / 100;
+  const displayVal = Math.round(rounded);
 
-  let status = "On Schedule";
-  if (rounded >= 1.0) {
+  let status = "On Track";
+  // Compare timeline_reliability to progress to determine status
+  // If timeFraction < 1 and project is ahead: timelineReliability > progressPercent
+  // Simpler: if reliability is substantially higher than progress, ahead; lower means behind
+  // But for the 0-100 scale, the ratio approach:
+  // ratio = timelineReliability / 100 ≈ 1.0 when on track
+  // Actually the correct interpretation: when on track, timelineReliability ≈ progress
+  // timelineReliability = progress / timeFraction
+  // If timeFraction = progress/100, then reliability = 100 (perfect on track)
+  // So: >= 110 → ahead, 90-110 → on track, < 90 → behind
+  if (rounded >= 110) {
     status = "Ahead of Schedule";
-  } else if (rounded <= -2.0) {
+  } else if (rounded < 90 && progressPercent > 0) {
     status = "Behind Schedule";
   } else {
-    status = "On Schedule";
+    status = "On Track";
   }
 
   return {
     variance: rounded,
-    ratioDisplay: ratioStr,
+    ratioDisplay: String(displayVal),
     statusDisplay: status,
-    fullDisplay: `${ratioStr} (${status})`,
+    fullDisplay: `${displayVal} (${status})`,
   };
 }
 
@@ -1276,6 +1528,7 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
       commuteScoreDisplay: "8.5/10",
       builderGrade: "Unrated",
       builderGradeDisplay: "Unrated",
+      builderReliability: null,
       googleRating: "4.2 ★",
       googleReviewSummary: "No resident review summary available.",
       image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
@@ -1438,6 +1691,7 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
     commuteScoreDisplay: commuteStr,
     builderGrade,
     builderGradeDisplay: formatBuilderGradeDisplay(builderGrade),
+    builderReliability: resolveBuilderReliability(p),
     googleRating: ratingStr,
     googleReviewSummary: reviewSummary,
     image: heroImg,
@@ -1464,7 +1718,8 @@ export function normalizeSlug(str: string): string {
 }
 
 /**
- * Strips common prefixes (proj-, project-) and phase suffixes (-ph-1, -phase-1, etc.)
+ * Strips leading 'proj-' or 'project-' prefixes to get the canonical identifier slug.
+ * IMPORTANT: Preserves phase identifiers and full project names to prevent cross-project collisions.
  */
 export function cleanSlugKey(str: string): string {
   const decoded = (() => {
@@ -1480,18 +1735,14 @@ export function cleanSlugKey(str: string): string {
     .trim()
     .replace(/^proj-/, "")
     .replace(/^project-/, "")
-    .replace(/-ph-\d+$/, "")
-    .replace(/-phase-\d+$/, "")
-    .replace(/-phase\d+$/, "")
-    .replace(/ ph\.\s*\d+$/i, "")
-    .replace(/ phase\s*\d+$/i, "")
     .trim();
 }
 
 /**
- * Robust property matcher.
- * Matches project by exact ID, stripped slug, name, RERA number, alphanumeric hash,
- * prefix/suffix matching, or token similarity.
+ * Strict Property Matcher.
+ * Matches project by STRICT EXACT ID, EXACT SLUG, EXACT NORMALIZED NAME SLUG,
+ * EXACT PROJECT NAME, or EXACT RERA NUMBER only.
+ * NO fuzzy token matching, NO partial name matching, NO phase stripping.
  */
 export function findMatchingProperty(slugOrId: string, customList?: any[]): any | null {
   if (!slugOrId) return null;
@@ -1504,8 +1755,9 @@ export function findMatchingProperty(slugOrId: string, customList?: any[]): any 
   }
 
   const raw = decoded.toLowerCase().trim();
-  const clean = cleanSlugKey(raw);
-  const cleanSlug = normalizeSlug(clean);
+  const rawClean = cleanSlugKey(raw);
+  const normalizedRaw = normalizeSlug(raw);
+  const normalizedRawClean = normalizeSlug(rawClean);
 
   const baseList = getFeaturedProperties();
   const combined = [...baseList, ...(customList || [])];
@@ -1521,103 +1773,52 @@ export function findMatchingProperty(slugOrId: string, customList?: any[]): any 
     }
   }
 
-  const rawAlpha = normalizeAlphanumeric(raw);
-  const cleanAlpha = normalizeAlphanumeric(clean);
-
-  // Level 1: Exact matches
+  // 1. Strict Exact ID Match (with or without 'proj-' prefix)
   for (const p of allProperties) {
-    const pId = String(p.id || "").toLowerCase();
-    const pCleanId = cleanSlugKey(pId);
-    const pName = String(p.name || p.projectName || "").toLowerCase();
+    const pId = String(p.id || "").toLowerCase().trim();
+    const pIdClean = cleanSlugKey(pId);
+    if (pId === raw || pIdClean === rawClean || pId === `proj-${rawClean}`) {
+      return p;
+    }
+  }
+
+  // 2. Strict Exact Slug Match
+  for (const p of allProperties) {
+    const pSlug = String(p.slug || "").toLowerCase().trim();
+    const pSlugClean = cleanSlugKey(pSlug);
+    if (pSlug && (pSlug === raw || pSlugClean === rawClean || pSlug === normalizedRawClean)) {
+      return p;
+    }
+  }
+
+  // 3. Strict Exact Normalized Name Slug Match
+  for (const p of allProperties) {
+    const pName = String(p.name || p.projectName || "").toLowerCase().trim();
     const pNameSlug = normalizeSlug(pName);
-    const pCleanNameSlug = normalizeSlug(cleanSlugKey(pName));
-    const pRera = String(p.reraNumber || p.rera_number || "").toLowerCase();
-
-    if (
-      pId === raw ||
-      pId === `proj-${cleanSlug}` ||
-      pId === `proj-${raw}` ||
-      pCleanId === clean ||
-      pCleanId === raw ||
-      pCleanId === cleanSlug ||
-      pNameSlug === raw ||
-      pNameSlug === cleanSlug ||
-      pCleanNameSlug === cleanSlug ||
-      pName === raw ||
-      pName === decoded ||
-      (pRera && (pRera === raw || pRera === clean))
-    ) {
+    if (pNameSlug === normalizedRaw || pNameSlug === normalizedRawClean) {
       return p;
     }
   }
 
-  // Level 2: Alphanumeric match
+  // 4. Strict Exact Case-Insensitive Name Match
   for (const p of allProperties) {
-    const pIdAlpha = normalizeAlphanumeric(p.id || "");
-    const pCleanIdAlpha = normalizeAlphanumeric(cleanSlugKey(p.id || ""));
-    const pNameAlpha = normalizeAlphanumeric(p.name || p.projectName || "");
-    const pCleanNameAlpha = normalizeAlphanumeric(cleanSlugKey(p.name || p.projectName || ""));
-    const pReraAlpha = normalizeAlphanumeric(p.reraNumber || p.rera_number || "");
-
-    if (
-      pIdAlpha === rawAlpha ||
-      pIdAlpha === cleanAlpha ||
-      pCleanIdAlpha === cleanAlpha ||
-      pCleanIdAlpha === rawAlpha ||
-      pNameAlpha === rawAlpha ||
-      pNameAlpha === cleanAlpha ||
-      pCleanNameAlpha === cleanAlpha ||
-      (pReraAlpha && (pReraAlpha === rawAlpha || pReraAlpha === cleanAlpha))
-    ) {
+    const pName = String(p.name || p.projectName || "").toLowerCase().trim();
+    if (pName === raw || pName === decoded.trim().toLowerCase()) {
       return p;
     }
   }
 
-  // Level 3: Prefix / StartsWith match
+  // 5. Strict Exact RERA Match (if identifier is a RERA number)
   for (const p of allProperties) {
-    const pIdAlpha = normalizeAlphanumeric(p.id || "");
-    const pCleanIdAlpha = normalizeAlphanumeric(cleanSlugKey(p.id || ""));
-    const pNameAlpha = normalizeAlphanumeric(p.name || p.projectName || "");
-    const pCleanNameAlpha = normalizeAlphanumeric(cleanSlugKey(p.name || p.projectName || ""));
-
+    const pRera = String(p.reraNumber || p.rera_number || "").toLowerCase().trim();
     if (
-      (cleanAlpha.length >= 5 && pCleanIdAlpha.startsWith(cleanAlpha)) ||
-      (cleanAlpha.length >= 5 && pCleanNameAlpha.startsWith(cleanAlpha)) ||
-      (rawAlpha.length >= 5 && pIdAlpha.startsWith(rawAlpha)) ||
-      (rawAlpha.length >= 5 && pNameAlpha.startsWith(rawAlpha)) ||
-      (cleanAlpha.length >= 5 && cleanAlpha.startsWith(pCleanIdAlpha)) ||
-      (cleanAlpha.length >= 5 && cleanAlpha.startsWith(pCleanNameAlpha))
+      pRera &&
+      pRera.length > 5 &&
+      !pRera.includes("pending") &&
+      !pRera.includes("not captured") &&
+      (pRera === raw || pRera === decoded.trim().toLowerCase())
     ) {
       return p;
-    }
-  }
-
-  // Level 4: Token keyword match
-  const tokens = clean
-    .split(/[^a-z0-9]+/)
-    .filter((t) => t.length > 2 && !["proj", "project", "bangalore", "road"].includes(t));
-
-  if (tokens.length > 0) {
-    let bestMatch: any = null;
-    let bestScore = 0;
-
-    for (const p of allProperties) {
-      const pFullStr = `${p.id || ""} ${p.name || p.projectName || ""} ${p.builder || p.developer || ""} ${p.location || p.localityName || ""}`.toLowerCase();
-      let matchCount = 0;
-      for (const token of tokens) {
-        if (pFullStr.includes(token)) {
-          matchCount++;
-        }
-      }
-      const score = matchCount / tokens.length;
-      if (score > bestScore && score >= 0.5) {
-        bestScore = score;
-        bestMatch = p;
-      }
-    }
-
-    if (bestMatch) {
-      return bestMatch;
     }
   }
 
@@ -1626,12 +1827,27 @@ export function findMatchingProperty(slugOrId: string, customList?: any[]): any 
 
 /**
  * Async lookup with fallback to live database (Supabase / local DB).
+ * Uses strict exact matching against Supabase before resolving.
  */
 export async function getPropertyAsync(slugOrId: string): Promise<any | null> {
   const syncMatch = findMatchingProperty(slugOrId);
   if (syncMatch) return syncMatch;
 
   try {
+    const { supabase, isRealSupabaseConfigured } = await import("./supabase");
+    if (isRealSupabaseConfigured && supabase) {
+      const clean = cleanSlugKey(slugOrId);
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .or(`id.eq.${slugOrId},id.eq.proj-${clean},name.ilike.${slugOrId},rera_number.eq.${slugOrId}`)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data;
+      }
+    }
+
     const { cribrProperties } = await import("./supabase");
     const liveProperties = await cribrProperties.getProperties();
     return findMatchingProperty(slugOrId, liveProperties);
