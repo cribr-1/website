@@ -31,7 +31,6 @@ import CribrAiSearchPage from "./components/CribrAiSearchPage";
 import PropertyIntelligenceDetailsModal from "./components/PropertyIntelligenceDetailsModal";
 import PropertyDetailsPage from "./components/PropertyDetailsPage";
 import ErrorBoundary from "./components/Common/ErrorBoundary";
-import ThemeToggle from "./components/ThemeToggle";
 import { SearchProvider } from "./context/SearchContext";
 import { FEATURED_PROPERTIES } from "./data";
 import { cribrAuth, CribrUser, localDb } from "./lib/supabase";
@@ -338,7 +337,6 @@ export default function App() {
           onAskAI={handleQuerySubmit}
           onCompare={(p) => showToast(`Added ${p.name} to comparison matrix`, "info")}
         />
-        <ThemeToggle variant="floating" />
         <CribrToastContainer />
       </ErrorBoundary>
     );
@@ -346,16 +344,13 @@ export default function App() {
 
   if (isAdminMode) {
     return (
-      <>
-        <AdminPanel 
-          onClose={() => {
-            window.history.pushState(null, "", "/");
-            setIsAdminMode(false);
-          }} 
-          currentUser={currentUser} 
-        />
-        <ThemeToggle variant="floating" />
-      </>
+      <AdminPanel 
+        onClose={() => {
+          window.history.pushState(null, "", "/");
+          setIsAdminMode(false);
+        }} 
+        currentUser={currentUser} 
+      />
     );
   }
 
@@ -441,17 +436,16 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        <ThemeToggle variant="floating" />
         <CribrToastContainer />
       </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cribr-bg dark:bg-[#0B0F17] text-apple-text-primary dark:text-neutral-100 font-sans antialiased selection:bg-indigo-100 dark:selection:bg-indigo-950 selection:text-indigo-900 dark:selection:text-indigo-200 pb-16 transition-colors duration-200">
+    <div className="min-h-screen bg-cribr-bg text-apple-text-primary font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900 pb-16">
       
       {/* Dynamic Background Grid Pattern */}
-      <div className="absolute inset-x-0 top-0 h-[1000px] bg-[radial-gradient(#0071E3_0.5px,transparent_0.5px)] [background-size:16px_16px] opacity-[0.03] dark:opacity-[0.06] pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-[1000px] bg-[radial-gradient(#0071E3_0.5px,transparent_0.5px)] [background-size:16px_16px] opacity-[0.03] pointer-events-none" />
 
       {/* Navigation */}
       <Navigation
@@ -467,17 +461,17 @@ export default function App() {
       {/* HERO SECTION */}
       <section
         id="hero"
-        className="min-h-screen flex flex-col justify-center items-center pt-32 px-6 md:px-12 relative overflow-hidden bg-gradient-to-b from-slate-50/90 via-white to-white dark:from-neutral-900/60 dark:via-[#0B0F17] dark:to-[#0B0F17]"
+        className="min-h-screen flex flex-col justify-center items-center pt-32 px-6 md:px-12 relative overflow-hidden bg-gradient-to-b from-slate-50/90 via-white to-white"
       >
         {/* Soft Ambient Light Radial Accent */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-sky-200/20 via-indigo-100/30 to-purple-100/20 dark:from-sky-900/15 dark:via-indigo-900/20 dark:to-purple-900/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-sky-200/20 via-indigo-100/30 to-purple-100/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-4xl text-center space-y-8 z-10">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl sm:text-6xl md:text-8xl font-display font-bold tracking-tight leading-[0.95] text-neutral-950 dark:text-white"
+            className="text-5xl sm:text-6xl md:text-8xl font-display font-bold tracking-tight leading-[0.95] text-neutral-950"
           >
             Know Before <br />
             <span className="text-apple-blue">You Buy.</span>
@@ -487,7 +481,7 @@ export default function App() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg md:text-2xl text-neutral-600 dark:text-neutral-300 max-w-3xl mx-auto font-normal leading-relaxed tracking-tight"
+            className="text-lg md:text-2xl text-neutral-600 max-w-3xl mx-auto font-normal leading-relaxed tracking-tight"
           >
             CRIBR analyzes residential developments, title records, community sentiment, pricing trends, and neighborhood information so buyers can make confident decisions.
           </motion.p>
@@ -505,7 +499,7 @@ export default function App() {
                   e.preventDefault();
                   handleQuerySubmit(searchQuery);
                 }}
-                className="relative rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/90 dark:border-neutral-800 p-2 pl-6 flex items-center shadow-lg shadow-neutral-200/50 dark:shadow-black/50 z-20 hover:border-neutral-300 dark:hover:border-neutral-700 transition-all duration-300"
+                className="relative rounded-full bg-white/90 backdrop-blur-xl border border-neutral-200/90 p-2 pl-6 flex items-center shadow-lg shadow-neutral-200/50 z-20 hover:border-neutral-300 transition-all duration-300"
               >
                 <Search className="w-5 h-5 text-neutral-400 mr-3 flex-shrink-0" />
                 <input
@@ -514,7 +508,7 @@ export default function App() {
                   onFocus={() => setShowRecentDropdown(true)}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={placeholderText}
-                  className="w-full text-base sm:text-lg text-neutral-900 dark:text-neutral-100 font-normal bg-transparent focus:outline-none placeholder-neutral-400 dark:placeholder-neutral-500"
+                  className="w-full text-base sm:text-lg text-neutral-900 font-normal bg-transparent focus:outline-none placeholder-neutral-400"
                 />
                 <button
                   type="submit"
@@ -533,10 +527,10 @@ export default function App() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-3xl border border-neutral-200/70 dark:border-neutral-800 rounded-3xl shadow-2xl dark:shadow-black/70 p-5 z-50 text-left overflow-hidden max-h-[380px] flex flex-col"
+                    className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white/95 backdrop-blur-3xl border border-neutral-200/70 rounded-3xl shadow-2xl p-5 z-50 text-left overflow-hidden max-h-[380px] flex flex-col"
                   >
-                    <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                      <span className="text-[11px] font-mono tracking-widest uppercase font-bold text-neutral-400 dark:text-neutral-500">
+                    <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+                      <span className="text-[11px] font-mono tracking-widest uppercase font-bold text-neutral-400">
                         Recent Searches
                       </span>
                       {recentSearches.length > 0 && (
@@ -547,7 +541,7 @@ export default function App() {
                             localStorage.removeItem("cribr_recent_searches");
                             showToast("Cleared search history.", "info");
                           }}
-                          className="flex items-center space-x-1 text-xs text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 font-semibold transition-colors py-1 px-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                          className="flex items-center space-x-1 text-xs text-neutral-400 hover:text-red-500 font-semibold transition-colors py-1 px-2 rounded-lg hover:bg-neutral-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Clear All</span>
@@ -560,14 +554,14 @@ export default function App() {
                         recentSearches.map((query, index) => (
                           <div
                             key={index}
-                            className="group flex items-center justify-between p-3 rounded-2xl hover:bg-neutral-50/80 dark:hover:bg-neutral-800/80 cursor-pointer transition-all duration-200"
+                            className="group flex items-center justify-between p-3 rounded-2xl hover:bg-neutral-50/80 cursor-pointer transition-all duration-200"
                             onClick={() => {
                               setSearchQuery(query);
                               handleQuerySubmit(query);
                             }}
                           >
-                            <div className="flex items-center space-x-3 text-apple-text-primary dark:text-neutral-200">
-                              <Clock className="w-4 h-4 text-neutral-400 dark:text-neutral-500" />
+                            <div className="flex items-center space-x-3 text-apple-text-primary">
+                              <Clock className="w-4 h-4 text-neutral-400" />
                               <span className="text-[14.5px] font-medium leading-none">{query}</span>
                             </div>
                             <button
@@ -578,23 +572,23 @@ export default function App() {
                                 setRecentSearches(updated);
                                 localStorage.setItem("cribr_recent_searches", JSON.stringify(updated));
                               }}
-                              className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-neutral-200/50 dark:hover:bg-neutral-700/60 rounded-full text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-200 transition-all duration-200 animate-fade-in"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-neutral-200/50 rounded-full text-neutral-400 hover:text-neutral-600 transition-all duration-200 animate-fade-in"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ))
                       ) : (
-                        <div className="py-8 text-center text-apple-text-secondary dark:text-neutral-400">
+                        <div className="py-8 text-center text-apple-text-secondary">
                           <p className="text-sm font-light">No recent searches yet.</p>
-                          <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">Try searching for a project or builder.</p>
+                          <p className="text-xs text-neutral-400 mt-1">Try searching for a project or builder.</p>
                         </div>
                       )}
                     </div>
 
                     {/* Pre-suggested quick clicks inside dropdown */}
-                    <div className="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
-                      <span className="text-[10px] font-mono tracking-wider uppercase font-semibold text-neutral-400 dark:text-neutral-500 block mb-2">
+                    <div className="mt-3 pt-3 border-t border-neutral-100">
+                      <span className="text-[10px] font-mono tracking-wider uppercase font-semibold text-neutral-400 block mb-2">
                         Suggested Inquiries
                       </span>
                       <div className="flex flex-wrap gap-2">
@@ -606,7 +600,7 @@ export default function App() {
                               setSearchQuery(item);
                               handleQuerySubmit(item);
                             }}
-                            className="px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-750 border border-neutral-100 dark:border-neutral-700/80 rounded-xl text-xs font-medium text-apple-text-secondary dark:text-neutral-300 hover:text-apple-text-primary dark:hover:text-white transition-all duration-200"
+                            className="px-3 py-1.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-100 hover:border-neutral-200 rounded-xl text-xs font-medium text-apple-text-secondary hover:text-apple-text-primary transition-all duration-200"
                           >
                             {item}
                           </button>
@@ -640,7 +634,7 @@ export default function App() {
                   setSearchQuery(chip.q);
                   handleQuerySubmit(chip.q);
                 }}
-                className="px-4 py-2 bg-white/70 dark:bg-neutral-900/70 hover:bg-white dark:hover:bg-neutral-800 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800 rounded-full text-[13px] text-apple-text-secondary dark:text-neutral-300 hover:text-apple-text-primary dark:hover:text-white hover:scale-105 active:scale-95 shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all duration-300"
+                className="px-4 py-2 bg-white/70 hover:bg-white backdrop-blur-md border border-neutral-200/50 rounded-full text-[13px] text-apple-text-secondary hover:text-apple-text-primary hover:scale-105 active:scale-95 shadow-sm hover:border-neutral-300 transition-all duration-300"
               >
                 {chip.label}
               </button>
@@ -658,16 +652,16 @@ export default function App() {
       />
 
       {/* FOOTER */}
-      <footer className="pt-16 pb-12 border-t border-neutral-100 dark:border-neutral-850 bg-white dark:bg-neutral-950">
+      <footer className="pt-16 pb-12 border-t border-neutral-100 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <span className="font-display font-black text-xl text-apple-text-primary dark:text-white">
+              <span className="font-display font-black text-xl text-apple-text-primary">
                 CRIBR
               </span>
             </div>
           </div>
-          <p className="text-[13px] text-apple-text-secondary dark:text-neutral-400 font-light text-center md:text-right">
+          <p className="text-[13px] text-apple-text-secondary font-light text-center md:text-right">
             © 2026 CRIBR Technologies Private Limited.
           </p>
         </div>
@@ -747,9 +741,6 @@ export default function App() {
           setSelectedDesktopProperty(relProp);
         }}
       />
-
-      {/* GLOBAL FLOATING THEME TOGGLE */}
-      <ThemeToggle variant="floating" />
 
       {/* TOAST SYSTEM LAUNCHER */}
       <CribrToastContainer />
