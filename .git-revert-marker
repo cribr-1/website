@@ -1,0 +1,3 @@
+This file marks a revert operation for commit 23d5601420bd12ec3f810dc1e2701700cf082b03
+Message: fix: central search architecture null-passthrough and normalization
+Reverted on: 2026-08-26
