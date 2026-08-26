@@ -26,7 +26,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`relative w-full bg-white dark:bg-neutral-900 border border-neutral-300/80 dark:border-neutral-700 rounded-xl flex items-center transition-all duration-200 ${
+      className={`relative w-full bg-white border border-neutral-300/80 rounded-xl flex items-center transition-all duration-200 ${
         isCompact ? "h-11 px-3.5" : "h-[54px] px-4"
       }`}
     >
@@ -35,7 +35,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full bg-transparent text-neutral-900 dark:text-neutral-100 font-medium focus:outline-none placeholder-neutral-400 dark:placeholder-neutral-500 ${
+        className={`w-full bg-transparent text-neutral-900 font-medium focus:outline-none placeholder-neutral-400 ${
           isCompact ? "text-sm" : "text-base"
         }`}
       />
