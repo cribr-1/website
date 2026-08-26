@@ -51,12 +51,12 @@ export const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
           <div
             key={index}
             onClick={() => onSelectQuery(item.query)}
-            className="group bg-white dark:bg-neutral-800/60 border border-neutral-200/90 dark:border-neutral-700/80 hover:border-blue-400/80 dark:hover:border-sky-500/80 rounded-2xl p-4 flex items-center space-x-3.5 cursor-pointer shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            className="group bg-white border border-neutral-200/90 hover:border-blue-400/80 rounded-2xl p-4 flex items-center space-x-3.5 cursor-pointer shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
-            <div className="w-10 h-10 rounded-xl bg-neutral-50 dark:bg-neutral-800 group-hover:bg-blue-50/60 dark:group-hover:bg-neutral-700 border border-neutral-100 dark:border-neutral-700 flex items-center justify-center text-xl shrink-0 transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-neutral-50 group-hover:bg-blue-50/60 border border-neutral-100 flex items-center justify-center text-xl shrink-0 transition-colors">
               {item.icon}
             </div>
-            <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2 leading-snug">
+            <span className="text-sm font-semibold text-neutral-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
               {item.title}
             </span>
           </div>
@@ -67,4 +67,3 @@ export const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
 };
 
 export default SearchSuggestions;
-
