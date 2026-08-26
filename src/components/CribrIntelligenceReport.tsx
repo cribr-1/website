@@ -146,9 +146,9 @@ export default function CribrIntelligenceReport({
 
   const getVerdictStyle = (verdict: string) => {
     const v = verdict.toUpperCase();
-    if (v.includes("BUY")) return "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/80 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 shadow-emerald-500/5";
-    if (v.includes("HOLD")) return "bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/80 text-amber-700 dark:text-amber-300 shadow-amber-500/5";
-    return "bg-neutral-50 dark:bg-neutral-900 border-neutral-200/80 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 shadow-neutral-500/5";
+    if (v.includes("BUY")) return "bg-emerald-50 border-emerald-200/80 text-emerald-700 shadow-emerald-500/5";
+    if (v.includes("HOLD")) return "bg-amber-50 border-amber-200/80 text-amber-700 shadow-amber-500/5";
+    return "bg-neutral-50 border-neutral-200/80 text-neutral-700 shadow-neutral-500/5";
   };
 
   return (
@@ -160,19 +160,19 @@ export default function CribrIntelligenceReport({
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
-            className="w-full p-12 md:p-24 rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow-lg flex flex-col items-center justify-center text-center space-y-6 min-h-[500px]"
+            className="w-full p-12 md:p-24 rounded-[32px] bg-white border border-neutral-200/50 apple-shadow-lg flex flex-col items-center justify-center text-center space-y-6 min-h-[500px]"
           >
             {/* Super premium loading indicator inspired by Apple Vision Pro boot flow */}
             <div className="relative w-24 h-24 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-4 border-neutral-100 dark:border-neutral-800" />
+              <div className="absolute inset-0 rounded-full border-4 border-neutral-100" />
               <div className="absolute inset-0 rounded-full border-4 border-t-indigo-600 border-r-purple-600 animate-spin" />
               <Sparkles className="w-8 h-8 text-indigo-600 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-2xl font-display font-semibold text-apple-text-primary dark:text-white">
+              <h3 className="text-2xl font-display font-semibold text-apple-text-primary">
                 CRIBR Quantum Compilation
               </h3>
-              <p className="text-apple-text-secondary dark:text-neutral-400 text-base max-w-md mx-auto mt-2 font-light">
+              <p className="text-apple-text-secondary text-base max-w-md mx-auto mt-2 font-light">
                 Analyzing registered deeds, construction material testing, satellite layouts, and local resident reviews...
               </p>
             </div>
@@ -186,8 +186,8 @@ export default function CribrIntelligenceReport({
             className="w-full"
           >
             {/* Header / Summary Glass Section */}
-            <div className="rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 p-8 md:p-12 apple-shadow-lg mb-12 flex flex-col lg:flex-row items-center gap-12 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-indigo-100/20 to-purple-100/20 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-full filter blur-[100px] pointer-events-none" />
+            <div className="rounded-[32px] bg-white border border-neutral-200/50 p-8 md:p-12 apple-shadow-lg mb-12 flex flex-col lg:flex-row items-center gap-12 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-indigo-100/20 to-purple-100/20 rounded-full filter blur-[100px] pointer-events-none" />
               
               {/* Radial Dial Indicator Left */}
               <div className="flex flex-col items-center flex-shrink-0 relative">
@@ -197,7 +197,7 @@ export default function CribrIntelligenceReport({
                       cx="96"
                       cy="96"
                       r="84"
-                      className="stroke-neutral-100 dark:stroke-neutral-800 fill-none"
+                      className="stroke-neutral-100 fill-none"
                       strokeWidth="8"
                     />
                     <motion.circle
@@ -212,10 +212,10 @@ export default function CribrIntelligenceReport({
                     />
                   </svg>
                   <div className="absolute flex flex-col items-center">
-                    <span className="text-5xl md:text-6xl font-display font-black tracking-tight text-apple-text-primary dark:text-white">
+                    <span className="text-5xl md:text-6xl font-display font-black tracking-tight text-apple-text-primary">
                       {animatedScore}
                     </span>
-                    <span className="text-[10px] font-mono tracking-widest text-apple-text-secondary dark:text-neutral-400 font-bold uppercase mt-1">
+                    <span className="text-[10px] font-mono tracking-widest text-apple-text-secondary font-bold uppercase mt-1">
                       CONFIDENCE INDEX
                     </span>
                   </div>
@@ -225,17 +225,17 @@ export default function CribrIntelligenceReport({
               {/* Summary text right */}
               <div className="flex-grow text-center lg:text-left space-y-4">
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                  <span className="px-3.5 py-1 bg-neutral-100 dark:bg-neutral-800 text-[11px] font-mono uppercase tracking-wider text-apple-text-secondary dark:text-neutral-300 rounded-full border border-neutral-200/40 dark:border-neutral-700">
+                  <span className="px-3.5 py-1 bg-neutral-100 text-[11px] font-mono uppercase tracking-wider text-apple-text-secondary rounded-full border border-neutral-200/40">
                     AI PROPERTY REPORT
                   </span>
-                  <span className="px-3.5 py-1 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-400 text-[11px] font-mono uppercase tracking-wider rounded-full border border-blue-100 dark:border-blue-800">
+                  <span className="px-3.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-mono uppercase tracking-wider rounded-full border border-blue-100">
                     {report.builderName}
                   </span>
                 </div>
-                <h3 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-apple-text-primary dark:text-white">
+                <h3 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-apple-text-primary">
                   {report.propertyOrQueryName}
                 </h3>
-                <p className="text-lg text-apple-text-secondary dark:text-neutral-400 font-light leading-relaxed">
+                <p className="text-lg text-apple-text-secondary font-light leading-relaxed">
                   {report.summary}
                 </p>
 
@@ -245,8 +245,8 @@ export default function CribrIntelligenceReport({
                     onClick={onSaveCurrent}
                     className={`flex items-center space-x-2 px-5 py-2.5 rounded-full border text-[14px] font-medium transition-all duration-300 ${
                       isSaved
-                        ? "bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400"
-                        : "bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-apple-text-primary dark:text-white hover:border-neutral-300 dark:hover:border-neutral-600"
+                        ? "bg-rose-50 border-rose-200 text-rose-600"
+                        : "bg-white border-neutral-200 text-apple-text-primary hover:border-neutral-300"
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${isSaved ? "fill-rose-500 text-rose-500" : ""}`} />
@@ -257,19 +257,19 @@ export default function CribrIntelligenceReport({
                     onClick={() => setIsNotifyModalOpen(true)}
                     className={`flex items-center space-x-2 px-5 py-2.5 rounded-full border text-[14px] font-medium transition-all duration-300 ${
                       hasSubscription
-                        ? "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200/80 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                        : "bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-apple-text-primary dark:text-white hover:border-neutral-300 dark:hover:border-neutral-600"
+                        ? "bg-indigo-50 border-indigo-200/80 text-indigo-600 shadow-sm"
+                        : "bg-white border-neutral-200 text-apple-text-primary hover:border-neutral-300"
                     }`}
                   >
-                    <Bell className={`w-4 h-4 ${hasSubscription ? "fill-indigo-500 text-indigo-500 animate-pulse" : "text-apple-text-secondary dark:text-neutral-400"}`} />
+                    <Bell className={`w-4 h-4 ${hasSubscription ? "fill-indigo-500 text-indigo-500 animate-pulse" : "text-apple-text-secondary"}`} />
                     <span>{hasSubscription ? "Notifications Active" : "Notify Me"}</span>
                   </button>
 
                   <button
                     onClick={() => setIsShareModalOpen(true)}
-                    className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-apple-text-primary dark:text-white text-[14px] font-medium hover:border-neutral-300 dark:hover:border-neutral-600 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                    className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-white border border-neutral-200 text-apple-text-primary text-[14px] font-medium hover:border-neutral-300 transition-all duration-300 hover:scale-105 active:scale-95"
                   >
-                    <Share2 className="w-4 h-4 text-apple-text-secondary dark:text-neutral-400" />
+                    <Share2 className="w-4 h-4 text-apple-text-secondary" />
                     <span>Share Report</span>
                   </button>
                 </div>
@@ -279,137 +279,137 @@ export default function CribrIntelligenceReport({
             {/* Core Capability Parameters Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
               {/* Card 1: Builder Score */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow flex flex-col justify-between space-y-6">
+              <div className="p-8 md:p-10 rounded-[32px] bg-white border border-neutral-200/50 apple-shadow flex flex-col justify-between space-y-6">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400">
+                    <div className="flex items-center space-x-2 text-indigo-600">
                       <Building2 className="w-5 h-5" />
                       <span className="text-[13px] font-mono tracking-widest uppercase font-semibold">
                         Developer standing
                       </span>
                     </div>
-                    <h4 className="text-xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <h4 className="text-xl font-display font-bold text-apple-text-primary">
                       {report.builderName}
                     </h4>
                   </div>
-                  <div className="px-3.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 rounded-2xl font-mono font-bold text-[16px] border border-indigo-100 dark:border-indigo-800">
+                  <div className="px-3.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-2xl font-mono font-bold text-[16px] border border-indigo-100">
                     {report.builderScore}%
                   </div>
                 </div>
                 
                 {/* Score bar */}
-                <div className="w-full h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-indigo-600 rounded-full transition-all duration-1000"
                     style={{ width: `${report.builderScore}%` }}
                   />
                 </div>
 
-                <p className="text-[15px] text-apple-text-secondary dark:text-neutral-400 font-light leading-relaxed">
+                <p className="text-[15px] text-apple-text-secondary font-light leading-relaxed">
                   {report.builderTrustReport}
                 </p>
               </div>
 
               {/* Card 2: Legal Clearness */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow flex flex-col justify-between space-y-6">
+              <div className="p-8 md:p-10 rounded-[32px] bg-white border border-neutral-200/50 apple-shadow flex flex-col justify-between space-y-6">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400">
+                    <div className="flex items-center space-x-2 text-emerald-600">
                       <FileCheck className="w-5 h-5" />
                       <span className="text-[13px] font-mono tracking-widest uppercase font-semibold">
                         Legal clearance
                       </span>
                     </div>
-                    <h4 className="text-xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <h4 className="text-xl font-display font-bold text-apple-text-primary">
                       Registrar Records
                     </h4>
                   </div>
-                  <div className="px-3.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 rounded-2xl font-mono font-bold text-[16px] border border-emerald-100 dark:border-emerald-800">
+                  <div className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 rounded-2xl font-mono font-bold text-[16px] border border-emerald-100">
                     {report.legalScore}%
                   </div>
                 </div>
 
                 {/* Score bar */}
-                <div className="w-full h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
                     style={{ width: `${report.legalScore}%` }}
                   />
                 </div>
 
-                <p className="text-[15px] text-apple-text-secondary dark:text-neutral-400 font-light leading-relaxed">
+                <p className="text-[15px] text-apple-text-secondary font-light leading-relaxed">
                   {report.legalReport}
                 </p>
               </div>
 
               {/* Card 3: Construction Quality */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow flex flex-col justify-between space-y-6">
+              <div className="p-8 md:p-10 rounded-[32px] bg-white border border-neutral-200/50 apple-shadow flex flex-col justify-between space-y-6">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-2 text-blue-600 dark:text-sky-400">
+                    <div className="flex items-center space-x-2 text-blue-600">
                       <Hammer className="w-5 h-5" />
                       <span className="text-[13px] font-mono tracking-widest uppercase font-semibold">
                         Engineering standard
                       </span>
                     </div>
-                    <h4 className="text-xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <h4 className="text-xl font-display font-bold text-apple-text-primary">
                       Structural Materials
                     </h4>
                   </div>
-                  <div className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-400 rounded-2xl font-mono font-bold text-[16px] border border-blue-100 dark:border-blue-800">
+                  <div className="px-3.5 py-1.5 bg-blue-50 text-blue-700 rounded-2xl font-mono font-bold text-[16px] border border-blue-100">
                     {report.constructionScore}%
                   </div>
                 </div>
 
                 {/* Score bar */}
-                <div className="w-full h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-500 rounded-full transition-all duration-1000"
                     style={{ width: `${report.constructionScore}%` }}
                   />
                 </div>
 
-                <p className="text-[15px] text-apple-text-secondary dark:text-neutral-400 font-light leading-relaxed">
+                <p className="text-[15px] text-apple-text-secondary font-light leading-relaxed">
                   {report.constructionDetails}
                 </p>
               </div>
 
               {/* Card 4: Investment Yield */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow flex flex-col justify-between space-y-6">
+              <div className="p-8 md:p-10 rounded-[32px] bg-white border border-neutral-200/50 apple-shadow flex flex-col justify-between space-y-6">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400">
+                    <div className="flex items-center space-x-2 text-purple-600">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-[13px] font-mono tracking-widest uppercase font-semibold">
                         Capital appreciation
                       </span>
                     </div>
-                    <h4 className="text-xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <h4 className="text-xl font-display font-bold text-apple-text-primary">
                       Investment Forecast
                     </h4>
                   </div>
-                  <div className="px-3.5 py-1.5 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 rounded-2xl font-mono font-bold text-[16px] border border-purple-100 dark:border-purple-800">
+                  <div className="px-3.5 py-1.5 bg-purple-50 text-purple-700 rounded-2xl font-mono font-bold text-[16px] border border-purple-100">
                     {report.investmentYieldScore}%
                   </div>
                 </div>
 
                 {/* Score bar */}
-                <div className="w-full h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-purple-600 rounded-full transition-all duration-1000"
                     style={{ width: `${report.investmentYieldScore}%` }}
                   />
                 </div>
 
-                <p className="text-[15px] text-apple-text-secondary dark:text-neutral-400 font-light leading-relaxed">
+                <p className="text-[15px] text-apple-text-secondary font-light leading-relaxed">
                   {report.investmentAnalysis}
                 </p>
               </div>
             </div>
 
             {/* Neighborhood Vibe Grid Section */}
-            <div className="rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 p-8 md:p-12 apple-shadow mb-12">
-              <div className="flex items-center space-x-2 text-apple-blue dark:text-sky-400 mb-8">
+            <div className="rounded-[32px] bg-white border border-neutral-200/50 p-8 md:p-12 apple-shadow mb-12">
+              <div className="flex items-center space-x-2 text-apple-blue mb-8">
                 <Map className="w-5 h-5" />
                 <h4 className="text-[13px] font-mono tracking-widest uppercase font-semibold">
                   Neighborhood Vibe & Decibel parameters
@@ -418,68 +418,68 @@ export default function CribrIntelligenceReport({
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Parameter 1: Reliability Index */}
-                <div className="p-6 rounded-2xl bg-neutral-50/70 dark:bg-neutral-800/60 border border-neutral-200/20 dark:border-neutral-700/50 flex flex-col justify-between h-32">
+                <div className="p-6 rounded-2xl bg-neutral-50/70 border border-neutral-200/20 flex flex-col justify-between h-32">
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-apple-text-secondary dark:text-neutral-400">Reliability</span>
+                    <span className="text-[13px] font-medium text-apple-text-secondary">Reliability</span>
                     <Leaf className="w-4 h-4 text-emerald-500" />
                   </div>
                   <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <span className="text-3xl font-display font-bold text-apple-text-primary">
                       {report.neighborhood.reliabilityIndex || 95}%
                     </span>
-                    <span className="text-[11px] font-mono text-apple-text-secondary dark:text-neutral-500">Index</span>
+                    <span className="text-[11px] font-mono text-apple-text-secondary">Index</span>
                   </div>
                 </div>
 
                 {/* Parameter 2: Safety Index */}
-                <div className="p-6 rounded-2xl bg-neutral-50/70 dark:bg-neutral-800/60 border border-neutral-200/20 dark:border-neutral-700/50 flex flex-col justify-between h-32">
+                <div className="p-6 rounded-2xl bg-neutral-50/70 border border-neutral-200/20 flex flex-col justify-between h-32">
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-apple-text-secondary dark:text-neutral-400">Safety</span>
+                    <span className="text-[13px] font-medium text-apple-text-secondary">Safety</span>
                     <CheckCircle2 className="w-4 h-4 text-apple-blue" />
                   </div>
                   <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <span className="text-3xl font-display font-bold text-apple-text-primary">
                       {report.neighborhood.safetyIndex || 92}%
                     </span>
-                    <span className="text-[11px] font-mono text-apple-text-secondary dark:text-neutral-500">Index</span>
+                    <span className="text-[11px] font-mono text-apple-text-secondary">Index</span>
                   </div>
                 </div>
 
                 {/* Parameter 3: Quality Rating */}
-                <div className="p-6 rounded-2xl bg-neutral-50/70 dark:bg-neutral-800/60 border border-neutral-200/20 dark:border-neutral-700/50 flex flex-col justify-between h-32">
+                <div className="p-6 rounded-2xl bg-neutral-50/70 border border-neutral-200/20 flex flex-col justify-between h-32">
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-apple-text-secondary dark:text-neutral-400">Quality Standard</span>
+                    <span className="text-[13px] font-medium text-apple-text-secondary">Quality Standard</span>
                     <TrendingUp className="w-4 h-4 text-indigo-500" />
                   </div>
                   <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <span className="text-3xl font-display font-bold text-apple-text-primary">
                       {report.neighborhood.qualityRating || 96}%
                     </span>
-                    <span className="text-[11px] font-mono text-apple-text-secondary dark:text-neutral-500">Rating</span>
+                    <span className="text-[11px] font-mono text-apple-text-secondary">Rating</span>
                   </div>
                 </div>
 
                 {/* Parameter 4: Silence Index */}
-                <div className="p-6 rounded-2xl bg-neutral-50/70 dark:bg-neutral-800/60 border border-neutral-200/20 dark:border-neutral-700/50 flex flex-col justify-between h-32">
+                <div className="p-6 rounded-2xl bg-neutral-50/70 border border-neutral-200/20 flex flex-col justify-between h-32">
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-apple-text-secondary dark:text-neutral-400">Environment</span>
+                    <span className="text-[13px] font-medium text-apple-text-secondary">Environment</span>
                     <VolumeX className="w-4 h-4 text-purple-500" />
                   </div>
                   <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl font-display font-bold text-apple-text-primary dark:text-white">
+                    <span className="text-3xl font-display font-bold text-apple-text-primary">
                       94%
                     </span>
-                    <span className="text-[11px] font-mono text-apple-text-secondary dark:text-neutral-500">Score</span>
+                    <span className="text-[11px] font-mono text-apple-text-secondary">Score</span>
                   </div>
                 </div>
               </div>
 
               {/* Resident Sentiment */}
-              <div className="p-6 rounded-2xl bg-indigo-50/30 dark:bg-indigo-950/30 border border-indigo-100/30 dark:border-indigo-800/40">
-                <p className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-bold mb-2">
+              <div className="p-6 rounded-2xl bg-indigo-50/30 border border-indigo-100/30">
+                <p className="text-[11px] font-mono text-indigo-600 uppercase tracking-wider font-bold mb-2">
                   RESIDENT SENTIMENT REVIEW
                 </p>
-                <p className="text-[15px] text-apple-text-primary dark:text-neutral-200 font-light italic leading-relaxed">
+                <p className="text-[15px] text-apple-text-primary font-light italic leading-relaxed">
                   "{report.neighborhood.sentiment || "Verified high resident satisfaction and positive infrastructure feedback."}"
                 </p>
               </div>
@@ -488,16 +488,16 @@ export default function CribrIntelligenceReport({
             {/* Pros and Cons Column Split */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
               {/* Pros */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-emerald-50/10 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/40 flex flex-col space-y-6">
-                <div className="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400">
-                  <CheckCircle2 className="w-5 h-5 fill-emerald-50 dark:fill-emerald-950 text-emerald-600 dark:text-emerald-400" />
+              <div className="p-8 md:p-10 rounded-[32px] bg-emerald-50/10 border border-emerald-200/30 p-8 flex flex-col space-y-6">
+                <div className="flex items-center space-x-2 text-emerald-600">
+                  <CheckCircle2 className="w-5 h-5 fill-emerald-50 text-emerald-600" />
                   <h4 className="text-[14px] font-mono uppercase tracking-wider font-bold">
                     Strategic Advantages
                   </h4>
                 </div>
                 <ul className="space-y-4">
                   {report.pros.map((pro, index) => (
-                    <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary dark:text-neutral-200">
+                    <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary">
                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2.5 flex-shrink-0" />
                       <span className="font-light leading-relaxed">{pro}</span>
                     </li>
@@ -506,16 +506,16 @@ export default function CribrIntelligenceReport({
               </div>
 
               {/* Cons */}
-              <div className="p-8 md:p-10 rounded-[32px] bg-amber-50/10 dark:bg-amber-950/20 border border-amber-200/30 dark:border-amber-800/40 flex flex-col space-y-6">
-                <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <div className="p-8 md:p-10 rounded-[32px] bg-amber-50/10 border border-amber-200/30 p-8 flex flex-col space-y-6">
+                <div className="flex items-center space-x-2 text-amber-600">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
                   <h4 className="text-[14px] font-mono uppercase tracking-wider font-bold">
                     Risk Assessment Warnings
                   </h4>
                 </div>
                 <ul className="space-y-4">
                   {report.cons.map((con, index) => (
-                    <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary dark:text-neutral-200">
+                    <li key={index} className="flex items-start space-x-3 text-[15px] text-apple-text-primary">
                       <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2.5 flex-shrink-0" />
                       <span className="font-light leading-relaxed">{con}</span>
                     </li>
@@ -526,8 +526,8 @@ export default function CribrIntelligenceReport({
 
             {/* Comparative Matrix table if it exists */}
             {report.comparativeMatrix && report.comparativeMatrix.length > 0 && (
-              <div className="rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 p-8 md:p-12 apple-shadow mb-12 overflow-hidden">
-                <div className="flex items-center space-x-2 text-apple-blue dark:text-sky-400 mb-8">
+              <div className="rounded-[32px] bg-white border border-neutral-200/50 p-8 md:p-12 apple-shadow mb-12 overflow-hidden">
+                <div className="flex items-center space-x-2 text-apple-blue mb-8">
                   <Sparkles className="w-5 h-5 animate-pulse" />
                   <h4 className="text-[13px] font-mono tracking-widest uppercase font-semibold">
                     CRIBR AI Comparison Matrix
@@ -536,18 +536,18 @@ export default function CribrIntelligenceReport({
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-neutral-100 dark:border-neutral-800">
-                        <th className="py-4 text-[13px] font-mono uppercase text-apple-text-secondary dark:text-neutral-400 font-bold">Parameters</th>
-                        <th className="py-4 text-[15px] font-display font-bold text-apple-text-primary dark:text-white">Developer / Project A</th>
-                        <th className="py-4 text-[15px] font-display font-bold text-apple-text-primary dark:text-white">Developer / Project B</th>
+                      <tr className="border-b border-neutral-100">
+                        <th className="py-4 text-[13px] font-mono uppercase text-apple-text-secondary font-bold">Parameters</th>
+                        <th className="py-4 text-[15px] font-display font-bold text-apple-text-primary">Developer / Project A</th>
+                        <th className="py-4 text-[15px] font-display font-bold text-apple-text-primary">Developer / Project B</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                    <tbody className="divide-y divide-neutral-100">
                       {report.comparativeMatrix.map((item, index) => (
-                        <tr key={index} className="hover:bg-neutral-50/40 dark:hover:bg-neutral-800/40 transition-colors duration-200">
-                          <td className="py-4.5 text-[14px] font-semibold text-apple-text-primary dark:text-white pr-4">{item.label}</td>
-                          <td className="py-4.5 text-[14px] text-apple-text-secondary dark:text-neutral-400 font-light pr-4">{item.metricA}</td>
-                          <td className="py-4.5 text-[14px] text-apple-text-secondary dark:text-neutral-400 font-light">{item.metricB}</td>
+                        <tr key={index} className="hover:bg-neutral-50/40 transition-colors duration-200">
+                          <td className="py-4.5 text-[14px] font-semibold text-apple-text-primary pr-4">{item.label}</td>
+                          <td className="py-4.5 text-[14px] text-apple-text-secondary font-light pr-4">{item.metricA}</td>
+                          <td className="py-4.5 text-[14px] text-apple-text-secondary font-light">{item.metricB}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -557,30 +557,30 @@ export default function CribrIntelligenceReport({
             )}
 
             {/* CRIBR Pulse Live Monitoring Stream Dashboard */}
-            <div className="rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 p-8 md:p-12 apple-shadow mb-12 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-tr from-indigo-50/30 to-blue-50/30 dark:from-indigo-950/20 dark:to-blue-950/20 rounded-full filter blur-[100px] pointer-events-none" />
+            <div className="rounded-[32px] bg-white border border-neutral-200/50 p-8 md:p-12 apple-shadow mb-12 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-tr from-indigo-50/30 to-blue-50/30 rounded-full filter blur-[100px] pointer-events-none" />
               
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-neutral-100 dark:border-neutral-800 relative z-10">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-neutral-100 relative z-10">
                 <div className="space-y-1">
-                  <div className="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400">
+                  <div className="flex items-center space-x-2 text-indigo-600">
                     <Zap className="w-4 h-4 animate-bounce" />
                     <span className="text-[11px] font-mono tracking-widest uppercase font-bold">
                       CRIBR Pulse Stream
                     </span>
                   </div>
-                  <h4 className="text-2xl font-display font-extrabold text-apple-text-primary dark:text-white tracking-tight">
+                  <h4 className="text-2xl font-display font-extrabold text-apple-text-primary tracking-tight">
                     Real-Time Property Monitor
                   </h4>
-                  <p className="text-[14px] text-apple-text-secondary dark:text-neutral-400 font-light">
+                  <p className="text-[14px] text-apple-text-secondary font-light">
                     Continuous monitoring of RERA registry logs, price shifts, and structural developments.
                   </p>
                 </div>
 
                 <button
                   onClick={() => setIsNotifyModalOpen(true)}
-                  className="px-5 py-2.5 bg-neutral-900 hover:bg-black dark:bg-white dark:text-neutral-950 text-white rounded-full text-[13px] font-medium transition-all duration-300 flex items-center space-x-2 self-start md:self-auto hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+                  className="px-5 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-full text-[13px] font-medium transition-all duration-300 flex items-center space-x-2 self-start md:self-auto hover:scale-105 active:scale-95 shadow-md"
                 >
-                  <Bell className="w-3.5 h-3.5 fill-current" />
+                  <Bell className="w-3.5 h-3.5 fill-white text-white" />
                   <span>Configure Notifications</span>
                 </button>
               </div>
@@ -598,13 +598,13 @@ export default function CribrIntelligenceReport({
                     onClick={() => setIsNotifyModalOpen(true)}
                     className={`p-4 rounded-2xl border text-center cursor-pointer transition-all duration-300 ${
                       pref.active
-                        ? "bg-indigo-50/30 dark:bg-indigo-950/30 border-indigo-200/50 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 hover:border-indigo-300"
-                        : "bg-neutral-50/50 dark:bg-neutral-800/40 border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200"
+                        ? "bg-indigo-50/30 border-indigo-200/50 text-indigo-700 hover:border-indigo-300"
+                        : "bg-neutral-50/50 border-neutral-100 text-neutral-400 hover:border-neutral-200"
                     }`}
                   >
                     <div className="text-[13px] font-bold font-display">{pref.label}</div>
                     <div className="text-[10px] font-mono tracking-widest uppercase font-black mt-1.5 flex items-center justify-center space-x-1">
-                      <span className={`w-1.5 h-1.5 rounded-full ${pref.active ? "bg-indigo-500 animate-pulse" : "bg-neutral-300 dark:bg-neutral-600"}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${pref.active ? "bg-indigo-500 animate-pulse" : "bg-neutral-300"}`} />
                       <span>{pref.active ? "ACTIVE STREAM" : "INACTIVE"}</span>
                     </div>
                   </div>
@@ -613,11 +613,11 @@ export default function CribrIntelligenceReport({
 
               {/* Pulse log stream history */}
               <div className="space-y-4 relative z-10">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-apple-text-secondary dark:text-neutral-400 font-bold block">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-apple-text-secondary font-bold block">
                   Simulated Notification Logs
                 </span>
                 
-                <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-2 divide-y divide-neutral-100 dark:divide-neutral-800">
+                <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-2 divide-y divide-neutral-100">
                   {[
                     {
                       date: "July 04, 2026",
@@ -641,14 +641,14 @@ export default function CribrIntelligenceReport({
                     <div key={index} className="pt-4.5 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-mono bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-700 text-apple-text-secondary dark:text-neutral-400 font-semibold">
+                          <span className="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200 text-apple-text-secondary font-semibold">
                             {log.stream}
                           </span>
-                          <span className="text-[12px] font-bold text-apple-text-primary dark:text-white">{log.title}</span>
+                          <span className="text-[12px] font-bold text-apple-text-primary">{log.title}</span>
                         </div>
-                        <p className="text-[13px] text-apple-text-secondary dark:text-neutral-400 font-light">{log.detail}</p>
+                        <p className="text-[13px] text-apple-text-secondary font-light">{log.detail}</p>
                       </div>
-                      <span className="text-[11px] font-mono text-apple-text-secondary dark:text-neutral-400 flex-shrink-0 self-start sm:self-auto bg-neutral-50 dark:bg-neutral-800 px-2.5 py-1 rounded-full border border-neutral-100 dark:border-neutral-700">{log.date}</span>
+                      <span className="text-[11px] font-mono text-apple-text-secondary flex-shrink-0 self-start sm:self-auto bg-neutral-50 px-2.5 py-1 rounded-full border border-neutral-100">{log.date}</span>
                     </div>
                   ))}
                 </div>
@@ -658,21 +658,21 @@ export default function CribrIntelligenceReport({
             {/* Premium Developer & Structural Actions Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 relative z-10">
               {/* Action 1: Export Audit Report */}
-              <div className="p-6 rounded-[24px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow hover:apple-shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-56">
+              <div className="p-6 rounded-[24px] bg-white border border-neutral-200/50 apple-shadow hover:apple-shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-56">
                 <div>
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800 flex items-center justify-center text-apple-blue dark:text-sky-400">
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-apple-blue">
                     <Download className="w-4.5 h-4.5" />
                   </div>
-                  <h4 className="text-[15px] font-bold text-apple-text-primary dark:text-white mt-4">
+                  <h4 className="text-[15px] font-bold text-apple-text-primary mt-4">
                     Export Audit Report
                   </h4>
-                  <p className="text-[12.5px] text-apple-text-secondary dark:text-neutral-400 font-light mt-1.5 leading-relaxed">
+                  <p className="text-[12.5px] text-apple-text-secondary font-light mt-1.5 leading-relaxed">
                     Download full executive summary, verification scorecards, and legal compliance history.
                   </p>
                 </div>
                 <button
                   onClick={onDownloadReport}
-                  className="w-full py-2.5 bg-neutral-900 hover:bg-black dark:bg-white dark:text-neutral-950 text-white text-[12.5px] font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all duration-200 active:scale-95 cursor-pointer"
+                  className="w-full py-2.5 bg-neutral-900 hover:bg-black text-white text-[12.5px] font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all duration-200 active:scale-95 cursor-pointer"
                 >
                   <span>Download Full Report</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -680,21 +680,21 @@ export default function CribrIntelligenceReport({
               </div>
 
               {/* Action 2: Schedule Expert Callback */}
-              <div className="p-6 rounded-[24px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow hover:apple-shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-56">
+              <div className="p-6 rounded-[24px] bg-white border border-neutral-200/50 apple-shadow hover:apple-shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-56">
                 <div>
-                  <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
                     <Smartphone className="w-4.5 h-4.5" />
                   </div>
-                  <h4 className="text-[15px] font-bold text-apple-text-primary dark:text-white mt-4">
+                  <h4 className="text-[15px] font-bold text-apple-text-primary mt-4">
                     Expert Legal Consultation
                   </h4>
-                  <p className="text-[12.5px] text-apple-text-secondary dark:text-neutral-400 font-light mt-1.5 leading-relaxed">
+                  <p className="text-[12.5px] text-apple-text-secondary font-light mt-1.5 leading-relaxed">
                     Discuss RERA non-litigation indices and land-encroachment records with a specialist.
                   </p>
                 </div>
                 <button
                   onClick={() => onScheduleCallback("legal")}
-                  className="w-full py-2.5 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 text-apple-text-primary dark:text-white text-[12.5px] font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all duration-200 active:scale-95 cursor-pointer"
+                  className="w-full py-2.5 bg-white hover:bg-neutral-50 border border-neutral-200 text-apple-text-primary text-[12.5px] font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all duration-200 active:scale-95"
                 >
                   <span>Request Callback</span>
                   <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
@@ -702,23 +702,23 @@ export default function CribrIntelligenceReport({
               </div>
 
               {/* Action 3: Unlock Premium Insights */}
-              <div className="p-6 rounded-[24px] bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 apple-shadow hover:apple-shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-56 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-purple-50/50 dark:from-purple-950/20 to-transparent rounded-full filter blur-[15px] pointer-events-none" />
+              <div className="p-6 rounded-[24px] bg-white border border-neutral-200/50 apple-shadow hover:apple-shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-56 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-purple-50/50 to-transparent rounded-full filter blur-[15px] pointer-events-none" />
                 <div>
-                  <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                  <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
                     <Zap className="w-4.5 h-4.5" />
                   </div>
-                  <h4 className="text-[15px] font-bold text-apple-text-primary dark:text-white mt-4 flex items-center gap-1.5">
+                  <h4 className="text-[15px] font-bold text-apple-text-primary mt-4 flex items-center gap-1.5">
                     <span>Locked Capital Analysis</span>
-                    <span className="text-[9px] font-mono uppercase bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded font-black">PRO</span>
+                    <span className="text-[9px] font-mono uppercase bg-purple-50 border border-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-black">PRO</span>
                   </h4>
-                  <p className="text-[12.5px] text-apple-text-secondary dark:text-neutral-400 font-light mt-1.5 leading-relaxed">
+                  <p className="text-[12.5px] text-apple-text-secondary font-light mt-1.5 leading-relaxed">
                     Inspect locked developer leverage indexes, builder debt ratings, and appreciation forecasts.
                   </p>
                 </div>
                 <button
                   onClick={onUnlockPremium}
-                  className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:brightness-110 text-white text-[12.5px] font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
+                  className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:brightness-110 text-white text-[12.5px] font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all duration-200 active:scale-95 shadow-sm"
                 >
                   <span>Unlock Premium Insights</span>
                 </button>
@@ -744,7 +744,7 @@ export default function CribrIntelligenceReport({
               <div className="flex-shrink-0">
                 <button
                   onClick={onDownloadReport}
-                  className="px-6 py-3.5 bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 hover:bg-black dark:hover:bg-neutral-200 rounded-full font-medium text-[14px] flex items-center space-x-2 hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg shadow-black/10 cursor-pointer"
+                  className="px-6 py-3.5 bg-neutral-900 text-white hover:bg-black rounded-full font-medium text-[14px] flex items-center space-x-2 hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg shadow-black/10"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Report Prospectus</span>
