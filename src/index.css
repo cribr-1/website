@@ -2,8 +2,6 @@
 
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme {
   --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -16,24 +14,6 @@
   --color-cribr-secondary: #FBFBFD;
 }
 
-:root {
-  color-scheme: light;
-  --color-apple-blue: #0071E3;
-  --color-apple-text-primary: #111111;
-  --color-apple-text-secondary: #6E6E73;
-  --color-cribr-bg: #FFFFFF;
-  --color-cribr-secondary: #FBFBFD;
-}
-
-.dark {
-  color-scheme: dark;
-  --color-apple-blue: #2997FF;
-  --color-apple-text-primary: #F5F5F7;
-  --color-apple-text-secondary: #A1A1A6;
-  --color-cribr-bg: #0B0F17;
-  --color-cribr-secondary: #111827;
-}
-
 body {
   font-family: var(--font-sans);
   color: var(--color-apple-text-primary);
@@ -42,12 +22,6 @@ body {
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.25s ease, color 0.25s ease;
-}
-
-.dark body {
-  background-color: #0B0F17;
-  color: #F5F5F7;
 }
 
 h1, h2, h3, h4, h5, h6, .font-display {
@@ -124,47 +98,16 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.dark .glass-nav {
-  background: rgba(11, 15, 23, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
-.dark .glass-panel {
-  background: rgba(17, 24, 39, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
 .apple-shadow {
   box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.03);
-}
-
-.dark .apple-shadow {
-  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.25);
 }
 
 .apple-shadow-lg {
   box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.06);
 }
 
-.dark .apple-shadow-lg {
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.45);
-}
-
 .apple-gradient-text {
   color: #111111;
-}
-
-.dark .apple-gradient-text {
-  color: #F5F5F7;
 }
 
 /* Custom scrollbar to feel premium & invisible */
@@ -182,20 +125,14 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border-radius: 99px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 99px;
-}
-
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.22);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
 }
 
 /* Hide default input outline on search capsule */
 input:focus {
   outline: none;
 }
+
+
+
