@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Scale, ChevronLeft, Building, MapPin, Activity, CheckCircle, AlertTriangle, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
+import { Scale, ChevronLeft, Building, MapPin, Activity, CheckCircle, AlertTriangle, TrendingUp, Sparkles, AlertCircle, X } from 'lucide-react';
 import { showToast } from './CribrToast';
 
 interface CribrComparePageProps {
