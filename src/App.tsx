@@ -686,6 +686,7 @@ export default function App() {
         onSelectProperty={(p) => navigateToProperty(p.id)}
         searchQuery={searchQuery}
         onClearSearch={() => setSearchQuery("")}
+        onCompare={(p) => handleToggleCompare(p.id, p.name)}
       />
 
       {/* FOOTER */}
