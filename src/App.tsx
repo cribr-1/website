@@ -359,7 +359,7 @@ export default function App() {
           onSaveHome={handleSaveHome}
           onRemoveSaved={handleRemoveSaved}
           onAskAI={handleQuerySubmit}
-          onCompare={(p) => handleToggleCompare(p.id, p.name)}
+          onCompare={(p) => handleToggleCompare(p.id, p.name || p.projectName || p.propertyName)}
         />
         <CribrToastContainer />
       </ErrorBoundary>
@@ -686,7 +686,7 @@ export default function App() {
         onSelectProperty={(p) => navigateToProperty(p.id)}
         searchQuery={searchQuery}
         onClearSearch={() => setSearchQuery("")}
-        onCompare={(p) => handleToggleCompare(p.id, p.name)}
+        onCompare={(p) => handleToggleCompare(p.id, p.name || p.projectName || p.propertyName)}
       />
 
       {/* FOOTER */}
