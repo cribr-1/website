@@ -149,6 +149,23 @@ export class ProjectService {
   }
 
   /**
+   * Log unfulfilled searches to ai_reports table so admins can see what users are searching for
+   */
+  async logFailedSearch(query: string, intent: any): Promise<void> {
+    if (!this.client || !query) return;
+    try {
+      const id = `failed_search_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      await this.client.from("ai_reports").insert({
+        id,
+        query,
+        report_data: { type: "failed_search", intent }
+      });
+    } catch (err) {
+      console.warn("[ProjectService] Failed to log search:", err);
+    }
+  }
+
+  /**
    * Search projects based on intent and fuzzy fallback
    */
   async searchProjects(intent: any, originalQuery: string = ""): Promise<any[]> {
@@ -219,12 +236,6 @@ export class ProjectService {
             }
           });
         });
-      }
-      
-      // If the keyword search filtered out everything (e.g. for purely semantic questions like "Safety ratings"), 
-      // return all projects instead of an empty array so the AI assistant can analyze them.
-      if (filtered.length === 0) {
-        filtered = all;
       }
     }
 

@@ -77,6 +77,11 @@ searchRouter.post("/search-projects", async (req, res) => {
     const { intent, originalQuery } = req.body;
     const { projectService } = await import("../services/ProjectService");
     const results = await projectService.searchProjects(intent, originalQuery);
+    
+    if (results.length === 0 && originalQuery) {
+      await projectService.logFailedSearch(originalQuery, intent);
+    }
+    
     return res.json(results);
   } catch (err: any) {
     console.error("[searchRouter] Search projects error:", err?.message || err);

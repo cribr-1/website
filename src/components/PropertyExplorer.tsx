@@ -166,10 +166,10 @@ export default function PropertyExplorer({
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xl font-display font-bold text-neutral-950">
-                    No matching projects found
+                    No results found
                   </h3>
                   <p className="text-sm text-neutral-500 max-w-sm mx-auto font-normal leading-relaxed">
-                    No verified projects match "{searchQuery}". Try searching for another locality or builder.
+                    We are actively adding new properties... You can try looking for "2BHK", "Under 2Cr", or browse by specific locations.
                   </p>
                 </div>
                 {onClearSearch && (

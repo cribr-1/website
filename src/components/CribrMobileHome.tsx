@@ -649,10 +649,10 @@ export default function CribrMobileHome({
                           </div>
                           <div className="space-y-1">
                             <h4 className="text-base font-display font-bold text-neutral-900">
-                              No matching projects found
+                              No results found
                             </h4>
                             <p className="text-xs text-neutral-500 leading-relaxed">
-                              No verified projects match "{searchQuery}".
+                              We are actively adding new properties... You can try looking for "2BHK", "Under 2Cr", or browse by specific locations.
                             </p>
                           </div>
                           <button
