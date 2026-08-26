@@ -142,6 +142,13 @@ export interface WhitelistedProject {
   builderReliability: number | null;
   googleRating: string;
   googleReviewSummary: string;
+
+  // Normalized search/filter fields
+  minPriceLakhs: number | null;
+  maxPriceLakhs: number | null;
+  pricePerSqftNum: number | null;
+  priceStatus: "Available" | "On Request";
+
   image?: string;
   images?: string[];
 }
@@ -1336,6 +1343,26 @@ export function mapToWhitelistedProjectOverview(
   const titleAuditNote = resolveTitleAuditNote(row);
   const reviewSummary = resolveGoogleReviewSummary(row);
 
+  // Normalize numeric pricing
+  let normMinLakhs = Number(row.min_price_lakhs ?? row.minPriceLakhs ?? 0);
+  if (!normMinLakhs && (row.min_price || row.minPrice)) {
+    const rawVal = Number(row.min_price || row.minPrice);
+    normMinLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
+  }
+  let normMaxLakhs = Number(row.max_price_lakhs ?? row.maxPriceLakhs ?? 0);
+  if (!normMaxLakhs && (row.max_price || row.maxPrice)) {
+    const rawVal = Number(row.max_price || row.maxPrice);
+    normMaxLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
+  }
+  if (!normMaxLakhs && normMinLakhs) normMaxLakhs = normMinLakhs;
+  
+  const priceStatus: "Available" | "On Request" = (normMinLakhs > 0) ? "Available" : "On Request";
+  
+  const pricePerSqftNum = (row.price_per_sqft || row.pricePerSqft) ? 
+    (typeof (row.price_per_sqft || row.pricePerSqft) === "number" ? 
+       (row.price_per_sqft || row.pricePerSqft) : 
+       Number(String(row.price_per_sqft || row.pricePerSqft).replace(/[^0-9.]/g, ""))) : null;
+
   return {
     id: String(row.id || ""),
     projectName: row.name || row.projectName || "Project",
@@ -1374,6 +1401,10 @@ export function mapToWhitelistedProjectOverview(
     landLitigationStatus: litigationStatus,
     heroImage: heroImg,
     images: imagesArr,
+    minPriceLakhs: normMinLakhs > 0 ? normMinLakhs : null,
+    maxPriceLakhs: normMaxLakhs > 0 ? normMaxLakhs : null,
+    pricePerSqftNum: pricePerSqftNum && !isNaN(pricePerSqftNum) && pricePerSqftNum > 0 ? pricePerSqftNum : null,
+    priceStatus,
   };
 }
 

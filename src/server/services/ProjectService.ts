@@ -204,39 +204,44 @@ export class ProjectService {
     if (maxPrice && maxPrice > 0) {
       const maxLakhs = maxPrice / 100000;
       filtered = filtered.filter(p => {
-        const minL = Number(p.min_price_lakhs || (p.min_price ? (p.min_price > 10000 ? p.min_price / 100000 : p.min_price) : 0));
-        return minL === 0 || minL <= maxLakhs;
+        let normMinLakhs = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? 0);
+        if (!normMinLakhs && (p.min_price || p.minPrice)) {
+          const rawVal = Number(p.min_price || p.minPrice);
+          normMinLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
+        }
+        return normMinLakhs > 0 && normMinLakhs <= maxLakhs;
       });
     }
 
     if (minPrice && minPrice > 0) {
       const minLakhs = minPrice / 100000;
       filtered = filtered.filter(p => {
-        const maxL = Number(p.max_price_lakhs || (p.max_price ? (p.max_price > 10000 ? p.max_price / 100000 : p.max_price) : 0));
-        return maxL === 0 || maxL >= minLakhs;
+        let normMaxLakhs = Number(p.max_price_lakhs ?? p.maxPriceLakhs ?? 0);
+        if (!normMaxLakhs && (p.max_price || p.maxPrice)) {
+          const rawVal = Number(p.max_price || p.maxPrice);
+          normMaxLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
+        }
+        if (!normMaxLakhs) {
+          let normMin = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? 0);
+          if (!normMin && (p.min_price || p.minPrice)) {
+            const raw = Number(p.min_price || p.minPrice);
+            normMin = raw > 10000 ? raw / 100000 : raw;
+          }
+          normMaxLakhs = normMin;
+        }
+        return normMaxLakhs > 0 && normMaxLakhs >= minLakhs;
       });
     }
 
+    // Text search strictly operates on identity, not fuzzy matching
     if (rawText && filtered.length === all.length) {
-      // Fuzzy keyword match using word boundaries and proper stopwords
-      const stopwords = ['a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'in', 'at', 'near', 'under', 'for', 'with', 'about', 'of', 'to', 'bhk', 'cr', 'lakhs', 'crore', 'lakh'];
-      const terms = rawText.split(/\s+/)
-        .map(t => t.toLowerCase().replace(/[^a-z0-9]/g, ''))
-        .filter(t => t.length > 1 && !stopwords.includes(t));
-
-      if (terms.length > 0) {
-        filtered = all.filter(p => {
-          const fullStr = `${p.name} ${p.builder_name || p.builder} ${p.locality || p.location} ${p.city || ''} ${p.rera_number || ''}`.toLowerCase();
-          // Use word boundary regex to avoid partial matches (e.g. "and" matching "Chandapura")
-          return terms.some(t => {
-            try {
-              return new RegExp(`\\b${t}\\b`).test(fullStr);
-            } catch {
-              return fullStr.includes(t);
-            }
-          });
-        });
-      }
+      const q = rawText.toLowerCase().trim();
+      filtered = all.filter(p => {
+        const nameMatch = (p.name || p.projectName || "").toLowerCase().includes(q);
+        const builderMatch = (p.builder_name || p.builder || "").toLowerCase().includes(q);
+        const locMatch = (p.locality || p.location || "").toLowerCase().includes(q);
+        return nameMatch || builderMatch || locMatch;
+      });
     }
 
     return filtered;

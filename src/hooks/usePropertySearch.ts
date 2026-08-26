@@ -31,59 +31,32 @@ function matchesSearchQuery(p: WhitelistedProject, query: string): boolean {
   if (!query) return true;
   const q = query.toLowerCase().trim();
 
-  // Basic exact substring match (fast path)
-  const basicMatch = [
-    p.projectName, p.builder, p.locality, p.area, p.unitTypes, p.reraNumber, p.builderGrade
-  ].filter(Boolean).some((val) => val.toLowerCase().includes(q));
-  if (basicMatch) return true;
+  // Very strict explicit string matching against identity only
+  const nameMatch = p.projectName.toLowerCase().includes(q);
+  const builderMatch = p.builder.toLowerCase().includes(q);
+  const localityMatch = p.locality.toLowerCase().includes(q);
+  
+  if (nameMatch || builderMatch || localityMatch) return true;
 
   // Complex multi-word heuristic fallback
-  const bhkMatch = q.match(/(\d)\s*bhk/);
-  const requestedBhk = bhkMatch ? bhkMatch[1] : null;
-
   const crMatch = q.match(/(\d+(?:\.\d+)?)\s*cr/);
   const requestedCr = crMatch ? parseFloat(crMatch[1]) : null;
 
   const lakhMatch = q.match(/(\d+(?:\.\d+)?)\s*lakh/);
   const requestedLakh = lakhMatch ? parseFloat(lakhMatch[1]) : null;
-
-  const noiseWords = ['in', 'at', 'near', 'under', 'for', 'bhk', 'cr', 'lakhs', 'lakh', 'budget', 'best', 'top', 'good', 'projects', 'properties', 'with', 'the', 'a', 'an', 'and', 'or'];
-  const terms = q.split(/\s+/).filter(t => !noiseWords.includes(t) && isNaN(Number(t)) && t.length > 1);
-
+  
   let matches = true;
 
-  if (requestedBhk && p.unitTypes) {
-    if (!p.unitTypes.replace(/\s/g, '').toLowerCase().includes(`${requestedBhk}bhk`)) {
+  if ((requestedCr || requestedLakh) && p.minPriceLakhs) {
+    let targetPriceLakhs = 0;
+    if (requestedCr) targetPriceLakhs = requestedCr * 100;
+    if (requestedLakh) targetPriceLakhs = requestedLakh;
+
+    if (targetPriceLakhs > 0 && p.minPriceLakhs > targetPriceLakhs) {
       matches = false;
     }
-  }
-
-  if (matches && (requestedCr || requestedLakh) && p.minPrice) {
-    const minStr = p.minPrice.toLowerCase();
-    const isCrore = minStr.includes('cr');
-    const isLakh = minStr.includes('lakh');
-    const val = parseFloat(minStr.replace(/[^0-9.]/g, ""));
-
-    let dbPriceInCr = 999;
-    if (isCrore && !isNaN(val)) dbPriceInCr = val;
-    if (isLakh && !isNaN(val)) dbPriceInCr = val / 100;
-
-    let targetPriceInCr = 0;
-    if (requestedCr) targetPriceInCr = requestedCr;
-    if (requestedLakh) targetPriceInCr = requestedLakh / 100;
-
-    if (targetPriceInCr > 0 && dbPriceInCr > targetPriceInCr) {
-      matches = false;
-    }
-  }
-
-  if (matches && terms.length > 0) {
-    const projectText = [p.projectName, p.builder, p.locality, p.area].filter(Boolean).join(" ").toLowerCase();
-    // All non-noise keywords must match (strict: AND)
-    const allTermsMatch = terms.every(term => projectText.includes(term));
-    if (!allTermsMatch) {
-      matches = false;
-    }
+  } else if ((requestedCr || requestedLakh) && !p.minPriceLakhs) {
+    matches = false; // Exclude 'Price on Request' if specific price requested
   }
 
   return matches;
@@ -98,17 +71,10 @@ function matchesCategory(p: WhitelistedProject, category: string): boolean {
     return p.possessionDate === "Ready to Move" || p.possessionDate.toLowerCase().includes("ready") || p.possessionDate.includes("2024");
   }
   if (category === "Luxury") {
-    const minStr = p.minPrice.toLowerCase();
-    const isCrore = minStr.includes("cr");
-    const val = parseFloat(minStr.replace(/[^0-9.]/g, ""));
-    return isCrore && val >= 2.0;
+    return p.minPriceLakhs !== null && p.minPriceLakhs >= 200;
   }
   if (category === "Affordable") {
-    const minStr = p.minPrice.toLowerCase();
-    const isLakh = minStr.includes("lakh");
-    const isCrore = minStr.includes("cr");
-    const val = parseFloat(minStr.replace(/[^0-9.]/g, ""));
-    return isLakh || (isCrore && val <= 1.0);
+    return p.minPriceLakhs !== null && p.minPriceLakhs <= 100;
   }
   if (category === "Investment") {
     return p.builderGrade.includes("A");
