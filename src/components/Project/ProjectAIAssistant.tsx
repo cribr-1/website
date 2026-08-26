@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Sparkles, Bot, Send, ShieldCheck, Building2, Calendar, FileText, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { queryProjectAI } from "../../lib/aiSearchPipeline";
+import MarkdownRenderer from "../MarkdownRenderer";
 
 interface ProjectAIAssistantProps {
   project: any;
@@ -150,9 +151,7 @@ export default function ProjectAIAssistant({ project }: ProjectAIAssistantProps)
               </span>
             </div>
 
-            <div className="prose prose-neutral prose-sm max-w-none text-neutral-800 space-y-2 whitespace-pre-wrap">
-              {answer}
-            </div>
+            <MarkdownRenderer content={answer} />
           </motion.div>
         )}
       </AnimatePresence>

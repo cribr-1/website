@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Sparkles, Bot, Send, ShieldCheck, Scale, Building2, MapPin, AlertCircle, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { queryResultsAssistant } from "../../lib/aiSearchPipeline";
+import MarkdownRenderer from "../MarkdownRenderer";
 
 interface ResultContextAIAssistantProps {
   searchQuery: string;
@@ -162,9 +163,7 @@ function ResultContextAIAssistant({
               </span>
             </div>
             
-            <div className="prose prose-neutral prose-sm max-w-none text-neutral-800 space-y-2 whitespace-pre-wrap">
-              {answer}
-            </div>
+            <MarkdownRenderer content={answer} />
 
             {/* Active Property Badges */}
             <div className="mt-4 pt-4 border-t border-neutral-200/70 flex flex-wrap items-center gap-2">
