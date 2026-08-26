@@ -105,4 +105,3 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
 };
 
 export default ProjectRow;
-
