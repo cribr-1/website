@@ -128,7 +128,7 @@ function CribrMarkdown({ content }: { content: string }) {
   const blocks = content.split("\n\n");
 
   return (
-    <div className="space-y-3 text-[13px] leading-relaxed text-neutral-800">
+    <div className="space-y-3 text-[13px] leading-relaxed text-neutral-800 dark:text-neutral-200">
       {blocks.map((block, bIdx) => {
         const trimmed = block.trim();
         if (!trimmed) return null;
@@ -136,15 +136,15 @@ function CribrMarkdown({ content }: { content: string }) {
         // Headings
         if (trimmed.startsWith("###")) {
           return (
-            <h4 key={bIdx} className="text-sm font-bold text-[#111111] mt-3 mb-1 tracking-tight flex items-center space-x-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+            <h4 key={bIdx} className="text-sm font-bold text-[#111111] dark:text-white mt-3 mb-1 tracking-tight flex items-center space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#2563EB] dark:text-sky-400" />
               <span>{trimmed.replace(/^###\s*/, "")}</span>
             </h4>
           );
         }
         if (trimmed.startsWith("##")) {
           return (
-            <h3 key={bIdx} className="text-base font-extrabold text-[#111111] mt-4 mb-2 tracking-tight">
+            <h3 key={bIdx} className="text-base font-extrabold text-[#111111] dark:text-white mt-4 mb-2 tracking-tight">
               {trimmed.replace(/^##\s*/, "")}
             </h3>
           );
@@ -154,7 +154,7 @@ function CribrMarkdown({ content }: { content: string }) {
         if (trimmed.startsWith("* ") || trimmed.startsWith("- ")) {
           const items = trimmed.split(/\n[\*\-]\s+/);
           return (
-            <ul key={bIdx} className="list-disc pl-4 space-y-1 text-neutral-700 my-1.5">
+            <ul key={bIdx} className="list-disc pl-4 space-y-1 text-neutral-700 dark:text-neutral-300 my-1.5">
               {items.map((item, iIdx) => (
                 <li key={iIdx}>
                   {parseInlineMarkdown(item.replace(/^[\*\-]\s+/, ""))}
@@ -168,7 +168,7 @@ function CribrMarkdown({ content }: { content: string }) {
         if (/^\d+\.\s+/.test(trimmed)) {
           const items = trimmed.split(/\n\d+\.\s+/);
           return (
-            <ol key={bIdx} className="list-decimal pl-4 space-y-1 text-neutral-700 my-1.5">
+            <ol key={bIdx} className="list-decimal pl-4 space-y-1 text-neutral-700 dark:text-neutral-300 my-1.5">
               {items.map((item, iIdx) => (
                 <li key={iIdx}>
                   {parseInlineMarkdown(item.replace(/^\d+\.\s+/, ""))}
@@ -183,9 +183,9 @@ function CribrMarkdown({ content }: { content: string }) {
           const rows = trimmed.split("\n");
           const tableRows = rows.filter(r => r.trim() && !r.includes("-|-"));
           return (
-            <div key={bIdx} className="overflow-x-auto my-2.5 border border-neutral-100 rounded-xl shadow-sm">
-              <table className="min-w-full text-[11px] divide-y divide-neutral-100 bg-white">
-                <thead className="bg-neutral-50 text-neutral-500 font-semibold">
+            <div key={bIdx} className="overflow-x-auto my-2.5 border border-neutral-100 dark:border-neutral-800 rounded-xl shadow-sm">
+              <table className="min-w-full text-[11px] divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
+                <thead className="bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 font-semibold">
                   <tr>
                     {tableRows[0].split("|").filter(c => c.trim()).map((cell, cIdx) => (
                       <th key={cIdx} className="px-2.5 py-1.5 text-left uppercase tracking-wider">
@@ -194,9 +194,9 @@ function CribrMarkdown({ content }: { content: string }) {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-neutral-700">
+                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 text-neutral-700 dark:text-neutral-300">
                   {tableRows.slice(1).map((row, rIdx) => (
-                    <tr key={rIdx} className="hover:bg-neutral-50/50">
+                    <tr key={rIdx} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50">
                       {row.split("|").filter(c => c.trim()).map((cell, cIdx) => (
                         <td key={cIdx} className="px-2.5 py-1.5">
                           {parseInlineMarkdown(cell.trim())}
@@ -226,7 +226,7 @@ function parseInlineMarkdown(text: string) {
   return parts.map((part, index) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={index} className="font-bold text-[#111111]">
+        <strong key={index} className="font-bold text-[#111111] dark:text-white">
           {part.slice(2, -2)}
         </strong>
       );
@@ -625,26 +625,26 @@ export default function CribrMobileChat({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#F8F9FC] flex flex-col h-full overflow-hidden text-[#111111] font-sans">
+    <div className="fixed inset-0 z-50 bg-[#F8F9FC] dark:bg-neutral-950 flex flex-col h-full overflow-hidden text-[#111111] dark:text-neutral-100 font-sans">
       
       {/* HEADER BAR (Glassmorphic, Apple-inspired) */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-neutral-200/50 px-4 py-3 flex items-center justify-between z-40 relative">
+      <header className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-b border-neutral-200/50 dark:border-neutral-800 px-4 py-3 flex items-center justify-between z-40 relative">
         <div className="flex items-center space-x-3">
           <button
             onClick={onBackToHome}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 active:scale-90 transition-all text-neutral-600 cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 dark:bg-neutral-800 active:scale-90 transition-all text-neutral-600 dark:text-neutral-300 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <div className="flex items-center space-x-1.5">
-              <h2 className="text-sm font-black text-[#111111] tracking-tight">CRIBR AI</h2>
+              <h2 className="text-sm font-black text-[#111111] dark:text-white tracking-tight">CRIBR AI</h2>
               <span className="flex h-2 w-2 relative">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isOnline ? "bg-[#10B981]" : "bg-amber-500"}`}></span>
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${isOnline ? "bg-[#10B981]" : "bg-amber-500"}`}></span>
               </span>
             </div>
-            <p className="text-[10px] text-neutral-400 font-light truncate max-w-44">
+            <p className="text-[10px] text-neutral-400 dark:text-neutral-500 font-light truncate max-w-44">
               AI Property Intelligence Assistant
             </p>
           </div>
@@ -652,7 +652,7 @@ export default function CribrMobileChat({
 
         {/* Offline status badge */}
         {!isOnline && (
-          <div className="flex items-center space-x-1 px-2.5 py-1 bg-amber-50 border border-amber-100 text-amber-600 rounded-full text-[9px] font-mono font-bold">
+          <div className="flex items-center space-x-1 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900 text-amber-600 dark:text-amber-400 rounded-full text-[9px] font-mono font-bold">
             <WifiOff className="w-3 h-3" />
             <span>Offline</span>
           </div>
@@ -660,11 +660,11 @@ export default function CribrMobileChat({
 
         <button
           onClick={() => setHistoryOpen(true)}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 active:scale-90 transition-all text-neutral-600 relative cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 dark:bg-neutral-800 active:scale-90 transition-all text-neutral-600 dark:text-neutral-300 relative cursor-pointer"
         >
           <History className="w-5 h-5" />
           {sessions.filter(s => s.messages.length > 0).length > 0 && (
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#2563EB] rounded-full border border-white animate-pulse" />
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#2563EB] rounded-full border border-white dark:border-neutral-900 animate-pulse" />
           )}
         </button>
       </header>
@@ -686,8 +686,8 @@ export default function CribrMobileChat({
                 <Sparkles className="w-8 h-8 text-amber-200" />
               </motion.div>
               <div className="space-y-1">
-                <h3 className="text-xl font-black tracking-tight text-neutral-900">How can I help you today?</h3>
-                <p className="text-xs text-neutral-400 font-light max-w-xs leading-relaxed mx-auto">
+                <h3 className="text-xl font-black tracking-tight text-neutral-900 dark:text-white">How can I help you today?</h3>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 font-light max-w-xs leading-relaxed mx-auto">
                   Ask anything about Indian real estate. Discover flats, compare developers, calculate EMI, and check RERA legal safety instantly.
                 </p>
               </div>
@@ -695,7 +695,7 @@ export default function CribrMobileChat({
 
             {/* Suggested Prompt Cards */}
             <div className="w-full space-y-3">
-              <h4 className="text-[10px] font-mono font-black tracking-wider text-neutral-400 uppercase text-center">
+              <h4 className="text-[10px] font-mono font-black tracking-wider text-neutral-400 dark:text-neutral-500 uppercase text-center">
                 Suggested Consultations
               </h4>
               <div className="grid grid-cols-1 gap-2">
@@ -703,10 +703,10 @@ export default function CribrMobileChat({
                   <button
                     key={idx}
                     onClick={() => createNewSessionWithQuery(card.query)}
-                    className="p-3.5 bg-white border border-neutral-200/50 rounded-2xl shadow-sm text-left hover:border-neutral-300 active:scale-[0.98] transition-all flex items-center space-x-3.5 cursor-pointer"
+                    className="p-3.5 bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 rounded-2xl shadow-sm text-left hover:border-neutral-300 dark:hover:border-neutral-700 active:scale-[0.98] transition-all flex items-center space-x-3.5 cursor-pointer"
                   >
-                    <span className="text-lg w-8 h-8 rounded-xl bg-[#F8F9FC] flex items-center justify-center">{card.emoji}</span>
-                    <span className="text-xs font-bold text-neutral-800 tracking-tight">
+                    <span className="text-lg w-8 h-8 rounded-xl bg-[#F8F9FC] dark:bg-neutral-800 flex items-center justify-center">{card.emoji}</span>
+                    <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 tracking-tight">
                       {card.label}
                     </span>
                   </button>
@@ -726,7 +726,7 @@ export default function CribrMobileChat({
                 className={`max-w-[85%] rounded-[24px] px-4.5 py-3.5 shadow-sm ${
                   message.sender === "user"
                     ? "bg-[#2563EB] text-white rounded-br-sm"
-                    : "bg-white border border-neutral-200/50 text-[#111111] rounded-bl-sm"
+                    : "bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 text-[#111111] dark:text-neutral-100 rounded-bl-sm"
                 }`}
               >
                 {message.sender === "user" ? (
@@ -736,7 +736,7 @@ export default function CribrMobileChat({
                 )}
                 
                 <div className="mt-1 flex justify-end">
-                  <span className={`text-[8px] font-mono ${message.sender === "user" ? "text-blue-100" : "text-neutral-400"}`}>
+                  <span className={`text-[8px] font-mono ${message.sender === "user" ? "text-blue-100" : "text-neutral-400 dark:text-neutral-500"}`}>
                     {message.timestamp}
                   </span>
                 </div>
@@ -747,8 +747,8 @@ export default function CribrMobileChat({
             {message.sender === "ai" && message.recommendedProperties && message.recommendedProperties.length > 0 && (
               <div className="space-y-2 py-1">
                 <div className="flex items-center space-x-1.5 px-1.5">
-                  <Award className="w-3.5 h-3.5 text-[#2563EB]" />
-                  <span className="text-[10px] font-black text-[#2563EB] uppercase tracking-wider font-mono">
+                  <Award className="w-3.5 h-3.5 text-[#2563EB] dark:text-sky-400" />
+                  <span className="text-[10px] font-black text-[#2563EB] dark:text-sky-400 uppercase tracking-wider font-mono">
                     CRIBR AI Recommendation Card
                   </span>
                 </div>
@@ -759,7 +759,7 @@ export default function CribrMobileChat({
                     return (
                       <div
                         key={prop.id}
-                        className="flex-shrink-0 w-72 bg-white rounded-[24px] border border-neutral-200/60 shadow-md overflow-hidden snap-center flex flex-col justify-between"
+                        className="flex-shrink-0 w-72 bg-white dark:bg-neutral-900 rounded-[24px] border border-neutral-200/60 dark:border-neutral-800 shadow-md overflow-hidden snap-center flex flex-col justify-between"
                       >
                         {/* Image + Overlays */}
                         <div className="h-36 relative overflow-hidden">
@@ -769,7 +769,7 @@ export default function CribrMobileChat({
                             referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-white/95 backdrop-blur-md rounded-full text-[9px] font-black text-neutral-800 shadow-sm">
+                          <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md rounded-full text-[9px] font-black text-neutral-800 dark:text-neutral-100 shadow-sm">
                             {prop.city}
                           </div>
                           
@@ -783,36 +783,36 @@ export default function CribrMobileChat({
                         {/* Content Grid & Metrices */}
                         <div className="p-4 space-y-3">
                           <div className="space-y-0.5">
-                            <h5 className="text-sm font-extrabold text-[#111111] leading-tight truncate">
+                            <h5 className="text-sm font-extrabold text-[#111111] dark:text-white leading-tight truncate">
                               {prop.name}
                             </h5>
-                            <div className="flex items-center justify-between text-[11px] text-neutral-400">
+                            <div className="flex items-center justify-between text-[11px] text-neutral-400 dark:text-neutral-500">
                               <span className="truncate max-w-40">by {prop.developer}</span>
-                              <span className="text-[#2563EB] font-black font-mono">{prop.priceRange}</span>
+                              <span className="text-[#2563EB] dark:text-sky-400 font-black font-mono">{prop.priceRange}</span>
                             </div>
                           </div>
 
                           {/* Technical benchmarks for real estate (Requirement: RERA, Investment Score, Legal risk, Rental yield) */}
-                          <div className="grid grid-cols-4 gap-1 bg-neutral-50 p-2 rounded-xl text-center text-[9px] font-mono border border-neutral-100">
+                          <div className="grid grid-cols-4 gap-1 bg-neutral-50 dark:bg-neutral-800/50 p-2 rounded-xl text-center text-[9px] font-mono border border-neutral-100 dark:border-neutral-800">
                             <div>
-                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">RERA</span>
-                              <span className="text-emerald-600 font-black">Compliant</span>
+                              <span className="text-neutral-400 dark:text-neutral-500 block text-[7px] uppercase font-bold leading-none">RERA</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-black">Compliant</span>
                             </div>
-                            <div className="border-l border-neutral-200/50">
-                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">Invest</span>
-                              <span className="text-[#2563EB] font-black font-mono">{prop.investmentYieldScore}/100</span>
+                            <div className="border-l border-neutral-200/50 dark:border-neutral-800">
+                              <span className="text-neutral-400 dark:text-neutral-500 block text-[7px] uppercase font-bold leading-none">Invest</span>
+                              <span className="text-[#2563EB] dark:text-sky-400 font-black font-mono">{prop.investmentYieldScore}/100</span>
                             </div>
-                            <div className="border-l border-neutral-200/50">
-                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">Legal</span>
-                              <span className="text-emerald-600 font-black font-mono">{prop.legalScore}/100</span>
+                            <div className="border-l border-neutral-200/50 dark:border-neutral-800">
+                              <span className="text-neutral-400 dark:text-neutral-500 block text-[7px] uppercase font-bold leading-none">Legal</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-black font-mono">{prop.legalScore}/100</span>
                             </div>
-                            <div className="border-l border-neutral-200/50">
-                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">Rental</span>
-                              <span className="text-purple-600 font-black font-mono">{Math.round(prop.investmentYieldScore * 0.95)}/100</span>
+                            <div className="border-l border-neutral-200/50 dark:border-neutral-800">
+                              <span className="text-neutral-400 dark:text-neutral-500 block text-[7px] uppercase font-bold leading-none">Rental</span>
+                              <span className="text-purple-600 dark:text-purple-400 font-black font-mono">{Math.round(prop.investmentYieldScore * 0.95)}/100</span>
                             </div>
                           </div>
 
-                          <p className="text-[10px] text-neutral-500 font-light leading-snug line-clamp-2">
+                          <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-light leading-snug line-clamp-2">
                             {prop.legalReport}
                           </p>
 
@@ -820,7 +820,7 @@ export default function CribrMobileChat({
                           <div className="grid grid-cols-3 gap-1.5 pt-1">
                             <button
                               onClick={() => setDetailsProp(prop)}
-                              className="py-2 bg-neutral-900 text-white rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
+                              className="py-2 bg-neutral-900 dark:bg-neutral-800 text-white rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
                             >
                               <Info className="w-3 h-3" />
                               <span>Details</span>
@@ -831,14 +831,14 @@ export default function CribrMobileChat({
                                 const other = message.recommendedProperties?.find((p: any) => p.id !== prop.id) || message.recommendedProperties?.[0];
                                 setComparisonProp({ propertyA: prop, propertyB: other });
                               }}
-                              className="py-2 bg-white border border-neutral-200 text-neutral-700 rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
+                              className="py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
                             >
                               <Scale className="w-3 h-3" />
                               <span>Compare</span>
                             </button>
                             <button
                               onClick={() => isSaved ? onRemoveSaved(prop.id) : onSaveHome(prop as any)}
-                              className="py-2 bg-neutral-100 border border-neutral-200/40 text-neutral-700 rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
+                              className="py-2 bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200/40 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
                             >
                               <Bookmark className={`w-3 h-3 ${isSaved ? "fill-rose-500 text-rose-500" : ""}`} />
                               <span>{isSaved ? "Saved" : "Save"}</span>
@@ -857,25 +857,25 @@ export default function CribrMobileChat({
         {/* Advanced Gradient Loading Experience */}
         {isLoading && (
           <div className="flex justify-start items-start">
-            <div className="bg-white border border-neutral-200/50 rounded-[24px] rounded-tl-sm p-4 shadow-sm w-full max-w-[85%] space-y-3.5">
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200/50 dark:border-neutral-800 rounded-[24px] rounded-tl-sm p-4 shadow-sm w-full max-w-[85%] space-y-3.5">
               
               {/* Rotating Animated Gradient Spinner */}
               <div className="flex items-center space-x-3">
                 <div className="relative w-8 h-8 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-2 border-neutral-100" />
+                  <div className="absolute inset-0 rounded-full border-2 border-neutral-100 dark:border-neutral-800" />
                   <div className="absolute inset-0 rounded-full border-2 border-t-[#2563EB] border-r-purple-600 animate-spin" />
                   <Sparkles className="w-3.5 h-3.5 text-[#2563EB] animate-pulse" />
                 </div>
                 <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-neutral-800 block">CRIBR AI Advisor</span>
-                  <span className="text-[10px] text-neutral-400 font-mono font-medium">
+                  <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 block">CRIBR AI Advisor</span>
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono font-medium">
                     {CHAT_STATUS_MESSAGES[statusTextIndex]}
                   </span>
                 </div>
               </div>
 
               {/* Slow progress feedback line */}
-              <div className="w-full h-1 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-gradient-to-r from-[#2563EB] to-purple-600 rounded-full"
                   initial={{ width: "0%" }}
@@ -891,17 +891,17 @@ export default function CribrMobileChat({
       </div>
 
       {/* INPUT CONTROLS FOOTER */}
-      <footer className="p-4 bg-white border-t border-neutral-200/50 space-y-2.5 z-30">
+      <footer className="p-4 bg-white dark:bg-neutral-900 border-t border-neutral-200/50 dark:border-neutral-800 space-y-2.5 z-30">
         
         {/* Rounded Input wrapper */}
-        <div className="flex items-center space-x-2 bg-[#F8F9FC] border border-neutral-200/60 rounded-full h-13 px-3 shadow-sm">
+        <div className="flex items-center space-x-2 bg-[#F8F9FC] dark:bg-neutral-800 border border-neutral-200/60 dark:border-neutral-700 rounded-full h-13 px-3 shadow-sm">
           
           {/* Simulated Attachment Button */}
           <button
             onClick={() => {
               alert("Photo uploaded! Our intelligence engine has scanned the floor plan blueprint image.");
             }}
-            className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-white border border-neutral-200/50 text-neutral-500 active:scale-90 transition-all shadow-sm cursor-pointer"
+            className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-white dark:bg-neutral-700 border border-neutral-200/50 dark:border-neutral-600 text-neutral-500 dark:text-neutral-300 active:scale-90 transition-all shadow-sm cursor-pointer"
             title="Attach floor plan blueprint or lease document"
           >
             <Paperclip className="w-4 h-4" />
@@ -919,13 +919,13 @@ export default function CribrMobileChat({
             }}
             rows={1}
             placeholder="Ask anything about real estate..."
-            className="flex-1 bg-transparent border-none text-xs text-[#111111] placeholder-neutral-400 font-light focus:outline-none focus:ring-0 px-1 py-2 scrollbar-none resize-none max-h-12"
+            className="flex-1 bg-transparent border-none text-xs text-[#111111] dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 font-light focus:outline-none focus:ring-0 px-1 py-2 scrollbar-none resize-none max-h-12"
           />
 
           {/* Voice Search Button */}
           <button
             onClick={triggerVoiceInquiry}
-            className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-500 active:scale-90 transition-all cursor-pointer"
+            className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-300 active:scale-90 transition-all cursor-pointer"
           >
             <Mic className="w-4 h-4" />
           </button>
@@ -937,7 +937,7 @@ export default function CribrMobileChat({
             className={`w-8.5 h-8.5 flex items-center justify-center rounded-full shadow-sm transition-all cursor-pointer ${
               inputText.trim()
                 ? "bg-[#2563EB] text-white active:scale-90 hover:brightness-110"
-                : "bg-neutral-100 text-neutral-300 pointer-events-none"
+                : "bg-neutral-100 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-600 pointer-events-none"
             }`}
           >
             <Send className="w-3.5 h-3.5" />
@@ -952,29 +952,29 @@ export default function CribrMobileChat({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-[#F8F9FC]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6"
+            className="fixed inset-0 z-50 bg-[#F8F9FC]/95 dark:bg-neutral-950/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6"
           >
             <div className="max-w-xs space-y-8 flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB] relative">
+              <div className="w-20 h-20 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB] dark:text-sky-400 relative">
                 <div className="absolute inset-0 rounded-full bg-[#2563EB]/20 animate-ping" />
                 <div className="absolute -inset-4 rounded-full bg-[#2563EB]/10 animate-pulse" />
-                <Mic className="w-8 h-8 text-[#2563EB] relative z-10 animate-pulse" />
+                <Mic className="w-8 h-8 text-[#2563EB] dark:text-sky-400 relative z-10 animate-pulse" />
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-base font-bold text-[#111111]">Voice Query Active</h3>
-                <p className="text-xs text-neutral-400 font-light">Ask CRIBR AI about a location, builder comparison, or legal check...</p>
+                <h3 className="text-base font-bold text-[#111111] dark:text-white">Voice Query Active</h3>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 font-light">Ask CRIBR AI about a location, builder comparison, or legal check...</p>
               </div>
 
-              <div className="p-4 bg-white border border-neutral-100 rounded-2xl w-full shadow-sm min-h-16 flex items-center justify-center">
-                <p className="text-xs font-semibold text-[#2563EB] italic leading-tight">
+              <div className="p-4 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl w-full shadow-sm min-h-16 flex items-center justify-center">
+                <p className="text-xs font-semibold text-[#2563EB] dark:text-sky-400 italic leading-tight">
                   {voiceWaveText || "Listening..."}
                 </p>
               </div>
 
               <button
                 onClick={() => setVoiceActive(false)}
-                className="px-5 py-2 bg-neutral-900 text-white rounded-full text-[10px] font-bold active:scale-95 transition-all cursor-pointer"
+                className="px-5 py-2 bg-neutral-900 dark:bg-neutral-800 text-white rounded-full text-[10px] font-bold active:scale-95 transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -993,7 +993,7 @@ export default function CribrMobileChat({
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setHistoryOpen(false)}
-              className="absolute inset-0 bg-neutral-900"
+              className="absolute inset-0 bg-neutral-900/80 backdrop-blur-xs"
             />
 
             <motion.div
@@ -1001,14 +1001,14 @@ export default function CribrMobileChat({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="absolute inset-x-0 bottom-0 max-h-[85%] bg-white rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden"
+              className="absolute inset-x-0 bottom-0 max-h-[85%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden border-t border-neutral-200/50 dark:border-neutral-800"
             >
-              <div className="w-12 h-1 bg-neutral-200 rounded-full mx-auto mt-3 mb-2" />
+              <div className="w-12 h-1 bg-neutral-200 dark:bg-neutral-700 rounded-full mx-auto mt-3 mb-2" />
 
-              <div className="px-5 py-3 flex items-center justify-between border-b border-neutral-100">
+              <div className="px-5 py-3 flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800">
                 <div className="flex items-center space-x-2">
-                  <History className="w-4 h-4 text-neutral-500" />
-                  <h3 className="text-sm font-bold text-[#111111]">Recent Consultations</h3>
+                  <History className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                  <h3 className="text-sm font-bold text-[#111111] dark:text-white">Recent Consultations</h3>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
@@ -1020,7 +1020,7 @@ export default function CribrMobileChat({
                   </button>
                   <button
                     onClick={() => setHistoryOpen(false)}
-                    className="p-1.5 bg-neutral-100 text-neutral-500 rounded-full cursor-pointer"
+                    className="p-1.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 rounded-full cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -1028,19 +1028,19 @@ export default function CribrMobileChat({
               </div>
 
               {/* History Search */}
-              <div className="px-5 py-3 border-b border-neutral-100">
-                <div className="flex items-center space-x-2 bg-[#F8F9FC] border border-neutral-200/50 rounded-xl px-3 py-2">
-                  <Search className="w-3.5 h-3.5 text-neutral-400" />
+              <div className="px-5 py-3 border-b border-neutral-100 dark:border-neutral-800">
+                <div className="flex items-center space-x-2 bg-[#F8F9FC] dark:bg-neutral-800 border border-neutral-200/50 dark:border-neutral-700 rounded-xl px-3 py-2">
+                  <Search className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500" />
                   <input
                     type="text"
                     value={searchHistoryQuery}
                     onChange={(e) => setSearchHistoryQuery(e.target.value)}
                     placeholder="Search past conversations..."
-                    className="flex-1 bg-transparent border-none text-xs text-[#111111] focus:outline-none"
+                    className="flex-1 bg-transparent border-none text-xs text-[#111111] dark:text-neutral-100 focus:outline-none placeholder-neutral-400 dark:placeholder-neutral-500"
                   />
                   {searchHistoryQuery && (
                     <button onClick={() => setSearchHistoryQuery("")}>
-                      <X className="w-3 h-3 text-neutral-400" />
+                      <X className="w-3 h-3 text-neutral-400 dark:text-neutral-500" />
                     </button>
                   )}
                 </div>
@@ -1049,8 +1049,8 @@ export default function CribrMobileChat({
               {/* History list */}
               <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
                 {filteredSessions.length === 0 ? (
-                  <div className="text-center py-8 text-neutral-400 space-y-2">
-                    <HelpCircle className="w-8 h-8 mx-auto text-neutral-200" />
+                  <div className="text-center py-8 text-neutral-400 dark:text-neutral-500 space-y-2">
+                    <HelpCircle className="w-8 h-8 mx-auto text-neutral-200 dark:text-neutral-700" />
                     <p className="text-xs font-semibold">No Consultation Found</p>
                   </div>
                 ) : (
@@ -1069,8 +1069,8 @@ export default function CribrMobileChat({
                         }}
                         className={`p-3 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
                           isActive
-                            ? "bg-[#2563EB]/5 border-[#2563EB]/20 text-[#2563EB]"
-                            : "bg-white border-neutral-100 hover:border-neutral-200"
+                            ? "bg-[#2563EB]/5 dark:bg-[#2563EB]/15 border-[#2563EB]/20 dark:border-[#2563EB]/30 text-[#2563EB] dark:text-sky-400"
+                            : "bg-white dark:bg-neutral-800/60 border-neutral-100 dark:border-neutral-800 hover:border-neutral-200 dark:hover:border-neutral-700"
                         }`}
                       >
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -1079,7 +1079,7 @@ export default function CribrMobileChat({
                             className={`p-1 rounded-md transition-all ${
                               sess.isPinned 
                                 ? "text-amber-500 hover:text-amber-600" 
-                                : "text-neutral-300 hover:text-neutral-400"
+                                : "text-neutral-300 dark:text-neutral-600 hover:text-neutral-400 dark:hover:text-neutral-400"
                             }`}
                           >
                             <Pin className={`w-3.5 h-3.5 ${sess.isPinned ? "fill-amber-500" : ""}`} />
@@ -1092,7 +1092,7 @@ export default function CribrMobileChat({
                                   type="text"
                                   value={editingTitle}
                                   onChange={(e) => setEditingTitle(e.target.value)}
-                                  className="border border-neutral-300 rounded px-1.5 py-0.5 text-xs text-[#111111] focus:outline-none focus:border-[#2563EB] flex-1"
+                                  className="border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 rounded px-1.5 py-0.5 text-xs text-[#111111] dark:text-white focus:outline-none focus:border-[#2563EB] flex-1"
                                 />
                                 <button
                                   onClick={() => handleSaveRename(sess.id)}
@@ -1103,10 +1103,10 @@ export default function CribrMobileChat({
                               </div>
                             ) : (
                               <div className="space-y-0.5">
-                                <h4 className="text-xs font-bold text-neutral-800 truncate">
+                                <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-100 truncate">
                                   {sess.title}
                                 </h4>
-                                <p className="text-[9px] text-neutral-400 font-light">
+                                <p className="text-[9px] text-neutral-400 dark:text-neutral-500 font-light">
                                   {sess.messages.length} messages • {new Date(sess.createdAt).toLocaleDateString()}
                                 </p>
                               </div>
@@ -1118,7 +1118,7 @@ export default function CribrMobileChat({
                           <div className="flex items-center space-x-1 ml-2">
                             <button
                               onClick={(e) => handleStartRename(sess.id, sess.title, e)}
-                              className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                              className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
                             >
                               <Edit2 className="w-3 h-3" />
                             </button>
@@ -1149,25 +1149,25 @@ export default function CribrMobileChat({
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setDetailsProp(null)}
-              className="absolute inset-0 bg-neutral-900"
+              className="absolute inset-0 bg-neutral-900/80 backdrop-blur-xs"
             />
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="absolute inset-x-0 bottom-0 max-h-[90%] bg-white rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden"
+              className="absolute inset-x-0 bottom-0 max-h-[90%] bg-white dark:bg-neutral-900 rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden border-t border-neutral-200/50 dark:border-neutral-800"
             >
-              <div className="w-12 h-1 bg-neutral-200 rounded-full mx-auto mt-3 mb-1" />
+              <div className="w-12 h-1 bg-neutral-200 dark:bg-neutral-700 rounded-full mx-auto mt-3 mb-1" />
               
-              <div className="px-5 py-3.5 flex items-center justify-between border-b border-neutral-100 bg-neutral-50/50">
+              <div className="px-5 py-3.5 flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-850">
                 <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-[#2563EB]" />
-                  <h3 className="text-sm font-extrabold text-[#111111]">CRIBR Property Intelligence Report</h3>
+                  <Sparkles className="w-4 h-4 text-[#2563EB] dark:text-sky-400" />
+                  <h3 className="text-sm font-extrabold text-[#111111] dark:text-white">CRIBR Property Intelligence Report</h3>
                 </div>
                 <button
                   onClick={() => setDetailsProp(null)}
-                  className="p-1 bg-neutral-100 text-neutral-500 rounded-full cursor-pointer"
+                  className="p-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 rounded-full cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1177,7 +1177,7 @@ export default function CribrMobileChat({
               <div className="flex-1 overflow-y-auto p-5 space-y-6">
                 
                 {/* Image & Price Summary */}
-                <div className="relative rounded-2xl overflow-hidden shadow-sm border border-neutral-200/50">
+                <div className="relative rounded-2xl overflow-hidden shadow-sm border border-neutral-200/50 dark:border-neutral-800">
                   <img src={detailsProp.image} alt={detailsProp.name} className="w-full h-44 object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent flex flex-col justify-end p-4 text-white">
                     <span className="text-[10px] font-mono uppercase tracking-widest text-blue-300 font-bold">{detailsProp.developer}</span>
@@ -1188,39 +1188,39 @@ export default function CribrMobileChat({
 
                 {/* Technical Benchmarks */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
-                    <span className="text-[10px] text-neutral-400 font-mono block">AI TRUST SCORE</span>
+                  <div className="p-3 bg-neutral-50 dark:bg-neutral-800/60 rounded-2xl border border-neutral-100 dark:border-neutral-700/60 space-y-1">
+                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono block">AI TRUST SCORE</span>
                     <div className="flex items-baseline space-x-1.5">
-                      <span className="text-lg font-black text-neutral-900">{detailsProp.overallScore}%</span>
-                      <span className="text-[9px] text-emerald-600 font-bold">Excellent</span>
+                      <span className="text-lg font-black text-neutral-900 dark:text-white">{detailsProp.overallScore}%</span>
+                      <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">Excellent</span>
                     </div>
                   </div>
-                  <div className="p-3 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
-                    <span className="text-[10px] text-neutral-400 font-mono block">RERA COMPLIANCE</span>
+                  <div className="p-3 bg-neutral-50 dark:bg-neutral-800/60 rounded-2xl border border-neutral-100 dark:border-neutral-700/60 space-y-1">
+                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono block">RERA COMPLIANCE</span>
                     <div className="flex items-baseline space-x-1.5">
-                      <span className="text-lg font-black text-neutral-900">{detailsProp.legalScore}%</span>
-                      <span className="text-[9px] text-emerald-600 font-bold">Verified</span>
+                      <span className="text-lg font-black text-neutral-900 dark:text-white">{detailsProp.legalScore}%</span>
+                      <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">Verified</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Local Area & Investment Potential */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-neutral-900 uppercase font-mono tracking-wider">Property Analysis</h4>
+                  <h4 className="text-xs font-bold text-neutral-900 dark:text-white uppercase font-mono tracking-wider">Property Analysis</h4>
                   
-                  <div className="space-y-4 text-xs leading-relaxed text-neutral-600">
-                    <div className="flex items-start space-x-3 bg-blue-50/40 p-3 rounded-2xl border border-blue-500/10">
-                      <TrendingUp className="w-4 h-4 text-[#2563EB] mt-0.5 shrink-0" />
+                  <div className="space-y-4 text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">
+                    <div className="flex items-start space-x-3 bg-blue-50/40 dark:bg-blue-950/30 p-3 rounded-2xl border border-blue-500/10 dark:border-blue-500/20">
+                      <TrendingUp className="w-4 h-4 text-[#2563EB] dark:text-sky-400 mt-0.5 shrink-0" />
                       <div>
-                        <strong className="text-neutral-800 font-black block">Investment Outlook</strong>
+                        <strong className="text-neutral-800 dark:text-neutral-200 font-black block">Investment Outlook</strong>
                         <span>{detailsProp.investmentAnalysis} Yield rating is marked at {detailsProp.investmentYieldScore}/100.</span>
                       </div>
                     </div>
 
-                    <div className="flex items-start space-x-3 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-500/10">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <div className="flex items-start space-x-3 bg-emerald-50/40 dark:bg-emerald-950/30 p-3 rounded-2xl border border-emerald-500/10 dark:border-emerald-500/20">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
                       <div>
-                        <strong className="text-neutral-800 font-black block">Legal Certificate Check</strong>
+                        <strong className="text-neutral-800 dark:text-neutral-200 font-black block">Legal Certificate Check</strong>
                         <span>{detailsProp.legalReport} Title deeds cleared with no outstanding litigation warnings.</span>
                       </div>
                     </div>
@@ -1254,22 +1254,22 @@ export default function CribrMobileChat({
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setComparisonProp(null)}
-              className="absolute inset-0 bg-neutral-900"
+              className="absolute inset-0 bg-neutral-900/80 backdrop-blur-xs"
             />
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="absolute inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-3xl shadow-2xl overflow-hidden border border-neutral-200/50 max-h-[80%] flex flex-col"
+              className="absolute inset-x-4 top-1/2 -translate-y-1/2 bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden border border-neutral-200/50 dark:border-neutral-800 max-h-[80%] flex flex-col"
             >
-              <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+              <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-850">
                 <div className="flex items-center space-x-2">
-                  <Scale className="w-4 h-4 text-[#2563EB]" />
-                  <h3 className="text-xs font-black text-neutral-900 uppercase font-mono tracking-wider">CRIBR AI Head-to-Head Comparison</h3>
+                  <Scale className="w-4 h-4 text-[#2563EB] dark:text-sky-400" />
+                  <h3 className="text-xs font-black text-neutral-900 dark:text-white uppercase font-mono tracking-wider">CRIBR AI Head-to-Head Comparison</h3>
                 </div>
                 <button
                   onClick={() => setComparisonProp(null)}
-                  className="p-1 bg-neutral-100 text-neutral-500 rounded-full cursor-pointer"
+                  className="p-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 rounded-full cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1277,44 +1277,44 @@ export default function CribrMobileChat({
 
               {/* Comparison table */}
               <div className="p-5 flex-1 overflow-y-auto space-y-4">
-                <div className="grid grid-cols-3 gap-2 text-center items-center pb-2 border-b border-neutral-100">
-                  <span className="text-[10px] text-neutral-400 font-mono text-left">Specs</span>
-                  <span className="text-xs font-extrabold text-neutral-800 truncate">{comparisonProp.propertyA.name}</span>
-                  <span className="text-xs font-extrabold text-neutral-800 truncate">{comparisonProp.propertyB.name}</span>
+                <div className="grid grid-cols-3 gap-2 text-center items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono text-left">Specs</span>
+                  <span className="text-xs font-extrabold text-neutral-800 dark:text-neutral-200 truncate">{comparisonProp.propertyA.name}</span>
+                  <span className="text-xs font-extrabold text-neutral-800 dark:text-neutral-200 truncate">{comparisonProp.propertyB.name}</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
-                  <span className="text-[10px] text-neutral-400 font-mono text-left">Builder</span>
-                  <span className="text-xs font-semibold text-neutral-700 truncate">{comparisonProp.propertyA.developer}</span>
-                  <span className="text-xs font-semibold text-neutral-700 truncate">{comparisonProp.propertyB.developer}</span>
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100 dark:border-neutral-800">
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono text-left">Builder</span>
+                  <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 truncate">{comparisonProp.propertyA.developer}</span>
+                  <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 truncate">{comparisonProp.propertyB.developer}</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
-                  <span className="text-[10px] text-neutral-400 font-mono text-left">Price range</span>
-                  <span className="text-xs font-black text-[#2563EB] font-mono">{comparisonProp.propertyA.priceRange}</span>
-                  <span className="text-xs font-black text-[#2563EB] font-mono">{comparisonProp.propertyB.priceRange}</span>
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100 dark:border-neutral-800">
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono text-left">Price range</span>
+                  <span className="text-xs font-black text-[#2563EB] dark:text-sky-400 font-mono">{comparisonProp.propertyA.priceRange}</span>
+                  <span className="text-xs font-black text-[#2563EB] dark:text-sky-400 font-mono">{comparisonProp.propertyB.priceRange}</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
-                  <span className="text-[10px] text-neutral-400 font-mono text-left">AI Score</span>
-                  <span className="text-xs font-bold text-neutral-900 font-mono">{comparisonProp.propertyA.overallScore}/100</span>
-                  <span className="text-xs font-bold text-neutral-900 font-mono">{comparisonProp.propertyB.overallScore}/100</span>
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100 dark:border-neutral-800">
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono text-left">AI Score</span>
+                  <span className="text-xs font-bold text-neutral-900 dark:text-white font-mono">{comparisonProp.propertyA.overallScore}/100</span>
+                  <span className="text-xs font-bold text-neutral-900 dark:text-white font-mono">{comparisonProp.propertyB.overallScore}/100</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
-                  <span className="text-[10px] text-neutral-400 font-mono text-left">Legal Clear</span>
-                  <span className="text-xs font-bold text-emerald-600 font-mono">{comparisonProp.propertyA.legalScore}/100</span>
-                  <span className="text-xs font-bold text-emerald-600 font-mono">{comparisonProp.propertyB.legalScore}/100</span>
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100 dark:border-neutral-800">
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono text-left">Legal Clear</span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">{comparisonProp.propertyA.legalScore}/100</span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">{comparisonProp.propertyB.legalScore}/100</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5">
-                  <span className="text-[10px] text-neutral-400 font-mono text-left">Investment Score</span>
-                  <span className="text-xs font-bold text-purple-600 font-mono">{comparisonProp.propertyA.investmentYieldScore}/100</span>
-                  <span className="text-xs font-bold text-purple-600 font-mono">{comparisonProp.propertyB.investmentYieldScore}/100</span>
+                  <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono text-left">Investment Score</span>
+                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono">{comparisonProp.propertyA.investmentYieldScore}/100</span>
+                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono">{comparisonProp.propertyB.investmentYieldScore}/100</span>
                 </div>
 
                 <div className="pt-3">
-                  <p className="text-[10px] text-neutral-500 font-light leading-relaxed italic bg-neutral-50 p-3 rounded-2xl border border-neutral-100 text-center">
+                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-light leading-relaxed italic bg-neutral-50 dark:bg-neutral-800/60 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-700/60 text-center">
                     CRIBR AI Verdict: Both developments offer secure legal titles. Choose <strong>{comparisonProp.propertyA.name}</strong> for better micro-market rentability.
                   </p>
                 </div>
