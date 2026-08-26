@@ -41,10 +41,10 @@ export const SearchPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F8F7] dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-sans selection:bg-blue-100 dark:selection:bg-blue-900/40 selection:text-blue-900 dark:selection:text-blue-200 pb-20">
+    <div className="min-h-screen bg-[#F8F8F7] text-neutral-900 font-sans selection:bg-blue-100 selection:text-blue-900 pb-20">
       {/* HEADER NAVBAR (Shown on State 2 Search Results) */}
       {pageMode === 2 && (
-        <header className="w-full bg-[#F8F8F7]/90 dark:bg-neutral-950/90 backdrop-blur-md sticky top-0 z-50 border-b border-neutral-200/80 dark:border-neutral-800 py-3.5 px-4 md:px-8">
+        <header className="w-full bg-[#F8F8F7]/90 backdrop-blur-md sticky top-0 z-50 border-b border-neutral-200/80 py-3.5 px-4 md:px-8">
           <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4">
             {/* CRIBR Brand Logo */}
             <button
@@ -55,10 +55,10 @@ export const SearchPage: React.FC = () => {
                 C
               </div>
               <div>
-                <span className="font-black text-lg text-neutral-900 dark:text-white tracking-tight block leading-none">
+                <span className="font-black text-lg text-neutral-900 tracking-tight block leading-none">
                   CRIBR
                 </span>
-                <span className="text-[10px] font-bold text-blue-600 dark:text-sky-400 uppercase tracking-wider font-mono">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider font-mono">
                   Spatial AI
                 </span>
               </div>
@@ -102,19 +102,19 @@ export const SearchPage: React.FC = () => {
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   className="pt-6 md:pt-12 flex justify-center"
                 >
-                  <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 rounded-[24px] p-8 md:p-12 shadow-xl shadow-neutral-200/40 dark:shadow-none text-center space-y-8">
+                  <div className="w-full max-w-3xl bg-white border border-neutral-200/90 rounded-[24px] p-8 md:p-12 shadow-xl shadow-neutral-200/40 text-center space-y-8">
                     {/* CRIBR Brand Header */}
                     <div className="flex items-center justify-center space-x-2.5">
                       <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-md">
                         C
                       </div>
-                      <span className="font-black text-2xl text-neutral-900 dark:text-white tracking-tight">
+                      <span className="font-black text-2xl text-neutral-900 tracking-tight">
                         CRIBR
                       </span>
                     </div>
 
                     {/* Large Heading */}
-                    <h1 className="text-3xl md:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight leading-[1.12]">
+                    <h1 className="text-3xl md:text-5xl font-extrabold text-neutral-900 tracking-tight leading-[1.12]">
                       Ask anything about <br />
                       a project or locality
                     </h1>
@@ -131,7 +131,7 @@ export const SearchPage: React.FC = () => {
                     </div>
 
                     {/* Suggestions Section */}
-                    <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                    <div className="pt-4 border-t border-neutral-100">
                       <SearchSuggestions onSelectQuery={executeSearch} />
                     </div>
                   </div>
