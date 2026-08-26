@@ -159,7 +159,7 @@ export default function CribrComparePage({ compareList, onBack, onRemoveProject 
                 <TableRow label="Land Area" data={data.projects} render={(p) => p.land_area_sqm ? `${p.land_area_sqm} Sqm` : (p.land_area_acres ? `${p.land_area_acres} Acres` : "N/A")} />
                 <TableRow label="Unit Density" data={data.projects} render={(p) => p.unit_density_per_acre || p.unitDensity ? `${p.unit_density_per_acre || p.unitDensity} / acre` : "N/A"} />
                 <TableRow label="Possession" data={data.projects} render={(p) => p.possession_date || p.possessionDate || p.possession || "N/A"} />
-                <TableRow label="Timeline Reliability" data={data.projects} render={(p) => p.timeline_reliability || p.timelineReliability ? `${p.timeline_reliability || p.timelineReliability}%` : "N/A"} />
+                <TableRow label="Timeline Reliability" data={data.projects} render={(p) => p.timelineReliabilityDisplay || p.timeline_reliability_ratio || p.timelineReliabilityRatio || p.timeline_reliability || p.timelineReliability || "N/A"} />
                 <TableRow label="Progress" data={data.projects} render={(p) => p.construction_progress !== undefined ? `${p.construction_progress}%` : "N/A"} />
                 <TableRow label="Complaints" data={data.projects} render={(p) => p.complaints_count ?? p.complaintsCount ?? "0"} />
                 <TableRow label="Land Litigation" data={data.projects} render={(p) => p.land_litigation ? <span className="text-red-600 font-medium">Flagged</span> : <span className="text-green-600">Clear</span>} />

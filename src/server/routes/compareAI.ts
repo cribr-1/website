@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ProjectService } from "../services/ProjectService";
 import { aiService } from "../services/AIService";
+import { mapToWhitelistedProject } from "../../lib/projectDataMapper";
 
 export const compareAIRouter = Router();
 const projectService = new ProjectService();
@@ -37,9 +38,11 @@ compareAIRouter.post("/compare", async (req, res) => {
     }
 
     // Return the objective facts + AI analysis combined
+    const mappedProjects = projects.map(p => mapToWhitelistedProject(p));
+
     return res.json({
       success: true,
-      projects,
+      projects: mappedProjects,
       analysis,
     });
   } catch (error: any) {

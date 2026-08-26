@@ -784,7 +784,7 @@ export function calculateTimelineReliability(
   startDateStr?: any,
   posDateStr?: any
 ): TimelineReliabilityResult {
-  // 1. If explicit ratio or ratio string is passed in raw data (e.g. "1.04", "0.87 (Behind)", "1.35 (Ahead)", 0.98, "On Track")
+  // 1. If explicit ratio or ratio string is passed in raw data (e.g. "67", "67 (Behind)", "113 (Ahead)", 98, "On Track")
   if (
     rawRatioOrVariance != null &&
     rawRatioOrVariance !== "" &&
@@ -803,10 +803,10 @@ export function calculateTimelineReliability(
           ? "Ahead of Schedule"
           : "On Track";
         return {
-          variance: Number.isFinite(parsedRatio) ? parsedRatio * 100 : 100,
-          ratioDisplay: Number.isFinite(parsedRatio) ? String(Math.round(parsedRatio * 100)) : ratioPart,
+          variance: Number.isFinite(parsedRatio) ? parsedRatio : 100,
+          ratioDisplay: Number.isFinite(parsedRatio) ? String(Math.round(parsedRatio)) : ratioPart,
           statusDisplay: status,
-          fullDisplay: `${Number.isFinite(parsedRatio) ? String(Math.round(parsedRatio * 100)) : ratioPart} (${status})`,
+          fullDisplay: `${Number.isFinite(parsedRatio) ? String(Math.round(parsedRatio)) : ratioPart} (${status})`,
         };
       }
       if (
@@ -829,17 +829,13 @@ export function calculateTimelineReliability(
       }
       const parsed = parseFloat(trimmed);
       if (Number.isFinite(parsed)) {
-        return formatTimelineReliability(parsed * 100, parsed * 100);
+        return formatTimelineReliability(parsed, parsed);
       }
     } else if (
       typeof rawRatioOrVariance === "number" &&
       Number.isFinite(rawRatioOrVariance)
     ) {
-      if (rawRatioOrVariance > 0.2 && rawRatioOrVariance < 5.0) {
-        return formatTimelineReliability(rawRatioOrVariance * 100, rawRatioOrVariance * 100);
-      } else if (Math.abs(rawRatioOrVariance) <= 0.2) {
-        return formatTimelineReliability((1.0 + rawRatioOrVariance) * 100, (1.0 + rawRatioOrVariance) * 100);
-      }
+      return formatTimelineReliability(rawRatioOrVariance, rawRatioOrVariance);
     }
   }
 
@@ -912,15 +908,10 @@ function formatTimelineReliability(timelineReliability: number, progressPercent:
   const displayVal = Math.round(rounded);
 
   let status = "On Track";
-  // Compare timeline_reliability to progress to determine status
-  // If timeFraction < 1 and project is ahead: timelineReliability > progressPercent
-  // Simpler: if reliability is substantially higher than progress, ahead; lower means behind
-  // But for the 0-100 scale, the ratio approach:
-  // ratio = timelineReliability / 100 ≈ 1.0 when on track
-  // Actually the correct interpretation: when on track, timelineReliability ≈ progress
-  // timelineReliability = progress / timeFraction
-  // If timeFraction = progress/100, then reliability = 100 (perfect on track)
-  // So: >= 110 → ahead, 90-110 → on track, < 90 → behind
+  // Determine status based on the new 0-100+ scale
+  // If ratio >= 110 -> Ahead
+  // If ratio 90-110 -> On Track
+  // If ratio < 90 -> Behind
   if (rounded >= 110) {
     status = "Ahead of Schedule";
   } else if (rounded < 90 && progressPercent > 0) {
