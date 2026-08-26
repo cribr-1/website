@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Sparkles, ShieldCheck, Heart, Menu, X, User } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { CribrUser } from "../lib/supabase";
+import ThemeToggle from "./ThemeToggle";
 
 interface NavigationProps {
   savedCount: number;
@@ -56,7 +57,7 @@ export default function Navigation({
         {/* Left: Brand Logo & Badge */}
         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => handleItemClick("hero")}>
           <div className="flex items-center space-x-1">
-            <span className="font-display font-bold tracking-tight text-2xl text-apple-text-primary">
+            <span className="font-display font-bold tracking-tight text-2xl text-apple-text-primary dark:text-white">
               CRIBR
             </span>
           </div>
@@ -70,7 +71,7 @@ export default function Navigation({
               <button
                 key={item.id}
                 onClick={() => handleItemClick(item.id)}
-                className={`text-[15px] font-medium tracking-tight transition-all duration-300 relative py-1 hover:text-apple-text-primary ${isActive ? "text-apple-text-primary" : "text-apple-text-secondary"
+                className={`text-[15px] font-medium tracking-tight transition-all duration-300 relative py-1 hover:text-apple-text-primary dark:hover:text-white ${isActive ? "text-apple-text-primary dark:text-white" : "text-apple-text-secondary dark:text-neutral-400"
                   }`}
               >
                 {item.label}
@@ -87,14 +88,17 @@ export default function Navigation({
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Inline Theme Toggle in Navbar */}
+          <ThemeToggle variant="navbar" className="hidden sm:inline-flex" />
+
           {/* Saved Homes Button */}
           <button
             onClick={onOpenSaved}
-            className="flex items-center space-x-2 px-4 py-2 rounded-full border border-neutral-200/80 bg-white/50 hover:bg-white text-apple-text-primary hover:scale-105 active:scale-95 transition-all duration-300 relative group"
+            className="flex items-center space-x-2 px-4 py-2 rounded-full border border-neutral-200/80 dark:border-neutral-750 bg-white/50 dark:bg-neutral-900/60 hover:bg-white dark:hover:bg-neutral-800 text-apple-text-primary dark:text-neutral-200 hover:scale-105 active:scale-95 transition-all duration-300 relative group shadow-2xs"
           >
-            <Heart className={`w-4 h-4 transition-colors duration-300 ${savedCount > 0 ? "fill-rose-500 text-rose-500" : "text-apple-text-secondary group-hover:text-rose-500"}`} />
-            <span className="text-14 font-medium hidden sm:inline text-apple-text-secondary group-hover:text-apple-text-primary">Saved</span>
+            <Heart className={`w-4 h-4 transition-colors duration-300 ${savedCount > 0 ? "fill-rose-500 text-rose-500" : "text-apple-text-secondary dark:text-neutral-400 group-hover:text-rose-500"}`} />
+            <span className="text-14 font-medium hidden sm:inline text-apple-text-secondary dark:text-neutral-400 group-hover:text-apple-text-primary dark:group-hover:text-white">Saved</span>
             {savedCount > 0 && (
               <span className="flex items-center justify-center w-5 h-5 bg-apple-blue text-white text-[10px] font-mono font-bold rounded-full animate-pulse">
                 {savedCount}
@@ -106,7 +110,7 @@ export default function Navigation({
           {currentUser ? (
             <button
               onClick={onOpenDashboard}
-              className="flex items-center space-x-2 px-3 py-1.5 rounded-full border border-neutral-200/80 bg-neutral-50/50 hover:bg-white text-apple-text-primary hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 shadow-sm"
+              className="flex items-center space-x-2 px-3 py-1.5 rounded-full border border-neutral-200/80 dark:border-neutral-750 bg-neutral-50/50 dark:bg-neutral-900/60 hover:bg-white dark:hover:bg-neutral-800 text-apple-text-primary dark:text-neutral-200 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 shadow-xs"
             >
               {currentUser.avatarUrl ? (
                 <img
@@ -116,11 +120,11 @@ export default function Navigation({
                   className="w-5.5 h-5.5 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-5.5 h-5.5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-apple-blue text-[11px] font-bold">
+                <div className="w-5.5 h-5.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/80 flex items-center justify-center text-apple-blue dark:text-sky-400 text-[11px] font-bold">
                   {currentUser.fullName.charAt(0)}
                 </div>
               )}
-              <span className="text-[13px] font-semibold text-apple-text-secondary hover:text-apple-text-primary hidden sm:inline pr-1">
+              <span className="text-[13px] font-semibold text-apple-text-secondary dark:text-neutral-400 hover:text-apple-text-primary dark:hover:text-white hidden sm:inline pr-1">
                 Account
               </span>
             </button>
@@ -136,7 +140,7 @@ export default function Navigation({
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-full border border-neutral-200/80 bg-white/50 hover:bg-white text-apple-text-primary transition-all duration-300"
+            className="lg:hidden p-2 rounded-full border border-neutral-200/80 dark:border-neutral-750 bg-white/50 dark:bg-neutral-900/60 hover:bg-white dark:hover:bg-neutral-800 text-apple-text-primary dark:text-neutral-200 transition-all duration-300"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -151,17 +155,22 @@ export default function Navigation({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="lg:hidden absolute top-full left-0 w-full glass-panel text-apple-text-primary shadow-2xl py-6 px-8 flex flex-col space-y-4 border-b border-neutral-200"
+            className="lg:hidden absolute top-full left-0 w-full glass-panel text-apple-text-primary dark:text-white shadow-2xl py-6 px-8 flex flex-col space-y-4 border-b border-neutral-200 dark:border-neutral-800"
           >
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleItemClick(item.id)}
-                className="text-left py-2.5 text-lg font-medium border-b border-neutral-100 last:border-0 hover:text-apple-blue transition-colors duration-200"
+                className="text-left py-2.5 text-lg font-medium border-b border-neutral-100 dark:border-neutral-800 last:border-0 hover:text-apple-blue dark:hover:text-sky-400 transition-colors duration-200"
               >
                 {item.label}
               </button>
             ))}
+
+            <div className="flex items-center justify-between py-2.5 border-b border-neutral-100 dark:border-neutral-800">
+              <span className="text-sm font-medium text-apple-text-secondary dark:text-neutral-400">Theme</span>
+              <ThemeToggle variant="inline" />
+            </div>
 
             {currentUser ? (
               <button
@@ -169,7 +178,7 @@ export default function Navigation({
                   setMobileMenuOpen(false);
                   onOpenDashboard();
                 }}
-                className="mt-4 w-full py-3.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-apple-text-primary text-center font-bold text-[15px] transition-all"
+                className="mt-4 w-full py-3.5 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-apple-text-primary dark:text-white text-center font-bold text-[15px] transition-all"
               >
                 My Account Drawer
               </button>
