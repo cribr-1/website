@@ -78,28 +78,28 @@ export default function PropertyDetailsPage({
 
   if (isSearchingAsync) {
     return (
-      <div className="min-h-screen bg-[#FAFAFC] dark:bg-[#0B0F17] font-sans text-neutral-900 dark:text-neutral-100 flex flex-col justify-between transition-colors duration-200">
-        <header className="sticky top-0 z-40 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
+      <div className="min-h-screen bg-[#FAFAFC] font-sans text-neutral-900 flex flex-col justify-between">
+        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 px-6 py-4 flex items-center justify-between">
           <button
             onClick={onBack}
-            className="flex items-center space-x-2 text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white font-bold text-xs transition-colors cursor-pointer"
+            className="flex items-center space-x-2 text-neutral-700 hover:text-neutral-950 font-bold text-xs transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Explorer</span>
           </button>
-          <span className="font-display font-black text-lg text-neutral-950 dark:text-white">
+          <span className="font-display font-black text-lg text-neutral-950">
             CRIBR
           </span>
         </header>
 
         <main className="max-w-xl mx-auto px-6 py-24 text-center space-y-4 flex-1 flex flex-col justify-center items-center">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-sky-400 flex items-center justify-center animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center animate-pulse">
             <Building2 className="w-6 h-6 animate-spin" />
           </div>
-          <h2 className="text-xl font-bold font-display text-neutral-950 dark:text-white">
+          <h2 className="text-xl font-bold font-display text-neutral-950">
             Locating Property Records...
           </h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+          <p className="text-xs text-neutral-500 font-mono">
             Searching regulatory registries and master datasets for &ldquo;{propertyIdOrSlug}&rdquo;
           </p>
         </main>
@@ -109,29 +109,29 @@ export default function PropertyDetailsPage({
 
   if (!rawProperty) {
     return (
-      <div className="min-h-screen bg-[#FAFAFC] dark:bg-[#0B0F17] font-sans text-neutral-900 dark:text-neutral-100 flex flex-col justify-between transition-colors duration-200">
-        <header className="sticky top-0 z-40 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
+      <div className="min-h-screen bg-[#FAFAFC] font-sans text-neutral-900 flex flex-col justify-between">
+        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 px-6 py-4 flex items-center justify-between">
           <button
             onClick={onBack}
-            className="flex items-center space-x-2 text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white font-bold text-xs transition-colors cursor-pointer"
+            className="flex items-center space-x-2 text-neutral-700 hover:text-neutral-950 font-bold text-xs transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Explorer</span>
           </button>
-          <span className="font-display font-black text-lg text-neutral-950 dark:text-white">
+          <span className="font-display font-black text-lg text-neutral-950">
             CRIBR
           </span>
         </header>
 
         <main className="max-w-3xl mx-auto px-6 py-12 text-center space-y-8 flex-1 flex flex-col justify-center items-center">
-          <div className="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
             <AlertTriangle className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-display font-bold text-neutral-950 dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-neutral-950 tracking-tight">
               Property &ldquo;{propertyIdOrSlug}&rdquo; Not Found
             </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 font-normal max-w-md mx-auto">
+            <p className="text-sm text-neutral-500 font-normal max-w-md mx-auto">
               We couldn&apos;t find this specific property identifier in the current verified registry. Explore our top verified properties below:
             </p>
           </div>
@@ -144,20 +144,20 @@ export default function PropertyDetailsPage({
                 <div
                   key={mapped.id}
                   onClick={() => onNavigateProperty(mapped.id)}
-                  className="p-4 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all cursor-pointer flex items-center justify-between group"
+                  className="p-4 bg-white rounded-2xl border border-neutral-200 hover:border-blue-500 hover:shadow-md transition-all cursor-pointer flex items-center justify-between group"
                 >
                   <div className="space-y-1">
-                    <div className="text-[10px] font-mono font-bold text-blue-600 dark:text-sky-400 uppercase">
+                    <div className="text-[10px] font-mono font-bold text-blue-600 uppercase">
                       {mapped.builder}
                     </div>
-                    <div className="text-sm font-bold text-neutral-950 dark:text-white group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">
+                    <div className="text-sm font-bold text-neutral-950 group-hover:text-blue-600 transition-colors">
                       {mapped.projectName}
                     </div>
-                    <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    <div className="text-xs text-neutral-500">
                       {mapped.locality}, {mapped.area}
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all shrink-0 ml-2" />
+                  <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all shrink-0 ml-2" />
                 </div>
               );
             })}
@@ -165,7 +165,7 @@ export default function PropertyDetailsPage({
 
           <button
             onClick={onBack}
-            className="px-6 py-3 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 rounded-xl text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors cursor-pointer flex items-center space-x-2 shadow-xs"
+            className="px-6 py-3 bg-neutral-950 text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition-colors cursor-pointer flex items-center space-x-2 shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Return to Property Explorer</span>
@@ -205,12 +205,12 @@ export default function PropertyDetailsPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFC] dark:bg-[#0B0F17] font-sans antialiased text-neutral-900 dark:text-neutral-100 pb-28 transition-colors duration-200">
+    <div className="min-h-screen bg-[#FAFAFC] font-sans antialiased text-neutral-900 pb-28">
       {/* Top Fixed Header */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 px-6 py-4 flex items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center space-x-2 text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white font-bold text-xs transition-colors cursor-pointer"
+          className="flex items-center space-x-2 text-neutral-700 hover:text-neutral-950 font-bold text-xs transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Projects</span>
@@ -222,7 +222,7 @@ export default function PropertyDetailsPage({
             className={`p-2 rounded-full border transition-all cursor-pointer ${
               isSavedComputed
                 ? "bg-red-600 text-white border-red-500"
-                : "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700"
+                : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-200"
             }`}
             title="Save Property"
           >
@@ -231,7 +231,7 @@ export default function PropertyDetailsPage({
 
           <button
             onClick={handleShare}
-            className="p-2 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 transition-all cursor-pointer"
+            className="p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-200 transition-all cursor-pointer"
             title="Share"
           >
             <Share2 className="w-4 h-4" />
