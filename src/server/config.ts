@@ -17,9 +17,9 @@ export const SERVER_CONFIG = {
   
   GROQ: {
     API_KEY: process.env.GROQ_API_KEY || "",
-    PRIMARY_MODEL: "llama-3.1-8b-instant",
-    FALLBACK_MODELS: ["llama-3.3-70b-versatile", "gemma2-9b-it"],
-    INTENT_MODEL: "llama-3.1-8b-instant",
+    PRIMARY_MODEL: "llama3-8b-8192",
+    FALLBACK_MODELS: ["llama3-70b-8192", "mixtral-8x7b-32768"],
+    INTENT_MODEL: "llama3-8b-8192",
   },
 
   GEMINI: {
