@@ -201,13 +201,30 @@ export class ProjectService {
     }
 
     if (rawText && filtered.length === all.length) {
-      // Fuzzy keyword match
-      const terms = rawText.split(/\s+/).filter(t => t.length > 1 && !['in', 'at', 'near', 'under', 'for', 'bhk', 'cr', 'lakhs'].includes(t));
+      // Fuzzy keyword match using word boundaries and proper stopwords
+      const stopwords = ['a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'in', 'at', 'near', 'under', 'for', 'with', 'about', 'of', 'to', 'bhk', 'cr', 'lakhs', 'crore', 'lakh'];
+      const terms = rawText.split(/\s+/)
+        .map(t => t.toLowerCase().replace(/[^a-z0-9]/g, ''))
+        .filter(t => t.length > 1 && !stopwords.includes(t));
+
       if (terms.length > 0) {
         filtered = all.filter(p => {
           const fullStr = `${p.name} ${p.builder_name || p.builder} ${p.locality || p.location} ${p.city || ''} ${p.rera_number || ''}`.toLowerCase();
-          return terms.some(t => fullStr.includes(t));
+          // Use word boundary regex to avoid partial matches (e.g. "and" matching "Chandapura")
+          return terms.some(t => {
+            try {
+              return new RegExp(`\\b${t}\\b`).test(fullStr);
+            } catch {
+              return fullStr.includes(t);
+            }
+          });
         });
+      }
+      
+      // If the keyword search filtered out everything (e.g. for purely semantic questions like "Safety ratings"), 
+      // return all projects instead of an empty array so the AI assistant can analyze them.
+      if (filtered.length === 0) {
+        filtered = all;
       }
     }
 
