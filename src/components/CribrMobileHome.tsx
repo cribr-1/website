@@ -217,13 +217,13 @@ export default function CribrMobileHome({
 
 
   return (
-    <div className="min-h-screen bg-[#FAFAFC] dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-sans antialiased pb-28 selection:bg-blue-100 dark:selection:bg-blue-900 selection:text-blue-900 dark:selection:text-blue-100 transition-colors duration-200">
+    <div className="min-h-screen bg-[#FAFAFC] text-neutral-900 font-sans antialiased pb-28 selection:bg-blue-100 selection:text-blue-900">
       {/* 1. HEADER */}
       <header
         className={`fixed top-0 left-0 right-0 z-40 px-5 py-3.5 flex items-center justify-between transition-all duration-200 ${
           scrolled || isSearchingActive
-            ? "bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border-b border-neutral-200/50 dark:border-neutral-800 shadow-2xs"
-            : "bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border-b border-transparent"
+            ? "bg-white/90 backdrop-blur-xl border-b border-neutral-200/50 shadow-2xs"
+            : "bg-white/70 backdrop-blur-md border-b border-transparent"
         }`}
       >
         {/* Left: CRIBR Logo */}
@@ -235,7 +235,7 @@ export default function CribrMobileHome({
           }}
           className="flex items-center space-x-2 cursor-pointer active:scale-95 transition-transform"
         >
-          <span className="font-display font-black text-xl tracking-tight text-neutral-950 dark:text-white">
+          <span className="font-display font-black text-xl tracking-tight text-neutral-950">
             CRIBR
           </span>
         </div>
@@ -244,11 +244,11 @@ export default function CribrMobileHome({
         <div className="flex items-center space-x-2.5">
           <button
             onClick={() => showToast("All 14 RERA registries are updated live.", "info")}
-            className="w-10 h-10 rounded-full bg-neutral-100/80 dark:bg-neutral-800 border border-neutral-200/50 dark:border-neutral-700 flex items-center justify-center text-neutral-700 dark:text-neutral-300 active:scale-95 transition-all relative cursor-pointer"
+            className="w-10 h-10 rounded-full bg-neutral-100/80 border border-neutral-200/50 flex items-center justify-center text-neutral-700 active:scale-95 transition-all relative"
             aria-label="Notifications"
           >
             <Bell className="w-4.5 h-4.5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white animate-pulse" />
           </button>
 
           <button
@@ -259,7 +259,7 @@ export default function CribrMobileHome({
                 onSignInClick();
               }
             }}
-            className="w-10 h-10 rounded-full overflow-hidden border border-neutral-200/80 dark:border-neutral-700 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 active:scale-95 transition-all shadow-2xs cursor-pointer"
+            className="w-10 h-10 rounded-full overflow-hidden border border-neutral-200/80 flex items-center justify-center bg-neutral-100 active:scale-95 transition-all shadow-2xs"
             aria-label="Profile"
           >
             {currentUser?.avatarUrl ? (
@@ -270,7 +270,7 @@ export default function CribrMobileHome({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="w-5 h-5 text-neutral-600 dark:text-neutral-300" />
+              <User className="w-5 h-5 text-neutral-600" />
             )}
           </button>
         </div>
@@ -293,9 +293,9 @@ export default function CribrMobileHome({
               className="space-y-6 pb-12"
             >
               {/* TOP FIXED SEARCH BOX */}
-              <div className="sticky top-18 z-30 pt-1 bg-[#FAFAFC] dark:bg-neutral-950">
+              <div className="sticky top-18 z-30 pt-1 bg-[#FAFAFC]">
                 <div className="relative flex items-center">
-                  <div className="absolute left-4 text-blue-600 dark:text-sky-400">
+                  <div className="absolute left-4 text-blue-600">
                     <Search className="w-5 h-5" />
                   </div>
                   <input
@@ -309,21 +309,21 @@ export default function CribrMobileHome({
                       }
                     }}
                     placeholder="Ask anything about any project..."
-                    className="w-full h-14 pl-12 pr-24 bg-white dark:bg-neutral-900 rounded-[24px] border border-blue-500/50 ring-4 ring-blue-500/10 text-base font-medium text-neutral-950 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none shadow-sm"
+                    className="w-full h-14 pl-12 pr-24 bg-white rounded-[24px] border border-blue-500/50 ring-4 ring-blue-500/10 text-base font-medium text-neutral-950 placeholder-neutral-400 focus:outline-none shadow-sm"
                     autoFocus
                   />
                   <div className="absolute right-3 flex items-center space-x-1.5">
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
-                        className="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 rounded-full cursor-pointer"
+                        className="p-1.5 text-neutral-400 hover:text-neutral-600 rounded-full"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     )}
                     <button
                       onClick={() => handleExecuteQuery(searchQuery || "Prestige Elysian")}
-                      className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-full transition-all active:scale-95 shadow-2xs cursor-pointer"
+                      className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-full transition-all active:scale-95 shadow-2xs"
                     >
                       Search
                     </button>
@@ -336,7 +336,7 @@ export default function CribrMobileHome({
                   </span>
                   <button
                     onClick={() => setIsSearchingActive(false)}
-                    className="text-xs text-blue-600 dark:text-sky-400 font-semibold cursor-pointer"
+                    className="text-xs text-blue-600 font-semibold"
                   >
                     Close Search
                   </button>
@@ -360,7 +360,7 @@ export default function CribrMobileHome({
                     onClick={() => {
                       setSelectedPropertyModal(item);
                     }}
-                    className="bg-white dark:bg-neutral-900 rounded-[24px] p-4 border border-neutral-200/70 dark:border-neutral-800 shadow-2xs flex items-center gap-3.5 cursor-pointer hover:border-blue-300 dark:hover:border-neutral-700 transition-all relative overflow-hidden"
+                    className="bg-white rounded-[24px] p-4 border border-neutral-200/70 shadow-xs flex items-center gap-3.5 cursor-pointer hover:border-blue-300 transition-all relative overflow-hidden"
                   >
                     {/* Left Image Thumbnail */}
                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 relative">
@@ -503,7 +503,7 @@ export default function CribrMobileHome({
                         e.stopPropagation();
                         setVoiceActive(true);
                       }}
-                      className="p-2.5 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:text-blue-600 dark:hover:text-sky-400 transition-all mr-1 cursor-pointer"
+                      className="p-2.5 rounded-2xl bg-neutral-100 text-neutral-600 hover:bg-blue-50 hover:text-blue-600 transition-all mr-1"
                     >
                       <Mic className="w-4 h-4" />
                     </button>
@@ -513,7 +513,7 @@ export default function CribrMobileHome({
                         e.stopPropagation();
                         setIsSearchingActive(true);
                       }}
-                      className="px-4 py-2.5 bg-neutral-950 dark:bg-neutral-800 hover:bg-blue-600 dark:hover:bg-blue-600 text-white text-xs font-semibold rounded-2xl flex items-center space-x-1 transition-colors shadow-2xs shrink-0 cursor-pointer"
+                      className="px-4 py-2.5 bg-neutral-950 hover:bg-blue-600 text-white text-xs font-semibold rounded-2xl flex items-center space-x-1 transition-colors shadow-2xs shrink-0"
                     >
                       <span>Search</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -529,7 +529,7 @@ export default function CribrMobileHome({
                       <button
                         key={i}
                         onClick={() => handleExecuteQuery(prompt)}
-                        className="text-xs text-neutral-600 dark:text-neutral-300 hover:text-blue-600 dark:hover:text-sky-400 bg-neutral-100/70 dark:bg-neutral-800/70 hover:bg-blue-50 dark:hover:bg-blue-950/40 px-2.5 py-1 rounded-lg border border-neutral-200/40 dark:border-neutral-700 font-medium transition-colors cursor-pointer"
+                        className="text-xs text-neutral-600 hover:text-blue-600 bg-neutral-100/70 hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-neutral-200/40 font-medium transition-colors cursor-pointer"
                       >
                         • {prompt}
                       </button>
@@ -549,7 +549,7 @@ export default function CribrMobileHome({
                     <button
                       key={idx}
                       onClick={() => handleExecuteQuery(chip.query)}
-                      className="flex-shrink-0 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-neutral-200/70 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-neutral-700 rounded-2xl text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center space-x-2 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                      className="flex-shrink-0 px-4 py-2.5 bg-white border border-neutral-200/70 hover:border-blue-300 rounded-2xl text-xs font-semibold text-neutral-800 flex items-center space-x-2 shadow-2xs active:scale-95 transition-all cursor-pointer"
                     >
                       <span>{chip.emoji}</span>
                       <span>{chip.label}</span>
@@ -605,21 +605,21 @@ export default function CribrMobileHome({
                 {/* Vertical Stack of All Property Cards */}
                 <div className="space-y-4">
                   {propertiesList.length === 0 ? (
-                    <div className="bg-white dark:bg-neutral-900 rounded-[24px] border border-neutral-200/80 dark:border-neutral-800 p-8 text-center space-y-4 shadow-xs">
-                      <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-400 flex items-center justify-center mx-auto border border-blue-100 dark:border-blue-800">
+                    <div className="bg-white rounded-[24px] border border-neutral-200/80 p-8 text-center space-y-4 shadow-xs">
+                      <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
                         <Building2 className="w-7 h-7" />
                       </div>
                       <div className="space-y-1">
-                        <h4 className="text-lg font-display font-bold text-neutral-950 dark:text-white">
+                        <h4 className="text-lg font-display font-bold text-neutral-950">
                           No Properties Available
                         </h4>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-xs mx-auto font-normal leading-relaxed">
+                        <p className="text-xs text-neutral-500 max-w-xs mx-auto font-normal leading-relaxed">
                           Properties added from the Admin Panel will appear here.
                         </p>
                       </div>
                       <button
                         onClick={refreshProperties}
-                        className="px-5 py-2.5 bg-neutral-950 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-950 text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center space-x-2"
+                        className="px-5 py-2.5 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center space-x-2"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         <span>Refresh</span>
@@ -630,8 +630,8 @@ export default function CribrMobileHome({
                       {/* AI Searching indicator */}
                       {isSearching && searchQuery && (
                         <div className="flex items-center justify-center gap-2 py-4">
-                          <div className="w-4 h-4 border-2 border-blue-600 dark:border-sky-400 border-t-transparent rounded-full animate-spin" />
-                          <span className="text-xs font-medium text-blue-600 dark:text-sky-400">
+                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs font-medium text-blue-600">
                             AI is analyzing your query...
                           </span>
                         </div>
@@ -642,28 +642,28 @@ export default function CribrMobileHome({
                         <motion.div
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 p-6 text-center space-y-3 shadow-2xs"
+                          className="bg-white rounded-2xl border border-neutral-200/80 p-6 text-center space-y-3 shadow-2xs"
                         >
-                          <div className="w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-400 flex items-center justify-center mx-auto border border-neutral-200 dark:border-neutral-700">
+                          <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto border border-neutral-200">
                             <Building2 className="w-6 h-6" />
                           </div>
                           <div className="space-y-1">
-                            <h4 className="text-base font-display font-bold text-neutral-900 dark:text-white">
+                            <h4 className="text-base font-display font-bold text-neutral-900">
                               No matching projects found
                             </h4>
-                            <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                            <p className="text-xs text-neutral-500 leading-relaxed">
                               No verified projects match "{searchQuery}".
                             </p>
                           </div>
                           <button
                             onClick={() => setSearchQuery("")}
-                            className="px-4 py-2 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold rounded-xl shadow-xs cursor-pointer"
+                            className="px-4 py-2 bg-neutral-950 text-white text-xs font-semibold rounded-xl shadow-xs"
                           >
                             View all properties
                           </button>
                         </motion.div>
                       ) : (
-                        filteredRankedProperties.map((prop) => {
+                        filteredRankedProperties.map((prop, idx) => {
                           const p = prop;
                           return (
                         <div
@@ -676,10 +676,10 @@ export default function CribrMobileHome({
                               window.dispatchEvent(new Event("popstate"));
                             }
                           }}
-                          className="w-full bg-white dark:bg-neutral-900 rounded-[24px] border border-neutral-200/80 dark:border-neutral-800 overflow-hidden shadow-xs cursor-pointer group hover:border-blue-400 dark:hover:border-neutral-700 active:scale-[0.99] transition-all duration-150"
+                          className="w-full bg-white rounded-[24px] border border-neutral-200/80 overflow-hidden shadow-xs cursor-pointer group hover:border-blue-400 active:scale-[0.99] transition-all duration-150"
                         >
                           {/* Large Hero Image */}
-                          <div className="h-[190px] w-full relative overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                          <div className="h-[190px] w-full relative overflow-hidden bg-neutral-100">
                             <img
                               src={p.image}
                               alt={p.projectName}
@@ -716,22 +716,22 @@ export default function CribrMobileHome({
                           </div>
 
                           {/* Card Body */}
-                          <div className="p-4 space-y-3 bg-white dark:bg-neutral-900">
+                          <div className="p-4 space-y-3 bg-white">
                             {/* Price & Rate */}
-                            <div className="p-3 bg-neutral-50 dark:bg-neutral-800/60 rounded-xl border border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                            <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 flex items-center justify-between">
                               <div>
-                                <span className="text-[10px] font-mono uppercase text-neutral-400 dark:text-neutral-500 block font-semibold">
+                                <span className="text-[10px] font-mono uppercase text-neutral-400 block font-semibold">
                                   Price Range
                                 </span>
-                                <span className="text-sm font-bold text-neutral-950 dark:text-white font-mono">
+                                <span className="text-sm font-bold text-neutral-950 font-mono">
                                   {p.minPrice} – {p.maxPrice}
                                 </span>
                               </div>
                               <div className="text-right">
-                                <span className="text-[10px] font-mono uppercase text-neutral-400 dark:text-neutral-500 block font-semibold">
+                                <span className="text-[10px] font-mono uppercase text-neutral-400 block font-semibold">
                                   Rate / sq ft
                                 </span>
-                                <span className="text-xs font-bold font-mono text-blue-700 dark:text-sky-400 block">
+                                <span className="text-xs font-bold font-mono text-blue-700 block">
                                   {p.pricePerSqft}
                                 </span>
                               </div>
@@ -739,29 +739,29 @@ export default function CribrMobileHome({
 
                             {/* Unit Configurations & Possession */}
                             <div className="grid grid-cols-2 gap-2 text-xs">
-                              <div className="p-2 bg-neutral-50 dark:bg-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800">
-                                <span className="text-[9px] font-mono uppercase text-neutral-400 dark:text-neutral-500 font-semibold block">Possession</span>
-                                <span className="font-bold font-mono text-neutral-900 dark:text-neutral-100 text-[11px]">{p.possessionDate}</span>
+                              <div className="p-2 bg-neutral-50 rounded-lg border border-neutral-100">
+                                <span className="text-[9px] font-mono uppercase text-neutral-400 font-semibold block">Possession</span>
+                                <span className="font-bold font-mono text-neutral-900 text-[11px]">{p.possessionDate}</span>
                               </div>
-                              <div className="p-2 bg-neutral-50 dark:bg-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800">
-                                <span className="text-[9px] font-mono uppercase text-neutral-400 dark:text-neutral-500 font-semibold block">Construction</span>
-                                <span className="font-bold font-mono text-emerald-700 dark:text-emerald-400 text-[11px]">{p.constructionProgress}% Completed</span>
+                              <div className="p-2 bg-neutral-50 rounded-lg border border-neutral-100">
+                                <span className="text-[9px] font-mono uppercase text-neutral-400 font-semibold block">Construction</span>
+                                <span className="font-bold font-mono text-emerald-700 text-[11px]">{p.constructionProgress}% Completed</span>
                               </div>
                             </div>
 
                             {/* Scale & Units */}
-                            <div className="grid grid-cols-3 gap-1 text-[10px] font-mono bg-neutral-50/60 dark:bg-neutral-800/40 p-2 rounded-lg border border-neutral-100 dark:border-neutral-800 text-center">
+                            <div className="grid grid-cols-3 gap-1 text-[10px] font-mono bg-neutral-50/60 p-2 rounded-lg border border-neutral-100 text-center">
                               <div>
-                                <span className="text-[8px] text-neutral-400 dark:text-neutral-500 uppercase font-semibold block">Scale</span>
-                                <span className="font-bold text-neutral-900 dark:text-neutral-100">{p.landAreaAcres}</span>
+                                <span className="text-[8px] text-neutral-400 uppercase font-semibold block">Scale</span>
+                                <span className="font-bold text-neutral-900">{p.landAreaAcres}</span>
                               </div>
                               <div>
-                                <span className="text-[8px] text-neutral-400 dark:text-neutral-500 uppercase font-semibold block">Units</span>
-                                <span className="font-bold text-neutral-900 dark:text-neutral-100">{p.totalUnits}</span>
+                                <span className="text-[8px] text-neutral-400 uppercase font-semibold block">Units</span>
+                                <span className="font-bold text-neutral-900">{p.totalUnits}</span>
                               </div>
                               <div>
-                                <span className="text-[8px] text-neutral-400 dark:text-neutral-500 uppercase font-semibold block">Grade</span>
-                                <span className="font-bold text-indigo-700 dark:text-indigo-400">Grade {p.builderGrade}</span>
+                                <span className="text-[8px] text-neutral-400 uppercase font-semibold block">Grade</span>
+                                <span className="font-bold text-indigo-700">Grade {p.builderGrade}</span>
                               </div>
                             </div>
 
@@ -805,13 +805,13 @@ export default function CribrMobileHome({
                     <div
                       key={idx}
                       onClick={() => handleExecuteQuery(item.query)}
-                      className="p-4 bg-white dark:bg-neutral-900 rounded-[20px] border border-neutral-200/70 dark:border-neutral-800 shadow-2xs hover:border-blue-300 dark:hover:border-neutral-700 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
+                      className="p-4 bg-white rounded-[20px] border border-neutral-200/70 shadow-2xs hover:border-blue-300 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-400 flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
                           🔥
                         </div>
-                        <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                        <span className="text-xs font-bold text-neutral-900">
                           {item.text}
                         </span>
                       </div>
@@ -842,15 +842,15 @@ export default function CribrMobileHome({
                         }}
                         className={`p-4 rounded-[24px] border shadow-2xs flex flex-col items-center justify-center text-center space-y-1.5 cursor-pointer transition-all ${
                           isSelected 
-                            ? "bg-blue-50/50 dark:bg-blue-950/40 border-blue-500 dark:border-blue-400" 
-                            : "bg-white dark:bg-neutral-900 border-neutral-200/70 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-neutral-700"
+                            ? "bg-blue-50/50 border-blue-500" 
+                            : "bg-white border-neutral-200/70 hover:border-blue-300"
                         }`}
                       >
                         <div className="text-3xl mb-0.5">{cat.icon}</div>
-                        <h5 className="text-sm font-bold text-neutral-950 dark:text-white tracking-tight">
+                        <h5 className="text-sm font-bold text-neutral-950 tracking-tight">
                           {cat.name}
                         </h5>
-                        <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono font-normal">
+                        <span className="text-[10px] text-neutral-500 font-mono font-normal">
                           {cat.desc}
                         </span>
                       </motion.div>
@@ -1069,7 +1069,7 @@ export default function CribrMobileHome({
       </main>
 
       {/* 8. FLOATING GLASS BOTTOM NAVIGATION */}
-      <nav className="fixed bottom-5 left-4 right-4 z-40 bg-white/85 dark:bg-neutral-900/85 backdrop-blur-xl border border-neutral-200/60 dark:border-neutral-800 rounded-full h-16 shadow-lg px-6 flex items-center justify-between">
+      <nav className="fixed bottom-5 left-4 right-4 z-40 bg-white/85 backdrop-blur-xl border border-neutral-200/60 rounded-full h-16 shadow-lg px-6 flex items-center justify-between">
         {[
           { id: "home", label: "Home", icon: HomeIcon },
           { id: "search", label: "Search", icon: Search },
@@ -1091,22 +1091,22 @@ export default function CribrMobileHome({
                   setIsSearchingActive(true);
                 }
               }}
-              className="flex flex-col items-center justify-center relative focus:outline-none cursor-pointer"
+              className="flex flex-col items-center justify-center relative focus:outline-none"
             >
               <div
                 className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-200 ${
                   isActive
                     ? isChat
                       ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs"
-                      : "bg-neutral-950 dark:bg-white text-white dark:text-neutral-950"
-                    : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                      : "bg-neutral-950 text-white"
+                    : "text-neutral-400 hover:text-neutral-600"
                 }`}
               >
                 <IconComponent className="w-4.5 h-4.5" />
               </div>
               <span
                 className={`text-[9px] font-mono font-bold mt-0.5 ${
-                  isActive ? "text-neutral-950 dark:text-white" : "text-neutral-400"
+                  isActive ? "text-neutral-950" : "text-neutral-400"
                 }`}
               >
                 {tab.label}
