@@ -1,3 +1,3 @@
-import { FollowUpChips } from "./Search/FollowUpChips";
+import { FollowUpChips } from "./FollowUpChip";
 export { FollowUpChips };
 export default FollowUpChips;

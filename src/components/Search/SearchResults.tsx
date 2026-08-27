@@ -1,7 +1,7 @@
 import React from "react";
 import { SearchResponse, FullProject } from "../../types/search";
-import { ProjectRow } from "./ProjectRow";
-import { FollowUpChips } from "./FollowUpChips";
+import { ProjectRow } from "../ProjectRow";
+import { FollowUpChips } from "../FollowUpChips";
 import { Sparkles, ArrowLeft } from "lucide-react";
 
 interface SearchResultsProps {

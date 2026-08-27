@@ -1,3 +1,15 @@
-// @ts-ignore
-import app from "../dist/server.cjs";
-export default (app as any)?.default || app;
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRIBR - Real Estate Intelligence Platform</title>
+    <meta name="description" content="CRIBR - Real estate intelligence platform with verified RERA data, builder due-diligence, construction timelines, and pricing analysis." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

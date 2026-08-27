@@ -66,55 +66,56 @@ export interface WinnerBadges {
 export interface FullProject {
   id: string;
   rank?: number;
+  slug?: string;
   name: string;
   builder: string;
-  builderId: string;
+  builderId?: string;
   location: string;
-  localityName: string;
-  city: string;
-  reraNumber: string;
-  priceRange: string;
-  minPriceLakhs: number;
-  maxPriceLakhs: number;
-  pricePerSqft: string;
-  densityValue: number; // units per acre
-  densityText: string;
-  commuteScore: number; // out of 10
-  commuteText: string;
-  builderGrade: string;
-  reliabilityScore: number; // 0-100
-  constructionProgress: number; // 0-100 percentage
-  possessionDate: string;
-  googleRating: number; // e.g. 4.7
-  reviewsCount: number;
-  complaintsCount: string;
-  activeComplaintsNum: number;
-  totalUnits: string;
-  totalAcres: number;
-  status: "safe" | "delayed" | "fairPrice" | "ready";
-  statusText: string;
-  delayMonths: number;
-  pros: string[];
-  cons: string[];
-  amenities: string[];
-  schools: SchoolItem[];
-  metroDistance: string;
-  hospitalDistance: string;
-  investmentScore: number; // 0-100
+  localityName?: string;
+  city?: string;
+  reraNumber?: string;
+  priceRange?: string;
+  minPriceLakhs?: number;
+  maxPriceLakhs?: number;
+  pricePerSqft?: string;
+  densityValue?: number; // units per acre
+  densityText?: string;
+  commuteScore?: number; // out of 10
+  commuteText?: string;
+  builderGrade?: string;
+  reliabilityScore?: number; // 0-100
+  constructionProgress?: number; // 0-100 percentage
+  possessionDate?: string;
+  googleRating?: number; // e.g. 4.7
+  reviewsCount?: number;
+  complaintsCount?: string;
+  activeComplaintsNum?: number;
+  totalUnits?: string;
+  totalAcres?: number;
+  status?: "safe" | "delayed" | "fairPrice" | "ready" | string;
+  statusText?: string;
+  delayMonths?: number;
+  pros?: string[];
+  cons?: string[];
+  amenities?: string[];
+  schools?: SchoolItem[];
+  metroDistance?: string;
+  hospitalDistance?: string;
+  investmentScore?: number; // 0-100
   rentalYieldPercent?: number; // e.g. 4.2%
-  futureGrowthText: string;
-  safeToBuy: boolean;
-  aiVerdict: string;
-  cribrScore: number; // Proprietary overall score 0-100
+  futureGrowthText?: string;
+  safeToBuy?: boolean;
+  aiVerdict?: string;
+  cribrScore?: number; // Proprietary overall score 0-100
   cribrScoreBreakdown?: CribrScoreBreakdown;
   winnerBadges?: WinnerBadges;
   citations?: CitationItem[];
-  aiInsights: {
+  aiInsights?: {
     type: "positive" | "warning" | "neutral" | "investment";
     title: string;
     description: string;
   }[];
-  images: string[];
+  images?: string[];
   image?: string;
   developer?: string;
   category?: string;
@@ -122,10 +123,10 @@ export interface FullProject {
   price?: string;
   aiScore?: number;
   configurations?: string;
-  mapCoords: { x: number; y: number }; // percentage coordinates for interactive map
-  timeline: TimelineItem[];
-  documents: DocumentItem[];
-  reviews: ReviewItem[];
+  mapCoords?: { x: number; y: number }; // percentage coordinates for interactive map
+  timeline?: TimelineItem[];
+  documents?: DocumentItem[];
+  reviews?: ReviewItem[];
   taluk?: string;
   latitude?: number | null;
   longitude?: number | null;

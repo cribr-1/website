@@ -1,7 +1,7 @@
 import React from "react";
-import { FullProject } from "../../types/search";
+import { FullProject } from "../types/search";
 import { ArrowRight, MapPin, CheckCircle2, Star, Navigation } from "lucide-react";
-import { mapToWhitelistedProject } from "../../lib/projectDataMapper";
+import { mapToWhitelistedProject } from "../lib/projectDataMapper";
 
 interface ProjectRowProps {
   project: FullProject;

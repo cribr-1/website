@@ -4,7 +4,7 @@ import { useSearch } from "../../context/SearchContext";
 import { SearchInput } from "./SearchInput";
 import { SearchSuggestions } from "./SearchSuggestions";
 import { SearchResults } from "./SearchResults";
-import { ProjectDetails } from "./ProjectDetails";
+import { ProjectDetails } from "../ProjectDetails";
 import { SearchLoadingAnimation } from "./SearchLoadingAnimation";
 import ResultContextAIAssistant from "./ResultContextAIAssistant";
 

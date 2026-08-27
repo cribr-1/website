@@ -107,6 +107,10 @@ export interface WhitelistedProjectOverview {
 
   heroImage?: string;
   images?: string[];
+  minPriceLakhs?: number | null;
+  maxPriceLakhs?: number | null;
+  pricePerSqftNum?: number | null;
+  priceStatus?: "Available" | "On Request";
 }
 
 export interface WhitelistedProject {
@@ -1555,6 +1559,10 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
       googleReviewSummary: "No resident review summary available.",
       image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
       images: ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"],
+      minPriceLakhs: null,
+      maxPriceLakhs: null,
+      pricePerSqftNum: null,
+      priceStatus: "On Request",
     };
   }
 
@@ -1716,6 +1724,10 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
     builderReliability: resolveBuilderReliability(p),
     googleRating: ratingStr,
     googleReviewSummary: reviewSummary,
+    minPriceLakhs: minLakhs > 0 ? minLakhs : null,
+    maxPriceLakhs: maxLakhs > 0 ? maxLakhs : null,
+    pricePerSqftNum: pricePerSqftVal > 0 ? pricePerSqftVal : null,
+    priceStatus: (minLakhs > 0 || pricePerSqftVal > 0) ? "Available" : "On Request",
     image: heroImg,
     images:
       Array.isArray(p.images) && p.images.length > 0 ? p.images : [heroImg],

@@ -1,11 +1,11 @@
 import React from "react";
-import { FullProject } from "../../types/search";
+import { FullProject } from "../types/search";
 import { ArrowLeft } from "lucide-react";
-import { StatusBadge } from "./StatusBadge";
-import { StatsGrid } from "./StatsGrid";
+import { StatusBadge } from "./Search/StatusBadge";
+import { StatsGrid } from "./Search/StatsGrid";
 import { RecommendationCard } from "./RecommendationCard";
 import { FollowUpChips } from "./FollowUpChips";
-import { SearchInput } from "./SearchInput";
+import { SearchInput } from "./Search/SearchInput";
 
 interface ProjectDetailsProps {
   project: FullProject;

@@ -116,7 +116,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
           {/* Status Badges */}
           <div className="flex flex-wrap items-center gap-2 self-start">
-            <StatusBadge variant={project.status} text={project.statusText} />
+            <StatusBadge variant={(project.status as any) || "safe"} text={project.statusText || "Verified"} />
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1">
               <Award className="w-3.5 h-3.5 text-amber-500" />
               Trust Score: {project.reliabilityScore}/100
