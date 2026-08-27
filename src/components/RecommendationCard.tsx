@@ -13,17 +13,17 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
 }) => {
   return (
     <div className="space-y-1.5 my-4">
-      <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400 block">
+      <span className="text-xs font-normal text-neutral-500 block">
         Propsoch note
       </span>
 
-      <div className="bg-[#F8F8F6] dark:bg-neutral-800/60 border-l-[3px] border-blue-600 dark:border-sky-500 rounded-xl p-4">
-        <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed font-normal">
+      <div className="bg-[#F8F8F6] border-l-[3px] border-blue-600 rounded-xl p-4">
+        <p className="text-sm text-neutral-800 leading-relaxed font-normal">
           "{quote}"
         </p>
       </div>
 
-      <div className="text-xs text-neutral-400 dark:text-neutral-500 font-normal pt-1">
+      <div className="text-xs text-neutral-400 font-normal pt-1">
         Builder grade {builderGrade} · Reliability score {reliabilityScore}%
       </div>
     </div>
