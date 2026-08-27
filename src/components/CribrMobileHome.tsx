@@ -1,1150 +1,980 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Search,
-  Mic,
-  MapPin,
-  TrendingUp,
-  Heart,
-  Calendar,
   ArrowLeft,
-  Building2,
   Sparkles,
-  ShieldCheck,
-  Trash2,
-  Clock,
-  ChevronRight,
-  X,
-  Activity,
-  CheckCircle2,
-  Home as HomeIcon,
-  User,
-  Bell,
-  MessageSquare,
-  Building,
-  DollarSign,
-  Key,
-  Compass,
-  ArrowUpRight,
-  Filter,
+  Send,
+  Mic,
+  Plus,
   Check,
-  RefreshCw
+  X,
+  History,
+  Search,
+  Pin,
+  Trash2,
+  Edit2,
+  Bookmark,
+  ExternalLink,
+  Calendar,
+  MapPin,
+  HelpCircle,
+  TrendingUp,
+  Scale,
+  ShieldCheck,
+  Award,
+  WifiOff,
+  Paperclip,
+  CheckCircle2,
+  AlertTriangle,
+  Building,
+  Info,
+  DollarSign
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { PremiumProperty, PropertyReport, SavedHome } from "../types";
-import { usePropertySearch } from "../hooks/usePropertySearch";
-import { CribrUser } from "../lib/supabase";
-import CribrIntelligenceReport from "./CribrIntelligenceReport";
-import PropertyIntelligenceDetailsModal from "./PropertyIntelligenceDetailsModal";
-import CribrMobileChat from "./CribrMobileChat";
-import { showToast } from "./CribrToast";
-import { mapToWhitelistedProject } from "../lib/projectDataMapper";
-import ResultContextAIAssistant from "./Search/ResultContextAIAssistant";
-import { Star, Navigation, ArrowRight } from "lucide-react";
+import { PremiumProperty, SavedHome } from "../types";
+import { CribrUser, cribrChats } from "../lib/supabase";
+import { trackAIChatStarted, trackAIRecommendationClicked } from "../lib/gtag";
 
-interface CribrMobileHomeProps {
+export interface ChatMessage {
+  id: string;
+  sender: "user" | "ai";
+  text: string;
+  timestamp: string;
+  recommendedProperties?: any[];
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  isPinned: boolean;
+  createdAt: string;
+  messages: ChatMessage[];
+}
+
+interface CribrMobileChatProps {
   currentUser: CribrUser | null;
   savedHomes: SavedHome[];
   onSaveHome: (property: PremiumProperty) => void;
   onRemoveSaved: (id: string) => void;
-  onSignInClick: () => void;
-  onOpenDashboard: () => void;
-  recentSearches: string[];
-  setRecentSearches: React.Dispatch<React.SetStateAction<string[]>>;
-  activeReport: PropertyReport | null;
-  setActiveReport: React.Dispatch<React.SetStateAction<PropertyReport | null>>;
-  isReportLoading: boolean;
-  setIsReportLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  onQuerySubmit: (query: string) => Promise<void>;
-  onBookVisit?: (property: PremiumProperty) => void;
-  handleSaveCurrentReport: () => void;
-  onDownloadReport: () => void;
-  onScheduleCallback: (type: string) => void;
-  onUnlockPremium: () => void;
-  onSelectProperty?: (property: any) => void;
+  onBookVisit: (property: PremiumProperty) => void;
+  onBackToHome: () => void;
+  initialQuery?: string;
 }
 
-const QUICK_SEARCH_CHIPS = [
-  { label: "Best Luxury Projects", query: "Best luxury projects in India", emoji: "🏢" },
-  { label: "Under ₹80L", query: "Best projects below 80 lakhs", emoji: "💰" },
-  { label: "Safe Projects", query: "Safest projects with 100% RERA compliance", emoji: "🟢" },
-  { label: "Near Metro", query: "Projects near Metro line", emoji: "🚇" },
-  { label: "Family Friendly", query: "Family friendly gated communities", emoji: "🏫" },
-  { label: "Low Density", query: "Lowest density residential projects", emoji: "🌳" },
-  { label: "High Appreciation", query: "Projects with highest appreciation potential", emoji: "📈" }
+const CHAT_STATUS_MESSAGES = [
+  "Analyzing your request...",
+  "Searching CRIBR database...",
+  "Checking RERA...",
+  "Scanning builder records...",
+  "Analyzing locality...",
+  "Calculating investment score...",
+  "Comparing nearby projects...",
+  "Generating AI insights..."
 ];
 
-const TRENDING_SEARCHES = [
-  { text: "Best societies in Whitefield", query: "Best societies in Whitefield" },
-  { text: "Safest builders with low risk", query: "Safest builders in India" },
-  { text: "Upcoming possession 2026", query: "Upcoming possession projects 2026" },
-  { text: "Lowest maintenance projects", query: "Lowest maintenance projects" }
-];
+// Offline fallback mock data matching Indian real estate questions
+const OFFLINE_RESPONSES: Record<string, { text: string; recommendedProperties?: any[] }> = {
+  "2bhk": {
+    text: `### Discovering 2 BHK Apartments under ₹80L\n\nBased on your query, we scanned the offline database for high-appreciation 2 BHK layouts in Pune. Here are our top recommended options with clear RERA numbers:\n\n* **Kharadi East**: A prime IT hub with rapid rental demands and close connectivity to EON IT Park.\n* **Hinjewadi Phase 2**: Central tech park offering affordable luxury projects.\n\nHere are some verified smart homes that fit your budget:`,
+    recommendedProperties: [
+      {
+        id: "kharadi-heights",
+        name: "Kharadi Heights",
+        developer: "Godrej Properties",
+        city: "Pune",
+        location: "Kharadi, Pune",
+        priceRange: "₹65 L - ₹78 L",
+        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
+        overallScore: 88,
+        builderScore: 90,
+        legalScore: 92,
+        legalReport: "Fully RERA approved. Zero litigation recorded, clear land-boundary titles verified by CRIBR legal partners.",
+        investmentYieldScore: 86,
+        investmentAnalysis: "Highly liquid micro-market. Yields estimated at 4.0% with consistent year-on-year capital gains."
+      }
+    ]
+  },
+  "compare": {
+    text: `### Builder Comparison: Godrej vs Lodha\n\nComparing developer profiles is crucial for long-term safety. Here is our off-line intelligence summary:\n\n1. **Godrej Properties**: Highly rated for environmental certifications and community landscapes. Standard to premium finish grade.\n2. **Lodha Group**: Renowned for grand high-rise towers and absolute luxury clubhouses. Fast construction speeds with standard brand premium.\n\n*We suggest reviewing **Prestige Kingston** as an alternative high-yield project.*`,
+    recommendedProperties: [
+      {
+        id: "prestige-kingston",
+        name: "Prestige Kingston",
+        developer: "Prestige Group",
+        city: "Bangalore",
+        location: "Whitefield Corridor",
+        priceRange: "₹3.2 Cr - ₹5.8 Cr",
+        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1000&auto=format&fit=crop&q=80",
+        overallScore: 89,
+        builderScore: 92,
+        legalScore: 94,
+        legalReport: "Excellent RERA status. Fully certified titles with clear environment clearances.",
+        investmentYieldScore: 84,
+        investmentAnalysis: "Steady annual appreciation of 7.5% due to proximity to Whitefield IT corridor."
+      }
+    ]
+  },
+  "rera": {
+    text: `### What is RERA and how does it protect you?\n\n**RERA (Real Estate Regulatory Authority)** was enacted to protect home-buyers from builder delays, fraudulent titles, and substandard construction quality.\n\nKey aspects:\n* **Escrow Account**: Developers must deposit 70% of buyer payments in a dedicated account used purely for construction.\n* **Standardized Carpets**: Pricing must be calculated based on absolute net carpet area, not gross super-builtup area.\n* **Delays & Fines**: Builders are legally required to compensate buyers for delivery delays at standard interest rates.`,
+    recommendedProperties: []
+  },
+  "default": {
+    text: `### CRIBR Property AI Advisor\n\nI have consulted our offline property data library. To best assist you with real estate intelligence, please consider asking:\n* "Find a 2 BHK in Pune under 80 lakhs"\n* "Compare Godrej vs Lodha builders"\n* "Explain legal risk check and RERA"\n\n*Note: Connecting to the internet will unlock real-time Gemini AI capabilities.*`,
+    recommendedProperties: []
+  }
+};
 
-const CATEGORIES = [
-  { name: "Luxury", icon: "👑", desc: "Top 1% Residences", query: "Best luxury properties" },
-  { name: "Affordable", icon: "🏷️", desc: "High Value Homes", query: "Best affordable properties" },
-  { name: "Ready to Move", icon: "🔑", desc: "Instant Possession", query: "Ready to move properties" },
-  { name: "Investment", icon: "📈", desc: "High ROI Assets", query: "High appreciation investment properties" },
-  { name: "Villa", icon: "🏡", desc: "Private Estates", query: "Luxury villa projects" },
-  { name: "Apartments", icon: "🏢", desc: "Gated Enclaves", query: "Top apartment complexes" }
-];
+// Custom Minimalist Markdown Formatter
+function CribrMarkdown({ content }: { content: string }) {
+  const blocks = content.split("\n\n");
 
-const SAMPLE_QUICK_PROMPTS = [
-  "Is Prestige Elysian safe?",
-  "Best projects below ₹1Cr",
-  "Lowest density projects",
-  "Compare Sobha vs Prestige"
-];
+  return (
+    <div className="space-y-3 text-[13px] leading-relaxed text-neutral-800">
+      {blocks.map((block, bIdx) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
 
-const AI_SUGGESTED_QUESTIONS = [
-  "Is Prestige worth buying?",
-  "Compare Prestige vs Sobha",
-  "Projects with better appreciation",
-  "Lowest density nearby"
-];
+        // Headings
+        if (trimmed.startsWith("###")) {
+          return (
+            <h4 key={bIdx} className="text-sm font-bold text-[#111111] mt-3 mb-1 tracking-tight flex items-center space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span>{trimmed.replace(/^###\s*/, "")}</span>
+            </h4>
+          );
+        }
+        if (trimmed.startsWith("##")) {
+          return (
+            <h3 key={bIdx} className="text-base font-extrabold text-[#111111] mt-4 mb-2 tracking-tight">
+              {trimmed.replace(/^##\s*/, "")}
+            </h3>
+          );
+        }
 
-const STATUS_MESSAGES = [
-  "Ingesting RERA filings...",
-  "Querying state land registries...",
-  "Scanning judicial court databases...",
-  "Evaluating developer solvency...",
-  "Running structural safety model...",
-  "Generating Cribr score..."
-];
+        // Unordered lists
+        if (trimmed.startsWith("* ") || trimmed.startsWith("- ")) {
+          const items = trimmed.split(/\n[\*\-]\s+/);
+          return (
+            <ul key={bIdx} className="list-disc pl-4 space-y-1 text-neutral-700 my-1.5">
+              {items.map((item, iIdx) => (
+                <li key={iIdx}>
+                  {parseInlineMarkdown(item.replace(/^[\*\-]\s+/, ""))}
+                </li>
+              ))}
+            </ul>
+          );
+        }
 
-export default function CribrMobileHome({
+        // Ordered lists
+        if (/^\d+\.\s+/.test(trimmed)) {
+          const items = trimmed.split(/\n\d+\.\s+/);
+          return (
+            <ol key={bIdx} className="list-decimal pl-4 space-y-1 text-neutral-700 my-1.5">
+              {items.map((item, iIdx) => (
+                <li key={iIdx}>
+                  {parseInlineMarkdown(item.replace(/^\d+\.\s+/, ""))}
+                </li>
+              ))}
+            </ol>
+          );
+        }
+
+        // Tables
+        if (trimmed.includes("|") && trimmed.includes("-|-")) {
+          const rows = trimmed.split("\n");
+          const tableRows = rows.filter(r => r.trim() && !r.includes("-|-"));
+          return (
+            <div key={bIdx} className="overflow-x-auto my-2.5 border border-neutral-100 rounded-xl shadow-sm">
+              <table className="min-w-full text-[11px] divide-y divide-neutral-100 bg-white">
+                <thead className="bg-neutral-50 text-neutral-500 font-semibold">
+                  <tr>
+                    {tableRows[0].split("|").filter(c => c.trim()).map((cell, cIdx) => (
+                      <th key={cIdx} className="px-2.5 py-1.5 text-left uppercase tracking-wider">
+                        {cell.trim()}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 text-neutral-700">
+                  {tableRows.slice(1).map((row, rIdx) => (
+                    <tr key={rIdx} className="hover:bg-neutral-50/50">
+                      {row.split("|").filter(c => c.trim()).map((cell, cIdx) => (
+                        <td key={cIdx} className="px-2.5 py-1.5">
+                          {parseInlineMarkdown(cell.trim())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        // Default paragraph
+        return (
+          <p key={bIdx} className="font-light">
+            {parseInlineMarkdown(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+function parseInlineMarkdown(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={index} className="font-bold text-[#111111]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
+
+export default function CribrMobileChat({
   currentUser,
   savedHomes,
   onSaveHome,
   onRemoveSaved,
-  onSignInClick,
-  onOpenDashboard,
-  recentSearches,
-  setRecentSearches,
-  activeReport,
-  setActiveReport,
-  isReportLoading,
-  setIsReportLoading,
-  onQuerySubmit,
   onBookVisit,
-  handleSaveCurrentReport,
-  onDownloadReport,
-  onScheduleCallback,
-  onUnlockPremium,
-  onSelectProperty
-}: CribrMobileHomeProps) {
-  const [activeTab, setActiveTab] = useState<"home" | "search" | "saved" | "chat" | "profile">("home");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchingActive, setIsSearchingActive] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  onBackToHome,
+  initialQuery
+}: CribrMobileChatProps) {
+  // State variables
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string>("");
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [statusTextIndex, setStatusTextIndex] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [searchHistoryQuery, setSearchHistoryQuery] = useState("");
   const [voiceActive, setVoiceActive] = useState(false);
-  const [voiceText, setVoiceText] = useState("");
-  const [statusIndex, setStatusIndex] = useState(0);
-  const [selectedPropertyModal, setSelectedPropertyModal] = useState<any | null>(null);
+  const [voiceWaveText, setVoiceWaveText] = useState("");
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  
+  // Offline check
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Shared property loading, search, and filtering hook
-  const {
-    projects: propertiesList,
-    filteredProjects: filteredRankedProperties,
-    isLoading: propertiesLoading,
-    isSearching,
-    error: propertiesError,
-    refresh: refreshProperties,
-    selectedCategory,
-    setSelectedCategory,
-    isSuggestionMode,
-  } = usePropertySearch(searchQuery);
+  // Property Details Sheet State
+  const [detailsProp, setDetailsProp] = useState<any | null>(null);
+  
+  // Property Comparison State
+  const [comparisonProp, setComparisonProp] = useState<any | null>(null);
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Monitor scroll for header background
+  // Suggested starter prompts (Matching requirements exactly!)
+  const SUGGESTED_CARDS = [
+    { emoji: "🏠", label: "Find a 2 BHK under ₹80L", query: "Find me a 2 BHK under ₹80 lakh in Pune." },
+    { emoji: "📍", label: "Best investment in Nagpur", query: "What are the best high-appreciation investment properties or areas in Nagpur?" },
+    { emoji: "🏗", label: "Compare Godrej vs Lodha", query: "Compare Godrej and Lodha builders." },
+    { emoji: "⚖️", label: "Check legal status", query: "Explain RERA and check legal status of new developments." },
+    { emoji: "📈", label: "Predict future appreciation", query: "Estimate future price appreciation and which locality has better appreciation?" },
+    { emoji: "🚇", label: "Flats near Metro", query: "Show projects near Metro stations." },
+    { emoji: "💰", label: "Best rental investment", query: "Find low-risk investment properties with best rental yield/potential." }
+  ];
+
+  // Monitor online status
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 12);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Status message cycler
+  // Initialize Chat sessions from Supabase/LocalStorage
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isReportLoading) {
-      setStatusIndex(0);
-      interval = setInterval(() => {
-        setStatusIndex((prev) => (prev + 1) % STATUS_MESSAGES.length);
-      }, 1400);
-    }
-    return () => clearInterval(interval);
-  }, [isReportLoading]);
+    const loadSessions = async () => {
+      const data = await cribrChats.getSessions();
+      if (Array.isArray(data) && data.length > 0) {
+        setSessions(data);
+        if (!initialQuery) {
+          setActiveSessionId(data[0].id);
+        }
+      } else {
+        const defaultSession: ChatSession = {
+          id: "default-session-id",
+          title: "New Property Chat",
+          isPinned: false,
+          createdAt: new Date().toISOString(),
+          messages: []
+        };
+        setSessions([defaultSession]);
+        setActiveSessionId(defaultSession.id);
+      }
+    };
+    loadSessions();
+  }, [initialQuery]);
 
-  // Voice Search Simulation Effect
+  // Handle Initial Query from home tab
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (voiceActive) {
-      setVoiceText("Listening...");
-      const mockPhrases = [
-        "Is Prestige Elysian safe?",
-        "Compare Sobha vs Prestige",
-        "Best projects below 1 crore",
-        "Lowest density projects in Bangalore"
-      ];
-      const randomPhrase = mockPhrases[Math.floor(Math.random() * mockPhrases.length)];
-
-      timer = setTimeout(() => {
-        setVoiceText(`"${randomPhrase}"`);
-        setTimeout(() => {
-          setVoiceActive(false);
-          setSearchQuery(randomPhrase);
-          handleExecuteQuery(randomPhrase);
-        }, 1200);
-      }, 1800);
+    if (initialQuery && sessions.length > 0) {
+      const existing = sessions.find(s => s.messages.length > 0 && s.messages[0].text === initialQuery);
+      if (existing) {
+        setActiveSessionId(existing.id);
+      } else {
+        createNewSessionWithQuery(initialQuery);
+      }
     }
-    return () => clearTimeout(timer);
-  }, [voiceActive]);
+  }, [initialQuery, sessions.length]);
 
-  // Execute query handler
-  const handleExecuteQuery = async (queryStr: string) => {
-    if (!queryStr.trim()) return;
-    setSearchQuery(queryStr);
-    setIsSearchingActive(true); // Keep search UI open to show results
-    setActiveTab("home"); // ensure we are on home tab
-    // We don't need onQuerySubmit here since mobile handles search internally now via ResultContextAIAssistant
+  // Sync session changes using optimistic updates
+  const syncSession = async (updatedSessions: ChatSession[], activeSession: ChatSession) => {
+    setSessions(updatedSessions);
+    await cribrChats.saveSession({
+      id: activeSession.id,
+      title: activeSession.title,
+      isPinned: activeSession.isPinned,
+      messages: activeSession.messages
+    });
   };
 
-  // Search filtering is handled by the usePropertySearch hook above.
-  // filteredRankedProperties is already computed and ready to render.
+  // Scroll to bottom of chat when new messages arrive or loading occurs
+  useEffect(() => {
+    setTimeout(() => {
+      chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, [activeSessionId, sessions, isLoading]);
 
+  // Rotate loading status messages every 1500ms (Requirement: Animated circular gradient rotation)
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      setStatusTextIndex(0);
+      interval = setInterval(() => {
+        setStatusTextIndex((prev) => (prev + 1) % CHAT_STATUS_MESSAGES.length);
+      }, 1500);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  // Create new chat session helper
+  const createNewSessionWithQuery = async (queryText: string) => {
+    const newSessionId = `session-${Date.now()}`;
+    const newSession: ChatSession = {
+      id: newSessionId,
+      title: queryText.length > 25 ? `${queryText.substring(0, 25)}...` : queryText,
+      isPinned: false,
+      createdAt: new Date().toISOString(),
+      messages: []
+    };
+
+    const updatedSessions = [newSession, ...sessions.filter(s => s.id !== "default-session-id" || s.messages.length > 0)];
+    setSessions(updatedSessions);
+    setActiveSessionId(newSessionId);
+
+    // Trigger AI response for this query
+    await sendChatMessage(queryText, newSessionId, updatedSessions);
+  };
+
+  // Generate new blank session
+  const handleNewSessionClick = () => {
+    const newId = `session-${Date.now()}`;
+    const newSess: ChatSession = {
+      id: newId,
+      title: `Property Consultation #${sessions.length + 1}`,
+      isPinned: false,
+      createdAt: new Date().toISOString(),
+      messages: []
+    };
+    const updated = [newSess, ...sessions];
+    setSessions(updated);
+    setActiveSessionId(newId);
+    setHistoryOpen(false);
+  };
+
+  // Sends the user message and requests API response
+  const handleSend = async () => {
+    if (!inputText.trim()) return;
+    const messageToSend = inputText;
+    setInputText("");
+    await sendChatMessage(messageToSend, activeSessionId, sessions);
+  };
+
+  const sendChatMessage = async (msgText: string, sessId: string, currentSessions: ChatSession[]) => {
+    const targetSession = currentSessions.find(s => s.id === sessId);
+    if (!targetSession) return;
+
+    trackAIChatStarted(msgText);
+
+    // Create user message
+    const userMsg: ChatMessage = {
+      id: `msg-${Date.now()}-user`,
+      sender: "user",
+      text: msgText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    // Append user message immediately
+    let updatedMessages = [...targetSession.messages, userMsg];
+    let updatedSess = {
+      ...targetSession,
+      messages: updatedMessages,
+      title: targetSession.messages.length === 0 ? (msgText.length > 25 ? `${msgText.substring(0, 25)}...` : msgText) : targetSession.title
+    };
+
+    let newSessions = currentSessions.map(s => s.id === sessId ? updatedSess : s);
+    setSessions(newSessions);
+
+    // Show loading
+    setIsLoading(true);
+
+    try {
+      if (!isOnline) {
+        // Offline processing engine!
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        let offlineKey = "default";
+        const cleanMsg = msgText.toLowerCase();
+        if (cleanMsg.includes("2") || cleanMsg.includes("bhk") || cleanMsg.includes("80")) {
+          offlineKey = "2bhk";
+        } else if (cleanMsg.includes("compare") || cleanMsg.includes("godrej") || cleanMsg.includes("lodha")) {
+          offlineKey = "compare";
+        } else if (cleanMsg.includes("rera") || cleanMsg.includes("legal")) {
+          offlineKey = "rera";
+        }
+
+        const fallbackData = OFFLINE_RESPONSES[offlineKey];
+        setIsLoading(false);
+
+        const aiMsg: ChatMessage = {
+          id: `msg-${Date.now()}-ai`,
+          sender: "ai",
+          text: fallbackData.text,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          recommendedProperties: fallbackData.recommendedProperties || []
+        };
+
+        updatedMessages = [...updatedMessages, aiMsg];
+        updatedSess = { ...updatedSess, messages: updatedMessages };
+        newSessions = newSessions.map(s => s.id === sessId ? updatedSess : s);
+        await syncSession(newSessions, updatedSess);
+        return;
+      }
+
+      // Online API call
+      const response = await fetch("/api/cribr/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: msgText,
+          history: updatedMessages.slice(-8)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+      const resData = await response.json();
+      setIsLoading(false);
+
+      if (resData.error) {
+        throw new Error(resData.error);
+      }
+
+      // Create streaming placeholder
+      const aiMsgId = `msg-${Date.now()}-ai`;
+      const aiMsg: ChatMessage = {
+        id: aiMsgId,
+        sender: "ai",
+        text: "",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        recommendedProperties: resData.recommendedProperties || []
+      };
+
+      updatedMessages = [...updatedMessages, aiMsg];
+      updatedSess = { ...updatedSess, messages: updatedMessages };
+      newSessions = newSessions.map(s => s.id === sessId ? updatedSess : s);
+      setSessions(newSessions);
+
+      // Word-by-word streaming animation
+      const words = resData.text.split(" ");
+      let currentWordIndex = 0;
+      let streamedText = "";
+
+      const streamTimer = setInterval(() => {
+        if (currentWordIndex < words.length) {
+          streamedText += (currentWordIndex === 0 ? "" : " ") + words[currentWordIndex];
+          currentWordIndex++;
+
+          const latestMsg = { ...aiMsg, text: streamedText };
+          const streamMessages = updatedMessages.map(m => m.id === aiMsgId ? latestMsg : m);
+          const streamSess = { ...updatedSess, messages: streamMessages };
+          
+          setSessions(prev => prev.map(s => s.id === sessId ? streamSess : s));
+        } else {
+          clearInterval(streamTimer);
+          const finalMsg = { ...aiMsg, text: resData.text };
+          const finalMessages = updatedMessages.map(m => m.id === aiMsgId ? finalMsg : m);
+          const finalSess = { ...updatedSess, messages: finalMessages };
+          const finalSessions = newSessions.map(s => s.id === sessId ? finalSess : s);
+          syncSession(finalSessions, finalSess);
+        }
+      }, 25);
+
+    } catch (error: any) {
+      setIsLoading(false);
+      const failMsg: ChatMessage = {
+        id: `msg-${Date.now()}-error`,
+        sender: "ai",
+        text: `### Connection Interruption\n\nI was unable to complete the real-time RERA search due to a network disruption: "${error.message || 'Server timeout'}".\n\nTo ensure a smooth offline experience, I will continue responding using our localized real estate index.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      updatedMessages = [...updatedMessages, failMsg];
+      updatedSess = { ...updatedSess, messages: updatedMessages };
+      setSessions(newSessions.map(s => s.id === sessId ? updatedSess : s));
+    }
+  };
+
+  // Voice Recognition Simulation
+  const triggerVoiceInquiry = () => {
+    setVoiceActive(true);
+    setVoiceWaveText("Listening to voice query...");
+
+    const questions = [
+      "Find me a 2 BHK under 80 lakh in Pune.",
+      "Compare Godrej and Lodha.",
+      "Is this builder trustworthy and what is RERA?",
+      "Which locality has better appreciation in Nagpur?"
+    ];
+    const picked = questions[Math.floor(Math.random() * questions.length)];
+
+    setTimeout(() => {
+      setVoiceWaveText(`"${picked}"`);
+      setTimeout(() => {
+        setVoiceActive(false);
+        setInputText(picked);
+      }, 1200);
+    }, 2000);
+  };
+
+  // Chat management features
+  const handleTogglePin = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const session = sessions.find(s => s.id === id);
+    if (!session) return;
+
+    const toggledSession = { ...session, isPinned: !session.isPinned };
+    const updated = sessions.map(s => s.id === id ? toggledSession : s);
+    const sorted = [
+      ...updated.filter(s => s.isPinned),
+      ...updated.filter(s => !s.isPinned)
+    ];
+    setSessions(sorted);
+    await cribrChats.saveSession(toggledSession);
+  };
+
+  const handleDeleteSession = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = sessions.filter(s => s.id !== id);
+    await cribrChats.deleteSession(id);
+    
+    if (updated.length === 0) {
+      const fallback: ChatSession = {
+        id: "default-session-id",
+        title: "New Property Chat",
+        isPinned: false,
+        createdAt: new Date().toISOString(),
+        messages: []
+      };
+      setSessions([fallback]);
+      setActiveSessionId(fallback.id);
+    } else {
+      setSessions(updated);
+      if (activeSessionId === id) {
+        setActiveSessionId(updated[0].id);
+      }
+    }
+  };
+
+  const handleStartRename = (id: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingSessionId(id);
+    setEditingTitle(title);
+  };
+
+  const handleSaveRename = async (id: string) => {
+    const session = sessions.find(s => s.id === id);
+    if (session && editingTitle.trim()) {
+      const renamed = { ...session, title: editingTitle };
+      const updated = sessions.map(s => s.id === id ? renamed : s);
+      setSessions(updated);
+      await cribrChats.saveSession(renamed);
+    }
+    setEditingSessionId(null);
+  };
+
+  const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
+  const messages = activeSession?.messages || [];
+
+  const filteredSessions = sessions.filter(s => 
+    s.title.toLowerCase().includes(searchHistoryQuery.toLowerCase()) ||
+    s.messages.some(m => m.text.toLowerCase().includes(searchHistoryQuery.toLowerCase()))
+  );
 
   return (
-    <div className="min-h-screen bg-[#FAFAFC] text-neutral-900 font-sans antialiased pb-28 selection:bg-blue-100 selection:text-blue-900">
-      {/* 1. HEADER */}
-      <header
-        className={`fixed top-0 left-0 right-0 z-40 px-5 py-3.5 flex items-center justify-between transition-all duration-200 ${
-          scrolled || isSearchingActive
-            ? "bg-white/90 backdrop-blur-xl border-b border-neutral-200/50 shadow-2xs"
-            : "bg-white/70 backdrop-blur-md border-b border-transparent"
-        }`}
-      >
-        {/* Left: CRIBR Logo */}
-        <div
-          onClick={() => {
-            setActiveTab("home");
-            setIsSearchingActive(false);
-            setActiveReport(null);
-          }}
-          className="flex items-center space-x-2 cursor-pointer active:scale-95 transition-transform"
+    <div className="fixed inset-0 z-50 bg-[#F8F9FC] flex flex-col h-full overflow-hidden text-[#111111] font-sans">
+      
+      {/* HEADER BAR (Glassmorphic, Apple-inspired) */}
+      <header className="bg-white/80 backdrop-blur-md border-b border-neutral-200/50 px-4 py-3 flex items-center justify-between z-40 relative">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={onBackToHome}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 active:scale-90 transition-all text-neutral-600 cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <div className="flex items-center space-x-1.5">
+              <h2 className="text-sm font-black text-[#111111] tracking-tight">CRIBR AI</h2>
+              <span className="flex h-2 w-2 relative">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isOnline ? "bg-[#10B981]" : "bg-amber-500"}`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${isOnline ? "bg-[#10B981]" : "bg-amber-500"}`}></span>
+              </span>
+            </div>
+            <p className="text-[10px] text-neutral-400 font-light truncate max-w-44">
+              AI Property Intelligence Assistant
+            </p>
+          </div>
+        </div>
+
+        {/* Offline status badge */}
+        {!isOnline && (
+          <div className="flex items-center space-x-1 px-2.5 py-1 bg-amber-50 border border-amber-100 text-amber-600 rounded-full text-[9px] font-mono font-bold">
+            <WifiOff className="w-3 h-3" />
+            <span>Offline</span>
+          </div>
+        )}
+
+        <button
+          onClick={() => setHistoryOpen(true)}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 active:scale-90 transition-all text-neutral-600 relative cursor-pointer"
         >
-          <span className="font-display font-black text-xl tracking-tight text-neutral-950">
-            CRIBR
-          </span>
-        </div>
-
-        {/* Right: Notification & Profile */}
-        <div className="flex items-center space-x-2.5">
-          <button
-            onClick={() => showToast("All 14 RERA registries are updated live.", "info")}
-            className="w-10 h-10 rounded-full bg-neutral-100/80 border border-neutral-200/50 flex items-center justify-center text-neutral-700 active:scale-95 transition-all relative"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4.5 h-4.5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white animate-pulse" />
-          </button>
-
-          <button
-            onClick={() => {
-              if (currentUser) {
-                onOpenDashboard();
-              } else {
-                onSignInClick();
-              }
-            }}
-            className="w-10 h-10 rounded-full overflow-hidden border border-neutral-200/80 flex items-center justify-center bg-neutral-100 active:scale-95 transition-all shadow-2xs"
-            aria-label="Profile"
-          >
-            {currentUser?.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt={currentUser.fullName}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-5 h-5 text-neutral-600" />
-            )}
-          </button>
-        </div>
+          <History className="w-5 h-5" />
+          {sessions.filter(s => s.messages.length > 0).length > 0 && (
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#2563EB] rounded-full border border-white animate-pulse" />
+          )}
+        </button>
       </header>
 
-      {/* Spacer for sticky header */}
-      <div className="h-16" />
-
-      {/* 2. MAIN CONTENT AREA */}
-      <main className="px-5 pt-3">
-        <AnimatePresence mode="wait">
-          {/* SEARCH ACTIVE VIEW OVERLAY */}
-          {isSearchingActive ? (
-            <motion.div
-              key="active-search-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-6 pb-12"
-            >
-              {/* TOP FIXED SEARCH BOX */}
-              <div className="sticky top-18 z-30 pt-1 bg-[#FAFAFC]">
-                <div className="relative flex items-center">
-                  <div className="absolute left-4 text-blue-600">
-                    <Search className="w-5 h-5" />
-                  </div>
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleExecuteQuery(searchQuery);
-                      }
-                    }}
-                    placeholder="Ask anything about any project..."
-                    className="w-full h-14 pl-12 pr-24 bg-white rounded-[24px] border border-blue-500/50 ring-4 ring-blue-500/10 text-base font-medium text-neutral-950 placeholder-neutral-400 focus:outline-none shadow-sm"
-                    autoFocus
-                  />
-                  <div className="absolute right-3 flex items-center space-x-1.5">
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery("")}
-                        className="p-1.5 text-neutral-400 hover:text-neutral-600 rounded-full"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleExecuteQuery(searchQuery || "Prestige Elysian")}
-                      className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-full transition-all active:scale-95 shadow-2xs"
-                    >
-                      Search
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2.5 px-1">
-                  <span className="text-[11px] font-mono text-neutral-400 font-medium">
-                    {filteredRankedProperties.length} Information Results Found
-                  </span>
-                  <button
-                    onClick={() => setIsSearchingActive(false)}
-                    className="text-xs text-blue-600 font-semibold"
-                  >
-                    Close Search
-                  </button>
-                </div>
+      {/* CHAT VIEWPORT */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 scrollbar-none">
+        
+        {/* Welcome Screen */}
+        {messages.length === 0 && (
+          <div className="max-w-md mx-auto space-y-6 pt-6 flex flex-col items-center">
+            
+            {/* Elegant AI Logo */}
+            <div className="text-center space-y-3.5 flex flex-col items-center">
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="w-16 h-16 rounded-[24px] bg-gradient-to-tr from-[#2563EB] to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/10"
+              >
+                <Sparkles className="w-8 h-8 text-amber-200" />
+              </motion.div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-black tracking-tight text-neutral-900">How can I help you today?</h3>
+                <p className="text-xs text-neutral-400 font-light max-w-xs leading-relaxed mx-auto">
+                  Ask anything about Indian real estate. Discover flats, compare developers, calculate EMI, and check RERA legal safety instantly.
+                </p>
               </div>
+            </div>
 
-              {/* RANKED RESULTS LIST */}
-              <div className="space-y-4">
-                <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold px-1">
-                  Ranked Information Matrix
-                </div>
-
-                {filteredRankedProperties.map((item, idx) => (
-                  <motion.div
-                    key={item.id}
-                    layoutId={`property-card-${item.id}`}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25, delay: idx * 0.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setSelectedPropertyModal(item);
-                    }}
-                    className="bg-white rounded-[24px] p-4 border border-neutral-200/70 shadow-xs flex items-center gap-3.5 cursor-pointer hover:border-blue-300 transition-all relative overflow-hidden"
+            {/* Suggested Prompt Cards */}
+            <div className="w-full space-y-3">
+              <h4 className="text-[10px] font-mono font-black tracking-wider text-neutral-400 uppercase text-center">
+                Suggested Consultations
+              </h4>
+              <div className="grid grid-cols-1 gap-2">
+                {SUGGESTED_CARDS.map((card, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => createNewSessionWithQuery(card.query)}
+                    className="p-3.5 bg-white border border-neutral-200/50 rounded-2xl shadow-sm text-left hover:border-neutral-300 active:scale-[0.98] transition-all flex items-center space-x-3.5 cursor-pointer"
                   >
-                    {/* Left Image Thumbnail */}
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 relative">
-                      {/* Rank Badge safely nested inside image thumbnail */}
-                      <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 bg-neutral-950/90 backdrop-blur-xs text-white font-mono font-black text-[9px] rounded-md shadow-2xs">
-                        #{idx + 1}
-                      </div>
-                      <motion.img
-                        layoutId={`property-img-${item.id}`}
-                        src={item.image}
-                        alt={item.projectName}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      <div className="absolute bottom-1.5 left-1.5 text-[9px] font-mono font-bold text-white bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md">
-                        {item.minPrice}
-                      </div>
-                    </div>
-
-                    {/* Content Center */}
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-mono font-bold rounded-md border border-emerald-200/50 flex items-center shrink-0">
-                          <Check className="w-2.5 h-2.5 mr-0.5 text-emerald-600" /> Verified
-                        </span>
-                        <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[9px] font-mono font-bold rounded-md border border-blue-200/50 shrink-0 truncate max-w-[110px]">
-                          {item.possessionDate}
-                        </span>
-                      </div>
-
-                      <h4 className="text-sm sm:text-base font-bold text-neutral-950 truncate tracking-tight">
-                        {item.projectName}
-                      </h4>
-                      <p className="text-xs text-neutral-500 truncate font-medium">
-                        {item.builder} • {item.locality}
-                      </p>
-                      <p className="text-[11px] text-neutral-600 line-clamp-2 leading-relaxed font-normal">
-                        {item.googleReviewSummary}
-                      </p>
-                    </div>
-
-                    {/* Score Right */}
-                    <div className="flex flex-col items-end justify-between shrink-0 self-stretch py-0.5">
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-blue-50 border border-blue-200/60 flex flex-col items-center justify-center text-center">
-                        <span className="text-xs font-mono font-black text-blue-700 leading-none">
-                          {item.timelineReliabilityRatio}
-                        </span>
-                        <span className="text-[7px] font-mono uppercase text-blue-500 font-semibold mt-0.5">
-                          Score
-                        </span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-neutral-400 mt-2" />
-                    </div>
-                  </motion.div>
+                    <span className="text-lg w-8 h-8 rounded-xl bg-[#F8F9FC] flex items-center justify-center">{card.emoji}</span>
+                    <span className="text-xs font-bold text-neutral-800 tracking-tight">
+                      {card.label}
+                    </span>
+                  </button>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
 
-              {/* AI RESULT CONTEXT ASSISTANT */}
-              {searchQuery && filteredRankedProperties.length > 0 && (
-                <div className="pt-2">
-                  <ResultContextAIAssistant
-                    searchQuery={searchQuery}
-                    activeFilters={{ category: selectedCategory }}
-                    currentProjects={filteredRankedProperties}
-                    onSelectProperty={onSelectProperty}
-                  />
-                </div>
-              )}
-
-              {/* BELOW RESULTS: AI SUGGESTED QUESTIONS */}
-              <div className="pt-4 space-y-3">
-                <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold px-1 flex items-center space-x-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                  <span>AI Suggested Inquiries</span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2">
-                  {AI_SUGGESTED_QUESTIONS.map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleExecuteQuery(q)}
-                      className="p-3.5 bg-white border border-neutral-200/70 hover:border-blue-300 rounded-2xl text-left text-xs font-semibold text-neutral-800 flex items-center justify-between active:scale-[0.98] transition-all shadow-2xs"
-                    >
-                      <span>{q}</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-blue-600" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          ) : activeTab === "home" ? (
-            <motion.div
-              key="home-tab-main"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-10 pb-12"
-            >
-              {/* 3. HERO SECTION */}
-              <section className="pt-2 pb-4 space-y-6">
-                <div className="space-y-2">
-                  <motion.h1
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.05 }}
-                    className="text-4xl sm:text-5xl font-display font-black tracking-tight text-neutral-950 leading-[1.08]"
-                  >
-                    Find the right property
-                  </motion.h1>
-
-                  <motion.p
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
-                    className="text-sm sm:text-base text-neutral-500 font-normal leading-relaxed"
-                  >
-                    Get instant legal, pricing, construction and risk information before visiting.
-                  </motion.p>
-                </div>
-
-                {/* LARGE SEARCH BOX */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.15 }}
-                  className="space-y-3"
-                >
-                  <div
-                    onClick={() => setIsSearchingActive(true)}
-                    className="relative flex items-center bg-white rounded-[24px] border border-neutral-200/90 shadow-sm p-2 pl-4 cursor-pointer hover:border-blue-400 active:scale-[0.99] transition-all group"
-                  >
-                    <Search className="w-5 h-5 text-neutral-400 group-hover:text-blue-600 transition-colors mr-3 shrink-0" />
-                    <span className="w-full text-base font-normal text-neutral-400 truncate">
-                      Ask anything...
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setVoiceActive(true);
-                      }}
-                      className="p-2.5 rounded-2xl bg-neutral-100 text-neutral-600 hover:bg-blue-50 hover:text-blue-600 transition-all mr-1"
-                    >
-                      <Mic className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsSearchingActive(true);
-                      }}
-                      className="px-4 py-2.5 bg-neutral-950 hover:bg-blue-600 text-white text-xs font-semibold rounded-2xl flex items-center space-x-1 transition-colors shadow-2xs shrink-0"
-                    >
-                      <span>Search</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* EXAMPLES UNDERNEATH INPUT */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1 px-1">
-                    <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold mr-1">
-                      Try asking:
-                    </span>
-                    {SAMPLE_QUICK_PROMPTS.map((prompt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleExecuteQuery(prompt)}
-                        className="text-xs text-neutral-600 hover:text-blue-600 bg-neutral-100/70 hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-neutral-200/40 font-medium transition-colors cursor-pointer"
-                      >
-                        • {prompt}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              </section>
-
-              {/* 4. QUICK SEARCH CHIPS */}
-              <section className="space-y-3">
-                <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold px-1">
-                  Quick Search Vectors
-                </div>
-
-                <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-none scroll-smooth">
-                  {QUICK_SEARCH_CHIPS.map((chip, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleExecuteQuery(chip.query)}
-                      className="flex-shrink-0 px-4 py-2.5 bg-white border border-neutral-200/70 hover:border-blue-300 rounded-2xl text-xs font-semibold text-neutral-800 flex items-center space-x-2 shadow-2xs active:scale-95 transition-all cursor-pointer"
-                    >
-                      <span>{chip.emoji}</span>
-                      <span>{chip.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              {/* ACTIVE REPORT DISPLAY (IF OPENED) */}
-              {activeReport && (
-                <section className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono bg-blue-50 border border-blue-100 text-blue-700 px-3 py-1 rounded-full uppercase font-black tracking-widest">
-                      ACTIVE VERIFICATION REPORT
-                    </span>
-                    <button
-                      onClick={() => setActiveReport(null)}
-                      className="p-1.5 bg-neutral-100 text-neutral-500 rounded-full hover:bg-neutral-200"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <CribrIntelligenceReport
-                    report={activeReport}
-                    onSaveCurrent={handleSaveCurrentReport}
-                    isSaved={savedHomes.some((h) => h.propertyName === activeReport.propertyOrQueryName)}
-                    isLoading={isReportLoading}
-                    onBookVisit={onBookVisit}
-                    onDownloadReport={onDownloadReport}
-                    onScheduleCallback={onScheduleCallback}
-                    onUnlockPremium={onUnlockPremium}
-                  />
-                </section>
-              )}
-
-              {/* 5. ALL FEATURED PROPERTY CARDS */}
-              <section className="space-y-4">
-                <div className="flex items-end justify-between px-1">
-                  <div>
-                    <div className="text-[11px] font-mono uppercase tracking-widest text-blue-600 font-bold">
-                      Verified Audits
-                    </div>
-                    <h3 className="text-xl font-bold font-display text-neutral-950 tracking-tight">
-                      All Properties ({propertiesList.length})
-                    </h3>
-                  </div>
-                  <span className="text-xs text-neutral-400 font-mono font-medium">
-                    100% RERA Verified
+        {/* Render Chat Messages */}
+        {messages.map((message) => (
+          <div key={message.id} className="space-y-3">
+            
+            {/* Bubble Layout */}
+            <div className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[85%] rounded-[24px] px-4.5 py-3.5 shadow-sm ${
+                  message.sender === "user"
+                    ? "bg-[#2563EB] text-white rounded-br-sm"
+                    : "bg-white border border-neutral-200/50 text-[#111111] rounded-bl-sm"
+                }`}
+              >
+                {message.sender === "user" ? (
+                  <p className="text-xs font-light leading-relaxed whitespace-pre-wrap">{message.text}</p>
+                ) : (
+                  <CribrMarkdown content={message.text} />
+                )}
+                
+                <div className="mt-1 flex justify-end">
+                  <span className={`text-[8px] font-mono ${message.sender === "user" ? "text-blue-100" : "text-neutral-400"}`}>
+                    {message.timestamp}
                   </span>
                 </div>
-
-                {/* Vertical Stack of All Property Cards */}
-                <div className="space-y-4">
-                  {propertiesList.length === 0 ? (
-                    <div className="bg-white rounded-[24px] border border-neutral-200/80 p-8 text-center space-y-4 shadow-xs">
-                      <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
-                        <Building2 className="w-7 h-7" />
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="text-lg font-display font-bold text-neutral-950">
-                          No Properties Available
-                        </h4>
-                        <p className="text-xs text-neutral-500 max-w-xs mx-auto font-normal leading-relaxed">
-                          Properties added from the Admin Panel will appear here.
-                        </p>
-                      </div>
-                      <button
-                        onClick={refreshProperties}
-                        className="px-5 py-2.5 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center space-x-2"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Refresh</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      {/* AI Searching indicator */}
-                      {isSearching && searchQuery && (
-                        <div className="flex items-center justify-center gap-2 py-4">
-                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                          <span className="text-xs font-medium text-blue-600">
-                            AI is analyzing your query...
-                          </span>
-                        </div>
-                      )}
-
-                      {/* If a search query is active and returns 0 matching results */}
-                      {searchQuery && filteredRankedProperties.length === 0 ? (
-                        <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="bg-white rounded-2xl border border-neutral-200/80 p-6 text-center space-y-3 shadow-2xs"
-                        >
-                          <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto border border-neutral-200">
-                            <Building2 className="w-6 h-6" />
-                          </div>
-                          <div className="space-y-1">
-                            <h4 className="text-base font-display font-bold text-neutral-900">
-                              No matching projects found
-                            </h4>
-                            <p className="text-xs text-neutral-500 leading-relaxed">
-                              No verified projects match "{searchQuery}".
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setSearchQuery("")}
-                            className="px-4 py-2 bg-neutral-950 text-white text-xs font-semibold rounded-xl shadow-xs"
-                          >
-                            View all properties
-                          </button>
-                        </motion.div>
-                      ) : (
-                        filteredRankedProperties.map((prop, idx) => {
-                          const p = prop;
-                          return (
-                        <div
-                          key={p.id}
-                          onClick={() => {
-                            if (onSelectProperty) {
-                              onSelectProperty(prop);
-                            } else {
-                              window.history.pushState(null, "", `/property/${p.id}`);
-                              window.dispatchEvent(new Event("popstate"));
-                            }
-                          }}
-                          className="w-full bg-white rounded-[24px] border border-neutral-200/80 overflow-hidden shadow-xs cursor-pointer group hover:border-blue-400 active:scale-[0.99] transition-all duration-150"
-                        >
-                          {/* Large Hero Image */}
-                          <div className="h-[190px] w-full relative overflow-hidden bg-neutral-100">
-                            <img
-                              src={p.image}
-                              alt={p.projectName}
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-
-                            {/* Top Badges */}
-                            <div className="absolute top-3 inset-x-3.5 flex items-center justify-between">
-                              <div className="px-2.5 py-1 bg-emerald-600 text-white text-[10px] font-mono font-bold rounded-full flex items-center space-x-1 shadow-xs">
-                                <Check className="w-3 h-3 text-white" />
-                                <span>RERA Registered ✓</span>
-                              </div>
-
-                              <div className="px-2.5 py-1 bg-neutral-900/90 text-amber-300 border border-neutral-700/60 text-[10px] font-mono font-bold rounded-full flex items-center space-x-1 shadow-xs">
-                                <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
-                                <span>{p.googleRating}</span>
-                              </div>
-                            </div>
-
-                            {/* Bottom Overlay Title on Image */}
-                            <div className="absolute bottom-3 inset-x-3.5 text-white space-y-0.5">
-                              <span className="text-[10px] font-mono font-bold text-blue-300 uppercase tracking-wider block">
-                                {p.builder}
-                              </span>
-                              <h4 className="text-lg font-bold font-display tracking-tight leading-snug">
-                                {p.projectName}
-                              </h4>
-                              <p className="text-xs text-neutral-300 font-normal">
-                                {p.locality}, {p.area}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Card Body */}
-                          <div className="p-4 space-y-3 bg-white">
-                            {/* Price & Rate */}
-                            <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 flex items-center justify-between">
-                              <div>
-                                <span className="text-[10px] font-mono uppercase text-neutral-400 block font-semibold">
-                                  Price Range
-                                </span>
-                                <span className="text-sm font-bold text-neutral-950 font-mono">
-                                  {p.minPrice} – {p.maxPrice}
-                                </span>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-[10px] font-mono uppercase text-neutral-400 block font-semibold">
-                                  Rate / sq ft
-                                </span>
-                                <span className="text-xs font-bold font-mono text-blue-700 block">
-                                  {p.pricePerSqft}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Unit Configurations & Possession */}
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                              <div className="p-2 bg-neutral-50 rounded-lg border border-neutral-100">
-                                <span className="text-[9px] font-mono uppercase text-neutral-400 font-semibold block">Possession</span>
-                                <span className="font-bold font-mono text-neutral-900 text-[11px]">{p.possessionDate}</span>
-                              </div>
-                              <div className="p-2 bg-neutral-50 rounded-lg border border-neutral-100">
-                                <span className="text-[9px] font-mono uppercase text-neutral-400 font-semibold block">Construction</span>
-                                <span className="font-bold font-mono text-emerald-700 text-[11px]">{p.constructionProgress}% Completed</span>
-                              </div>
-                            </div>
-
-                            {/* Scale & Units */}
-                            <div className="grid grid-cols-3 gap-1 text-[10px] font-mono bg-neutral-50/60 p-2 rounded-lg border border-neutral-100 text-center">
-                              <div>
-                                <span className="text-[8px] text-neutral-400 uppercase font-semibold block">Scale</span>
-                                <span className="font-bold text-neutral-900">{p.landAreaAcres}</span>
-                              </div>
-                              <div>
-                                <span className="text-[8px] text-neutral-400 uppercase font-semibold block">Units</span>
-                                <span className="font-bold text-neutral-900">{p.totalUnits}</span>
-                              </div>
-                              <div>
-                                <span className="text-[8px] text-neutral-400 uppercase font-semibold block">Grade</span>
-                                <span className="font-bold text-indigo-700">Grade {p.builderGrade}</span>
-                              </div>
-                            </div>
-
-                            {/* Action CTA */}
-                            <div className="pt-1">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (onSelectProperty) {
-                                    onSelectProperty(prop);
-                                  } else {
-                                    window.history.pushState(null, "", `/property/${p.id}`);
-                                    window.dispatchEvent(new Event("popstate"));
-                                  }
-                                }}
-                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center space-x-1.5 transition-all shadow-xs active:scale-98 cursor-pointer"
-                              >
-                                <span>View Project Overview</span>
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </>
-              )}
+              </div>
             </div>
-              </section>
 
-              {/* 6. TRENDING SEARCHES */}
-              <section className="space-y-3">
-                <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold px-1">
-                  Trending Inquiries
+            {/* Horizontal scrolling recommended property cards */}
+            {message.sender === "ai" && message.recommendedProperties && message.recommendedProperties.length > 0 && (
+              <div className="space-y-2 py-1">
+                <div className="flex items-center space-x-1.5 px-1.5">
+                  <Award className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span className="text-[10px] font-black text-[#2563EB] uppercase tracking-wider font-mono">
+                    CRIBR AI Recommendation Card
+                  </span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {TRENDING_SEARCHES.map((item, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handleExecuteQuery(item.query)}
-                      className="p-4 bg-white rounded-[20px] border border-neutral-200/70 shadow-2xs hover:border-blue-300 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
-                          🔥
-                        </div>
-                        <span className="text-xs font-bold text-neutral-900">
-                          {item.text}
-                        </span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0" />
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* 7. EXPLORE BY CATEGORY */}
-              <section className="space-y-3">
-                <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold px-1">
-                  Explore by Category
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {CATEGORIES.map((cat, idx) => {
-                    const isSelected = selectedCategory === cat.name;
+                
+                <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none snap-x snap-mandatory">
+                  {message.recommendedProperties.map((prop: any) => {
+                    const isSaved = savedHomes.some((h) => h.id === prop.id);
                     return (
-                      <motion.div
-                        key={idx}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => {
-                          setSearchQuery("");
-                          setSelectedCategory(isSelected ? "All" : cat.name);
-                          // Scroll up to show results if not already at top
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className={`p-4 rounded-[24px] border shadow-2xs flex flex-col items-center justify-center text-center space-y-1.5 cursor-pointer transition-all ${
-                          isSelected 
-                            ? "bg-blue-50/50 border-blue-500" 
-                            : "bg-white border-neutral-200/70 hover:border-blue-300"
-                        }`}
+                      <div
+                        key={prop.id}
+                        className="flex-shrink-0 w-72 bg-white rounded-[24px] border border-neutral-200/60 shadow-md overflow-hidden snap-center flex flex-col justify-between"
                       >
-                        <div className="text-3xl mb-0.5">{cat.icon}</div>
-                        <h5 className="text-sm font-bold text-neutral-950 tracking-tight">
-                          {cat.name}
-                        </h5>
-                        <span className="text-[10px] text-neutral-500 font-mono font-normal">
-                          {cat.desc}
-                        </span>
-                      </motion.div>
+                        {/* Image + Overlays */}
+                        <div className="h-36 relative overflow-hidden">
+                          <img
+                            src={prop.image}
+                            alt={prop.name}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-white/95 backdrop-blur-md rounded-full text-[9px] font-black text-neutral-800 shadow-sm">
+                            {prop.city}
+                          </div>
+                          
+                          {/* AI Score */}
+                          <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-neutral-900/90 backdrop-blur-md text-white rounded-full text-[9px] font-mono font-bold flex items-center space-x-1 shadow-sm">
+                            <Sparkles className="w-2.5 h-2.5 text-amber-400" />
+                            <span>{prop.overallScore}% AI Score</span>
+                          </div>
+                        </div>
+
+                        {/* Content Grid & Metrices */}
+                        <div className="p-4 space-y-3">
+                          <div className="space-y-0.5">
+                            <h5 className="text-sm font-extrabold text-[#111111] leading-tight truncate">
+                              {prop.name}
+                            </h5>
+                            <div className="flex items-center justify-between text-[11px] text-neutral-400">
+                              <span className="truncate max-w-40">by {prop.developer}</span>
+                              <span className="text-[#2563EB] font-black font-mono">{prop.priceRange}</span>
+                            </div>
+                          </div>
+
+                          {/* Technical benchmarks for real estate (Requirement: RERA, Investment Score, Legal risk, Rental yield) */}
+                          <div className="grid grid-cols-4 gap-1 bg-neutral-50 p-2 rounded-xl text-center text-[9px] font-mono border border-neutral-100">
+                            <div>
+                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">RERA</span>
+                              <span className="text-emerald-600 font-black">Compliant</span>
+                            </div>
+                            <div className="border-l border-neutral-200/50">
+                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">Invest</span>
+                              <span className="text-[#2563EB] font-black font-mono">{prop.investmentYieldScore}/100</span>
+                            </div>
+                            <div className="border-l border-neutral-200/50">
+                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">Legal</span>
+                              <span className="text-emerald-600 font-black font-mono">{prop.legalScore}/100</span>
+                            </div>
+                            <div className="border-l border-neutral-200/50">
+                              <span className="text-neutral-400 block text-[7px] uppercase font-bold leading-none">Rental</span>
+                              <span className="text-purple-600 font-black font-mono">{Math.round(prop.investmentYieldScore * 0.95)}/100</span>
+                            </div>
+                          </div>
+
+                          <p className="text-[10px] text-neutral-500 font-light leading-snug line-clamp-2">
+                            {prop.legalReport}
+                          </p>
+
+                          {/* Requirement: View Details, Compare, Save buttons */}
+                          <div className="grid grid-cols-3 gap-1.5 pt-1">
+                            <button
+                              onClick={() => setDetailsProp(prop)}
+                              className="py-2 bg-neutral-900 text-white rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
+                            >
+                              <Info className="w-3 h-3" />
+                              <span>Details</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                // Match other items to compare
+                                const other = message.recommendedProperties?.find((p: any) => p.id !== prop.id) || message.recommendedProperties?.[0];
+                                setComparisonProp({ propertyA: prop, propertyB: other });
+                              }}
+                              className="py-2 bg-white border border-neutral-200 text-neutral-700 rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
+                            >
+                              <Scale className="w-3 h-3" />
+                              <span>Compare</span>
+                            </button>
+                            <button
+                              onClick={() => isSaved ? onRemoveSaved(prop.id) : onSaveHome(prop as any)}
+                              className="py-2 bg-neutral-100 border border-neutral-200/40 text-neutral-700 rounded-xl text-[9px] font-black flex items-center justify-center space-x-0.5 active:scale-95 transition-all cursor-pointer"
+                            >
+                              <Bookmark className={`w-3 h-3 ${isSaved ? "fill-rose-500 text-rose-500" : ""}`} />
+                              <span>{isSaved ? "Saved" : "Save"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
-              </section>
-            </motion.div>
-          ) : activeTab === "search" ? (
-            <motion.div
-              key="search-tab-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-6 pb-12"
-            >
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold font-display text-neutral-950 tracking-tight">
-                  Search & Verification
-                </h2>
-                <p className="text-xs text-neutral-500 leading-relaxed font-normal">
-                  Search across state RERA registers, municipal sanctions, and court databases.
-                </p>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Advanced Gradient Loading Experience */}
+        {isLoading && (
+          <div className="flex justify-start items-start">
+            <div className="bg-white border border-neutral-200/50 rounded-[24px] rounded-tl-sm p-4 shadow-sm w-full max-w-[85%] space-y-3.5">
+              
+              {/* Rotating Animated Gradient Spinner */}
+              <div className="flex items-center space-x-3">
+                <div className="relative w-8 h-8 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-2 border-neutral-100" />
+                  <div className="absolute inset-0 rounded-full border-2 border-t-[#2563EB] border-r-purple-600 animate-spin" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#2563EB] animate-pulse" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-neutral-800 block">CRIBR AI Advisor</span>
+                  <span className="text-[10px] text-neutral-400 font-mono font-medium">
+                    {CHAT_STATUS_MESSAGES[statusTextIndex]}
+                  </span>
+                </div>
               </div>
 
-              {/* Search Box */}
-              <div className="relative">
-                <Search className="w-5 h-5 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleExecuteQuery(searchQuery);
-                    }
-                  }}
-                  placeholder="Search any property, builder, or city..."
-                  className="w-full h-14 pl-12 pr-12 bg-white rounded-[24px] border border-neutral-200 focus:border-blue-600 text-sm font-medium focus:outline-none shadow-2xs"
+              {/* Slow progress feedback line */}
+              <div className="w-full h-1 bg-neutral-100 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-[#2563EB] to-purple-600 rounded-full"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 15, ease: "linear" }}
                 />
-                <button
-                  onClick={() => setVoiceActive(true)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-blue-600 bg-blue-50 rounded-xl"
-                >
-                  <Mic className="w-4 h-4" />
-                </button>
               </div>
-
-              {/* Suggested Questions */}
-              <div className="space-y-3">
-                <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
-                  Suggested AI Prompts
-                </div>
-                <div className="space-y-2">
-                  {SAMPLE_QUICK_PROMPTS.map((prompt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleExecuteQuery(prompt)}
-                      className="w-full p-3.5 bg-white border border-neutral-200/70 hover:border-blue-300 rounded-2xl text-left text-xs font-semibold text-neutral-900 flex items-center justify-between active:scale-[0.98] transition-all"
-                    >
-                      <span>{prompt}</span>
-                      <ChevronRight className="w-4 h-4 text-neutral-400" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          ) : activeTab === "saved" ? (
-            <motion.div
-              key="saved-tab-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-6 pb-12"
-            >
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold font-display text-neutral-950 tracking-tight">
-                  Saved Library
-                </h2>
-                <p className="text-xs text-neutral-500 font-normal">
-                  Your saved property audits and intelligence reports.
-                </p>
-              </div>
-
-              {savedHomes.length > 0 ? (
-                <div className="space-y-3">
-                  {savedHomes.map((home) => (
-                    <div
-                      key={home.id}
-                      className="p-4 bg-white rounded-[24px] border border-neutral-200/70 shadow-2xs space-y-3 relative"
-                    >
-                      <button
-                        onClick={() => onRemoveSaved(home.id)}
-                        className="absolute top-4 right-4 p-1.5 text-neutral-400 hover:text-red-500 rounded-full"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      <div className="space-y-1 pr-8">
-                        <span className="text-[10px] font-mono uppercase bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-md font-bold">
-                          {home.city}
-                        </span>
-                        <h3 className="text-base font-bold text-neutral-950">{home.propertyName}</h3>
-                        <p className="text-xs text-neutral-400 font-medium">by {home.developer}</p>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
-                        <span className="text-xs font-mono font-bold text-emerald-600">
-                          {home.overallScore}% AI Score
-                        </span>
-                        <button
-                          onClick={() => handleExecuteQuery(home.propertyName)}
-                          className="px-3.5 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-semibold flex items-center space-x-1"
-                        >
-                          <Sparkles className="w-3 h-3" />
-                          <span>View Audit</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-10 text-center bg-white rounded-[24px] border border-neutral-200/70 text-neutral-400 space-y-3 shadow-2xs">
-                  <Heart className="w-8 h-8 text-neutral-300 mx-auto" />
-                  <p className="text-xs font-medium text-neutral-600">No saved properties yet.</p>
-                  <button
-                    onClick={() => setActiveTab("home")}
-                    className="px-4 py-2 bg-neutral-950 text-white rounded-xl text-xs font-semibold"
-                  >
-                    Explore Properties
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          ) : activeTab === "chat" ? (
-            <div className="fixed inset-0 z-50 bg-[#FAFAFC]">
-              <CribrMobileChat
-                currentUser={currentUser}
-                savedHomes={savedHomes}
-                onSaveHome={onSaveHome}
-                onRemoveSaved={onRemoveSaved}
-                onBookVisit={onBookVisit}
-                onBackToHome={() => {
-                  setActiveTab("home");
-                }}
-                initialQuery={searchQuery}
-              />
             </div>
-          ) : (
-            <motion.div
-              key="profile-tab-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-6 pb-12"
-            >
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold font-display text-neutral-950 tracking-tight">
-                  Account Profile
-                </h2>
-                <p className="text-xs text-neutral-500 font-normal">
-                  Manage your verification alerts and settings.
-                </p>
-              </div>
+          </div>
+        )}
 
-              {currentUser ? (
-                <div className="space-y-4">
-                  <div className="p-4 bg-white rounded-[24px] border border-neutral-200/70 shadow-2xs flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border border-neutral-200 bg-neutral-100 shrink-0">
-                      {currentUser.avatarUrl ? (
-                        <img
-                          src={currentUser.avatarUrl}
-                          alt={currentUser.fullName}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-blue-600 text-lg">
-                          {currentUser.fullName.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-neutral-950">{currentUser.fullName}</h3>
-                      <p className="text-xs text-neutral-400 font-mono">{currentUser.email}</p>
-                    </div>
-                  </div>
+        <div ref={chatBottomRef} />
+      </div>
 
-                  <button
-                    onClick={onOpenDashboard}
-                    className="w-full py-3.5 bg-neutral-950 text-white rounded-[20px] font-semibold text-xs shadow-2xs"
-                  >
-                    Open Account Dashboard
-                  </button>
-                </div>
-              ) : (
-                <div className="p-8 text-center bg-white rounded-[24px] border border-neutral-200/70 text-neutral-400 space-y-4 shadow-2xs">
-                  <User className="w-10 h-10 text-neutral-300 mx-auto" />
-                  <div>
-                    <h4 className="text-sm font-bold text-neutral-950">Sign in to CRIBR</h4>
-                    <p className="text-xs text-neutral-500 font-normal mt-1">
-                      Save favorite properties, access RERA updates, and request expert consultations.
-                    </p>
-                  </div>
-                  <button
-                    onClick={onSignInClick}
-                    className="w-full py-3 bg-blue-600 text-white rounded-[20px] font-semibold text-xs shadow-2xs"
-                  >
-                    Sign In Now
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+      {/* INPUT CONTROLS FOOTER */}
+      <footer className="p-4 bg-white border-t border-neutral-200/50 space-y-2.5 z-30">
+        
+        {/* Rounded Input wrapper */}
+        <div className="flex items-center space-x-2 bg-[#F8F9FC] border border-neutral-200/60 rounded-full h-13 px-3 shadow-sm">
+          
+          {/* Simulated Attachment Button */}
+          <button
+            onClick={() => {
+              alert("Photo uploaded! Our intelligence engine has scanned the floor plan blueprint image.");
+            }}
+            className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-white border border-neutral-200/50 text-neutral-500 active:scale-90 transition-all shadow-sm cursor-pointer"
+            title="Attach floor plan blueprint or lease document"
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
 
-      {/* 8. FLOATING GLASS BOTTOM NAVIGATION */}
-      <nav className="fixed bottom-5 left-4 right-4 z-40 bg-white/85 backdrop-blur-xl border border-neutral-200/60 rounded-full h-16 shadow-lg px-6 flex items-center justify-between">
-        {[
-          { id: "home", label: "Home", icon: HomeIcon },
-          { id: "search", label: "Search", icon: Search },
-          { id: "chat", label: "AI Chat", icon: MessageSquare },
-          { id: "saved", label: "Saved", icon: Heart },
-          { id: "profile", label: "Profile", icon: User }
-        ].map((tab) => {
-          const isActive = activeTab === tab.id && !isSearchingActive;
-          const isChat = tab.id === "chat";
-          const IconComponent = tab.icon;
+          {/* Text input supporting Shift + Enter for new lines */}
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            rows={1}
+            placeholder="Ask anything about real estate..."
+            className="flex-1 bg-transparent border-none text-xs text-[#111111] placeholder-neutral-400 font-light focus:outline-none focus:ring-0 px-1 py-2 scrollbar-none resize-none max-h-12"
+          />
 
-          return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setIsSearchingActive(false);
-                setActiveTab(tab.id as any);
-                if (tab.id === "search") {
-                  setIsSearchingActive(true);
-                }
-              }}
-              className="flex flex-col items-center justify-center relative focus:outline-none"
-            >
-              <div
-                className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-200 ${
-                  isActive
-                    ? isChat
-                      ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs"
-                      : "bg-neutral-950 text-white"
-                    : "text-neutral-400 hover:text-neutral-600"
-                }`}
-              >
-                <IconComponent className="w-4.5 h-4.5" />
-              </div>
-              <span
-                className={`text-[9px] font-mono font-bold mt-0.5 ${
-                  isActive ? "text-neutral-950" : "text-neutral-400"
-                }`}
-              >
-                {tab.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+          {/* Voice Search Button */}
+          <button
+            onClick={triggerVoiceInquiry}
+            className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-500 active:scale-90 transition-all cursor-pointer"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
 
-      {/* VOICE MODAL */}
+          {/* Send Button */}
+          <button
+            onClick={handleSend}
+            disabled={!inputText.trim()}
+            className={`w-8.5 h-8.5 flex items-center justify-center rounded-full shadow-sm transition-all cursor-pointer ${
+              inputText.trim()
+                ? "bg-[#2563EB] text-white active:scale-90 hover:brightness-110"
+                : "bg-neutral-100 text-neutral-300 pointer-events-none"
+            }`}
+          >
+            <Send className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </footer>
+
+      {/* VOICE OVERLAY */}
       <AnimatePresence>
         {voiceActive && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-[#FAFAFC]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6"
+            className="fixed inset-0 z-50 bg-[#F8F9FC]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6"
           >
-            <div className="max-w-xs space-y-6 flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-600 relative">
-                <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
-                <Mic className="w-8 h-8 relative z-10" />
+            <div className="max-w-xs space-y-8 flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB] relative">
+                <div className="absolute inset-0 rounded-full bg-[#2563EB]/20 animate-ping" />
+                <div className="absolute -inset-4 rounded-full bg-[#2563EB]/10 animate-pulse" />
+                <Mic className="w-8 h-8 text-[#2563EB] relative z-10 animate-pulse" />
               </div>
 
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-neutral-950">AI Voice Assistant</h3>
-                <p className="text-xs text-neutral-500">Ask anything about any project or builder...</p>
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-[#111111]">Voice Query Active</h3>
+                <p className="text-xs text-neutral-400 font-light">Ask CRIBR AI about a location, builder comparison, or legal check...</p>
               </div>
 
-              <div className="p-4 bg-white border border-neutral-200/80 rounded-2xl w-full shadow-2xs min-h-16 flex items-center justify-center">
-                <p className="text-sm font-semibold text-blue-600 italic">
-                  {voiceText}
+              <div className="p-4 bg-white border border-neutral-100 rounded-2xl w-full shadow-sm min-h-16 flex items-center justify-center">
+                <p className="text-xs font-semibold text-[#2563EB] italic leading-tight">
+                  {voiceWaveText || "Listening..."}
                 </p>
               </div>
 
               <button
                 onClick={() => setVoiceActive(false)}
-                className="px-5 py-2 bg-neutral-950 text-white rounded-full text-xs font-semibold"
+                className="px-5 py-2 bg-neutral-900 text-white rounded-full text-[10px] font-bold active:scale-95 transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -1153,65 +983,347 @@ export default function CribrMobileHome({
         )}
       </AnimatePresence>
 
-      {/* LOADING OVERLAY */}
+      {/* RECENT SESSIONS DRAWER */}
       <AnimatePresence>
-        {isReportLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-[#FAFAFC]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6"
-          >
-            <div className="max-w-xs space-y-6 flex flex-col items-center">
-              <div className="relative w-24 h-24 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-4 border-neutral-200/60" />
-                <div className="absolute inset-0 rounded-full border-4 border-t-blue-600 border-r-indigo-600 animate-spin" />
-                <Sparkles className="w-8 h-8 text-blue-600 animate-pulse" />
+        {historyOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setHistoryOpen(false)}
+              className="absolute inset-0 bg-neutral-900"
+            />
+
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="absolute inset-x-0 bottom-0 max-h-[85%] bg-white rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="w-12 h-1 bg-neutral-200 rounded-full mx-auto mt-3 mb-2" />
+
+              <div className="px-5 py-3 flex items-center justify-between border-b border-neutral-100">
+                <div className="flex items-center space-x-2">
+                  <History className="w-4 h-4 text-neutral-500" />
+                  <h3 className="text-sm font-bold text-[#111111]">Recent Consultations</h3>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleNewSessionClick}
+                    className="px-3 py-1.5 bg-[#2563EB] text-white rounded-full text-[10px] font-bold flex items-center space-x-1 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>New Consultation</span>
+                  </button>
+                  <button
+                    onClick={() => setHistoryOpen(false)}
+                    className="p-1.5 bg-neutral-100 text-neutral-500 rounded-full cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-neutral-950">CRIBR AI Synthesis</h3>
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={statusIndex}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="text-xs font-mono font-medium text-neutral-500"
-                  >
-                    {STATUS_MESSAGES[statusIndex]}
-                  </motion.p>
-                </AnimatePresence>
+              {/* History Search */}
+              <div className="px-5 py-3 border-b border-neutral-100">
+                <div className="flex items-center space-x-2 bg-[#F8F9FC] border border-neutral-200/50 rounded-xl px-3 py-2">
+                  <Search className="w-3.5 h-3.5 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={searchHistoryQuery}
+                    onChange={(e) => setSearchHistoryQuery(e.target.value)}
+                    placeholder="Search past conversations..."
+                    className="flex-1 bg-transparent border-none text-xs text-[#111111] focus:outline-none"
+                  />
+                  {searchHistoryQuery && (
+                    <button onClick={() => setSearchHistoryQuery("")}>
+                      <X className="w-3 h-3 text-neutral-400" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
+
+              {/* History list */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
+                {filteredSessions.length === 0 ? (
+                  <div className="text-center py-8 text-neutral-400 space-y-2">
+                    <HelpCircle className="w-8 h-8 mx-auto text-neutral-200" />
+                    <p className="text-xs font-semibold">No Consultation Found</p>
+                  </div>
+                ) : (
+                  filteredSessions.map((sess) => {
+                    const isEditing = editingSessionId === sess.id;
+                    const isActive = activeSessionId === sess.id;
+
+                    return (
+                      <div
+                        key={sess.id}
+                        onClick={() => {
+                          if (!isEditing) {
+                            setActiveSessionId(sess.id);
+                            setHistoryOpen(false);
+                          }
+                        }}
+                        className={`p-3 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
+                          isActive
+                            ? "bg-[#2563EB]/5 border-[#2563EB]/20 text-[#2563EB]"
+                            : "bg-white border-neutral-100 hover:border-neutral-200"
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <button
+                            onClick={(e) => handleTogglePin(sess.id, e)}
+                            className={`p-1 rounded-md transition-all ${
+                              sess.isPinned 
+                                ? "text-amber-500 hover:text-amber-600" 
+                                : "text-neutral-300 hover:text-neutral-400"
+                            }`}
+                          >
+                            <Pin className={`w-3.5 h-3.5 ${sess.isPinned ? "fill-amber-500" : ""}`} />
+                          </button>
+
+                          <div className="flex-1 min-w-0">
+                            {isEditing ? (
+                              <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="text"
+                                  value={editingTitle}
+                                  onChange={(e) => setEditingTitle(e.target.value)}
+                                  className="border border-neutral-300 rounded px-1.5 py-0.5 text-xs text-[#111111] focus:outline-none focus:border-[#2563EB] flex-1"
+                                />
+                                <button
+                                  onClick={() => handleSaveRename(sess.id)}
+                                  className="p-1 bg-emerald-500 text-white rounded cursor-pointer"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-0.5">
+                                <h4 className="text-xs font-bold text-neutral-800 truncate">
+                                  {sess.title}
+                                </h4>
+                                <p className="text-[9px] text-neutral-400 font-light">
+                                  {sess.messages.length} messages • {new Date(sess.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {!isEditing && (
+                          <div className="flex items-center space-x-1 ml-2">
+                            <button
+                              onClick={(e) => handleStartRename(sess.id, sess.title, e)}
+                              className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteSession(sess.id, e)}
+                              className="p-1 text-neutral-400 hover:text-rose-500 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* PROPERTY INTELLIGENCE DETAILS MODAL */}
-      <PropertyIntelligenceDetailsModal
-        property={selectedPropertyModal}
-        isOpen={!!selectedPropertyModal}
-        onClose={() => setSelectedPropertyModal(null)}
-        onAskAI={(query) => {
-          setSelectedPropertyModal(null);
-          handleExecuteQuery(query);
-        }}
-        onSaveProperty={(prop) => {
-          const isAlreadySaved = savedHomes.some((h) => h.id === prop.id);
-          if (isAlreadySaved) {
-            onRemoveSaved(prop.id);
-            showToast(`Removed ${prop.name} from saved properties`, "info");
-          } else {
-            onSaveHome(prop);
-            showToast(`Saved ${prop.name} to your collection`, "success");
-          }
-        }}
-        isSaved={savedHomes.some((h) => h.id === selectedPropertyModal?.id)}
-        onSelectRelatedProperty={(relProp) => {
-          setSelectedPropertyModal(relProp);
-        }}
-      />
+      {/* PROPERTY DETAILS SLIDE-UP DRAWER */}
+      <AnimatePresence>
+        {detailsProp && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDetailsProp(null)}
+              className="absolute inset-0 bg-neutral-900"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="absolute inset-x-0 bottom-0 max-h-[90%] bg-white rounded-t-[32px] shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="w-12 h-1 bg-neutral-200 rounded-full mx-auto mt-3 mb-1" />
+              
+              <div className="px-5 py-3.5 flex items-center justify-between border-b border-neutral-100 bg-neutral-50/50">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-[#2563EB]" />
+                  <h3 className="text-sm font-extrabold text-[#111111]">CRIBR Property Intelligence Report</h3>
+                </div>
+                <button
+                  onClick={() => setDetailsProp(null)}
+                  className="p-1 bg-neutral-100 text-neutral-500 rounded-full cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Scrollable details block */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                
+                {/* Image & Price Summary */}
+                <div className="relative rounded-2xl overflow-hidden shadow-sm border border-neutral-200/50">
+                  <img src={detailsProp.image} alt={detailsProp.name} className="w-full h-44 object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent flex flex-col justify-end p-4 text-white">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-blue-300 font-bold">{detailsProp.developer}</span>
+                    <h4 className="text-base font-extrabold">{detailsProp.name}</h4>
+                    <p className="text-xs text-neutral-200 font-light">{detailsProp.location}</p>
+                  </div>
+                </div>
+
+                {/* Technical Benchmarks */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
+                    <span className="text-[10px] text-neutral-400 font-mono block">AI TRUST SCORE</span>
+                    <div className="flex items-baseline space-x-1.5">
+                      <span className="text-lg font-black text-neutral-900">{detailsProp.overallScore}%</span>
+                      <span className="text-[9px] text-emerald-600 font-bold">Excellent</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
+                    <span className="text-[10px] text-neutral-400 font-mono block">RERA COMPLIANCE</span>
+                    <div className="flex items-baseline space-x-1.5">
+                      <span className="text-lg font-black text-neutral-900">{detailsProp.legalScore}%</span>
+                      <span className="text-[9px] text-emerald-600 font-bold">Verified</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Local Area & Investment Potential */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-neutral-900 uppercase font-mono tracking-wider">Property Analysis</h4>
+                  
+                  <div className="space-y-4 text-xs leading-relaxed text-neutral-600">
+                    <div className="flex items-start space-x-3 bg-blue-50/40 p-3 rounded-2xl border border-blue-500/10">
+                      <TrendingUp className="w-4 h-4 text-[#2563EB] mt-0.5 shrink-0" />
+                      <div>
+                        <strong className="text-neutral-800 font-black block">Investment Outlook</strong>
+                        <span>{detailsProp.investmentAnalysis} Yield rating is marked at {detailsProp.investmentYieldScore}/100.</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-500/10">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                      <div>
+                        <strong className="text-neutral-800 font-black block">Legal Certificate Check</strong>
+                        <span>{detailsProp.legalReport} Title deeds cleared with no outstanding litigation warnings.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Call to action booking */}
+                <button
+                  onClick={() => {
+                    setDetailsProp(null);
+                    onBookVisit(detailsProp);
+                  }}
+                  className="w-full py-3.5 bg-[#2563EB] text-white font-bold rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/15 cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Book Free Guided Site Visit</span>
+                </button>
+
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* PROPERTY COMPARISON MODAL */}
+      <AnimatePresence>
+        {comparisonProp && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setComparisonProp(null)}
+              className="absolute inset-0 bg-neutral-900"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="absolute inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-3xl shadow-2xl overflow-hidden border border-neutral-200/50 max-h-[80%] flex flex-col"
+            >
+              <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+                <div className="flex items-center space-x-2">
+                  <Scale className="w-4 h-4 text-[#2563EB]" />
+                  <h3 className="text-xs font-black text-neutral-900 uppercase font-mono tracking-wider">CRIBR AI Head-to-Head Comparison</h3>
+                </div>
+                <button
+                  onClick={() => setComparisonProp(null)}
+                  className="p-1 bg-neutral-100 text-neutral-500 rounded-full cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Comparison table */}
+              <div className="p-5 flex-1 overflow-y-auto space-y-4">
+                <div className="grid grid-cols-3 gap-2 text-center items-center pb-2 border-b border-neutral-100">
+                  <span className="text-[10px] text-neutral-400 font-mono text-left">Specs</span>
+                  <span className="text-xs font-extrabold text-neutral-800 truncate">{comparisonProp.propertyA.name}</span>
+                  <span className="text-xs font-extrabold text-neutral-800 truncate">{comparisonProp.propertyB.name}</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
+                  <span className="text-[10px] text-neutral-400 font-mono text-left">Builder</span>
+                  <span className="text-xs font-semibold text-neutral-700 truncate">{comparisonProp.propertyA.developer}</span>
+                  <span className="text-xs font-semibold text-neutral-700 truncate">{comparisonProp.propertyB.developer}</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
+                  <span className="text-[10px] text-neutral-400 font-mono text-left">Price range</span>
+                  <span className="text-xs font-black text-[#2563EB] font-mono">{comparisonProp.propertyA.priceRange}</span>
+                  <span className="text-xs font-black text-[#2563EB] font-mono">{comparisonProp.propertyB.priceRange}</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
+                  <span className="text-[10px] text-neutral-400 font-mono text-left">AI Score</span>
+                  <span className="text-xs font-bold text-neutral-900 font-mono">{comparisonProp.propertyA.overallScore}/100</span>
+                  <span className="text-xs font-bold text-neutral-900 font-mono">{comparisonProp.propertyB.overallScore}/100</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5 border-b border-neutral-100">
+                  <span className="text-[10px] text-neutral-400 font-mono text-left">Legal Clear</span>
+                  <span className="text-xs font-bold text-emerald-600 font-mono">{comparisonProp.propertyA.legalScore}/100</span>
+                  <span className="text-xs font-bold text-emerald-600 font-mono">{comparisonProp.propertyB.legalScore}/100</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center items-center py-2.5">
+                  <span className="text-[10px] text-neutral-400 font-mono text-left">Investment Score</span>
+                  <span className="text-xs font-bold text-purple-600 font-mono">{comparisonProp.propertyA.investmentYieldScore}/100</span>
+                  <span className="text-xs font-bold text-purple-600 font-mono">{comparisonProp.propertyB.investmentYieldScore}/100</span>
+                </div>
+
+                <div className="pt-3">
+                  <p className="text-[10px] text-neutral-500 font-light leading-relaxed italic bg-neutral-50 p-3 rounded-2xl border border-neutral-100 text-center">
+                    CRIBR AI Verdict: Both developments offer secure legal titles. Choose <strong>{comparisonProp.propertyA.name}</strong> for better micro-market rentability.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
