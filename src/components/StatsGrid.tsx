@@ -46,12 +46,12 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ project }) => {
       {stats.map((item, idx) => (
         <div
           key={idx}
-          className="bg-[#F8F8F6] dark:bg-neutral-800/60 rounded-2xl p-3.5 flex flex-col justify-center space-y-1"
+          className="bg-[#F8F8F6] rounded-2xl p-3.5 flex flex-col justify-center space-y-1"
         >
-          <span className="text-xs text-neutral-500 dark:text-neutral-400 font-normal">
+          <span className="text-xs text-neutral-500 font-normal">
             {item.label}
           </span>
-          <span className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">
+          <span className="text-base font-bold text-neutral-900 tracking-tight">
             {item.value}
           </span>
         </div>
