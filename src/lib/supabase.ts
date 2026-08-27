@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Retrieve Supabase environment variables
-const metaEnv = (import.meta as any).env || {};
-const rawSupabaseUrl = metaEnv.VITE_SUPABASE_URL || metaEnv.NEXT_PUBLIC_SUPABASE_URL || "https://nasccqkadwmfcajgecfs.supabase.co";
-const supabaseAnonKey = metaEnv.VITE_SUPABASE_ANON_KEY || metaEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_z98MxzP9Yw3ePFmdVPrDpA_Y8boqwV0";
+// Retrieve Supabase environment variables safely across browser and Node.js
+const metaEnv = typeof import.meta !== "undefined" && (import.meta as any)?.env ? (import.meta as any).env : {};
+const procEnv = typeof process !== "undefined" && process.env ? process.env : {};
+const rawSupabaseUrl = metaEnv.VITE_SUPABASE_URL || metaEnv.NEXT_PUBLIC_SUPABASE_URL || procEnv.VITE_SUPABASE_URL || procEnv.NEXT_PUBLIC_SUPABASE_URL || "https://nasccqkadwmfcajgecfs.supabase.co";
+const supabaseAnonKey = metaEnv.VITE_SUPABASE_ANON_KEY || metaEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || procEnv.VITE_SUPABASE_ANON_KEY || procEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_z98MxzP9Yw3ePFmdVPrDpA_Y8boqwV0";
 
 // Smart URL resolver: supports either complete URLs or raw project subdomains (e.g., 'nasccqkadwmfcajgecfs')
 const supabaseUrl = rawSupabaseUrl && !rawSupabaseUrl.startsWith("http")
