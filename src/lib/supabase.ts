@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { mapToWhitelistedProject } from "./projectDataMapper";
+import { MASTER_PROJECTS } from "../data";
 
 // Retrieve Supabase environment variables safely across browser and Node.js
 const metaEnv = typeof import.meta !== "undefined" && (import.meta as any)?.env ? (import.meta as any).env : {};
@@ -399,9 +401,6 @@ export const cribrProperties = {
   // Fetch published projects from Supabase projects table or verified master data.
   // Returns normalized WhitelistedProject[] via mapToWhitelistedProject.
   async getProperties(): Promise<any[]> {
-    const { mapToWhitelistedProject } = await import("./projectDataMapper");
-    const { MASTER_PROJECTS } = await import("../data");
-
     if (isRealSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
