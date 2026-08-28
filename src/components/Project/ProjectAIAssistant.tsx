@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Sparkles, Bot, Send, ShieldCheck, Building2, Calendar, FileText, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { queryProjectAI } from "../../lib/aiSearchPipeline";
+import MarkdownRenderer from "../MarkdownRenderer";
 
 interface ProjectAIAssistantProps {
   project: any;
@@ -139,20 +140,18 @@ export default function ProjectAIAssistant({ project }: ProjectAIAssistantProps)
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-neutral-200/90 text-neutral-900 rounded-2xl p-5 text-sm leading-relaxed space-y-3 shadow-xs"
+            className="bg-gradient-to-br from-blue-50/50 via-white to-white border border-blue-100 shadow-sm text-neutral-900 rounded-2xl p-6 text-sm leading-relaxed space-y-4"
           >
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5 mb-2">
-              <span className="text-xs font-semibold text-blue-600 flex items-center gap-1.5">
+            <div className="flex items-center justify-between border-b border-blue-100/50 pb-3 mb-2">
+              <span className="text-sm font-semibold text-blue-600 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4" /> Verified Analysis
               </span>
-              <span className="text-[10px] text-neutral-500 font-mono">
+              <span className="text-[10px] text-neutral-400 font-mono uppercase tracking-wider">
                 {project.name} Factsheet
               </span>
             </div>
 
-            <div className="prose prose-neutral prose-sm max-w-none text-neutral-800 space-y-2 whitespace-pre-wrap">
-              {answer}
-            </div>
+            <MarkdownRenderer content={answer} className="text-neutral-800" />
           </motion.div>
         )}
       </AnimatePresence>
