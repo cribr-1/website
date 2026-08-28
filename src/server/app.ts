@@ -3,6 +3,7 @@
  * Single source of truth for the Express Application configuration.
  * Imported by both local development server (server.ts) and Vercel serverless function (api/[...path].ts).
  */
+// @ts-ignore - Bypass TS default import errors for Vercel
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { masterRouter } from "./routes";
