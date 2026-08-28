@@ -7,7 +7,7 @@ export const compareAIRouter = Router();
 const projectService = new ProjectService();
 
 /** Race the AI call against a timeout — always returns a result (AI or fallback). */
-async function compareWithTimeout(projects: any[], timeoutMs = 20000): Promise<any> {
+async function compareWithTimeout(projects: any[], timeoutMs = 8000): Promise<any> {
   try {
     const result = await Promise.race([
       aiService.compareProjectsWithAI(projects),
