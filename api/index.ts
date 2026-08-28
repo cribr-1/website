@@ -1,2 +1,4 @@
-import app from "../src/server/app";
-export default app;
+const appModule = require("../src/server/app");
+const app = appModule.default || appModule;
+
+module.exports = app;
