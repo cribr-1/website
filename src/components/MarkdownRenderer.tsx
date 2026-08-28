@@ -14,7 +14,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
   if (!content) return null;
 
   return (
-    <div className={`cribr-md ${className}`}>
+    <div className={`cribr-md break-words overflow-hidden w-full ${className}`}>
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
@@ -69,7 +69,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
                   }`}>
                   {isOrdered ? (props as any).index + 1 : null}
                 </span>
-                <span className="flex-1">{children}</span>
+                <span className="flex-1 break-words overflow-hidden break-all min-w-0">{children}</span>
               </li>
             );
           },
@@ -77,7 +77,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
             const isInline = !codeClassName;
             if (isInline) {
               return (
-                <code className="bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded-md text-xs font-mono border border-blue-100">
+                <code className="bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded-md text-xs font-mono border border-blue-100 break-all whitespace-pre-wrap">
                   {children}
                 </code>
               );
