@@ -12,7 +12,7 @@ interface CompareFloatingBarProps {
 
 export default function CompareFloatingBar({
   compareList,
-  projectsData,
+  projectsData = [],
   onRemove,
   onClear,
   onCompare

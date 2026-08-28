@@ -34,7 +34,7 @@ import ErrorBoundary from "./components/Common/ErrorBoundary";
 import { SearchProvider } from "./context/SearchContext";
 import CompareFloatingBar from "./components/CompareFloatingBar";
 import CribrComparePage from "./components/CribrComparePage";
-import { FEATURED_PROPERTIES } from "./data";
+import { FEATURED_PROPERTIES, MASTER_PROJECTS } from "./data";
 import { cribrAuth, CribrUser, localDb } from "./lib/supabase";
 import { PropertyReport, PremiumProperty, SavedHome } from "./types";
 
@@ -787,8 +787,10 @@ export default function App() {
       {!isAdminMode && currentPath !== "/compare" && (
         <CompareFloatingBar
           compareList={compareList}
+          projectsData={MASTER_PROJECTS}
           onCompare={navigateToCompare}
-          onRemoveProject={(id) => handleToggleCompareSelect({ id })}
+          onRemove={(id) => handleToggleCompareSelect({ id })}
+          onClear={() => setCompareList([])}
         />
       )}
 
