@@ -132,7 +132,7 @@ export class AIService {
     // 1. Try Gemini with fallback models if available
     const gemini = this.initGemini();
     if (gemini) {
-      const geminiModels = ["gemini-2.5-flash", "gemini-2.5-pro"];
+      const geminiModels = ["gemini-3.6-flash", "gemini-3.1-pro-preview"];
       for (const model of geminiModels) {
         try {
           const response = await gemini.models.generateContent({
@@ -570,7 +570,7 @@ CRITICAL:
     if (gemini) {
       try {
         const response = await gemini.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: `${systemPrompt}\n\n${userMsg}`,
           config: {
             responseMimeType: "application/json",
