@@ -716,9 +716,26 @@ export default function CribrMobileHome({
                                 <span>RERA Registered ✓</span>
                               </div>
 
-                              <div className="px-2.5 py-1 bg-neutral-900/90 text-amber-300 border border-neutral-700/60 text-[10px] font-mono font-bold rounded-full flex items-center space-x-1 shadow-xs">
-                                <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
-                                <span>{p.googleRating}</span>
+                              <div className="flex items-center space-x-2">
+                                {onToggleCompareSelect && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onToggleCompareSelect(p);
+                                    }}
+                                    className={`p-1.5 rounded-full backdrop-blur-md transition-all shadow-xs ${
+                                      compareList.includes(p.id) 
+                                        ? "bg-blue-600 text-white shadow-blue-900/20 border border-blue-500" 
+                                        : "bg-neutral-900/90 text-white/90 border border-neutral-700/60"
+                                    }`}
+                                  >
+                                    <Scale className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <div className="px-2.5 py-1 bg-neutral-900/90 text-amber-300 border border-neutral-700/60 text-[10px] font-mono font-bold rounded-full flex items-center space-x-1 shadow-xs">
+                                  <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
+                                  <span>{p.googleRating}</span>
+                                </div>
                               </div>
                             </div>
 
