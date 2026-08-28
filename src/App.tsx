@@ -475,6 +475,16 @@ export default function App() {
               }}
             />
           )}
+        <AnimatePresence>
+          {!isAdminMode && currentPath !== "/compare" && (
+            <CompareFloatingBar
+              compareList={compareList}
+              projectsData={MASTER_PROJECTS}
+              onCompare={navigateToCompare}
+              onRemove={(id) => handleToggleCompareSelect({ id })}
+              onClear={() => setCompareList([])}
+            />
+          )}
         </AnimatePresence>
 
         <CribrToastContainer />
