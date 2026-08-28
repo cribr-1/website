@@ -684,7 +684,7 @@ export default function App() {
 
       {/* INTELLIGENCE OVERVIEW */}
       <PropertyExplorer
-        onAnalyze={handleExploreQuery}
+        onAnalyze={handleQuerySubmit}
         onSelectProperty={(p) => navigateToProperty(p.id)}
         compareList={compareList}
         onToggleCompareSelect={handleToggleCompareSelect}
