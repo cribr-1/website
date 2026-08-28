@@ -3,19 +3,24 @@ import { Sparkles, Bot, Send, ShieldCheck, Scale, Building2, MapPin, AlertCircle
 import { motion, AnimatePresence } from "motion/react";
 import { queryResultsAssistant } from "../../lib/aiSearchPipeline";
 import MarkdownRenderer from "../MarkdownRenderer";
+import { PropertyCard } from "../PropertyCard";
 
 interface ResultContextAIAssistantProps {
   searchQuery: string;
   activeFilters?: any;
   currentProjects: any[];
   onSelectProperty?: (property: any) => void;
+  compareList?: string[];
+  onToggleCompareSelect?: (property: any) => void;
 }
 
 function ResultContextAIAssistant({
   searchQuery,
   activeFilters = {},
   currentProjects,
-  onSelectProperty
+  onSelectProperty,
+  compareList,
+  onToggleCompareSelect
 }: ResultContextAIAssistantProps) {
   const [userQuestion, setUserQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -165,18 +170,21 @@ function ResultContextAIAssistant({
             
             <MarkdownRenderer content={answer} />
 
-            {/* Active Property Badges */}
-            <div className="mt-4 pt-4 border-t border-neutral-200/70 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-neutral-500 font-medium">Grounded Matches:</span>
-              {currentProjects.slice(0, 5).map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => onSelectProperty && onSelectProperty(p)}
-                  className="bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 text-xs px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer"
-                >
-                  {p.projectName || p.name || p.title}
-                </button>
-              ))}
+            {/* Active Property Badges as Full Cards */}
+            <div className="mt-6 pt-6 border-t border-neutral-200/70">
+              <span className="text-xs text-neutral-500 font-medium mb-4 block uppercase tracking-wider">Grounded Matches:</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {currentProjects.slice(0, 6).map((p, idx) => (
+                  <PropertyCard
+                    key={p.id}
+                    property={p}
+                    idx={idx}
+                    onSelectProperty={onSelectProperty}
+                    isCompareSelected={compareList?.includes(p.id)}
+                    onToggleCompare={onToggleCompareSelect}
+                  />
+                ))}
+              </div>
             </div>
           </motion.div>
         )}

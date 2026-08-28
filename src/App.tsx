@@ -32,6 +32,8 @@ import PropertyIntelligenceDetailsModal from "./components/PropertyIntelligenceD
 import PropertyDetailsPage from "./components/PropertyDetailsPage";
 import ErrorBoundary from "./components/Common/ErrorBoundary";
 import { SearchProvider } from "./context/SearchContext";
+import CompareFloatingBar from "./components/CompareFloatingBar";
+import CribrComparePage from "./components/CribrComparePage";
 import { FEATURED_PROPERTIES } from "./data";
 import { cribrAuth, CribrUser, localDb } from "./lib/supabase";
 import { PropertyReport, PremiumProperty, SavedHome } from "./types";
@@ -96,6 +98,29 @@ export default function App() {
   const [isAdminMode, setIsAdminMode] = useState(() => {
     return window.location.pathname === "/admin" || window.location.pathname.startsWith("/admin");
   });
+  
+  // Compare Feature State
+  const [compareList, setCompareList] = useState<string[]>([]);
+
+  const handleToggleCompareSelect = (property: any) => {
+    setCompareList((prev) => {
+      if (prev.includes(property.id)) {
+        return prev.filter((id) => id !== property.id);
+      }
+      if (prev.length >= 4) {
+        showToast("You can compare up to 4 properties.", "info");
+        return prev;
+      }
+      return [...prev, property.id];
+    });
+  };
+
+  const navigateToCompare = () => {
+    const newPath = "/compare";
+    window.history.pushState(null, "", newPath);
+    setCurrentPath(newPath);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Floating Search Placeholder cycle
   const [placeholderText, setPlaceholderText] = useState("Ask CRIBR anything...");
@@ -337,6 +362,20 @@ export default function App() {
           onAskAI={handleQuerySubmit}
           onCompare={(p) => showToast(`Added ${p.name} to comparison matrix`, "info")}
         />
+        <CribrToastContainer />
+      </ErrorBoundary>
+    );
+  }
+  if (currentPath === "/compare") {
+    return (
+      <ErrorBoundary fallbackTitle="Compare Error" fallbackMessage="Failed to load compare view.">
+        <div className="pt-24 pb-20 min-h-screen bg-cribr-bg">
+          <CribrComparePage
+            compareList={compareList}
+            onBack={navigateHome}
+            onRemoveProject={(id) => handleToggleCompareSelect({ id })}
+          />
+        </div>
         <CribrToastContainer />
       </ErrorBoundary>
     );
@@ -645,8 +684,10 @@ export default function App() {
 
       {/* INTELLIGENCE OVERVIEW */}
       <PropertyExplorer
-        onAnalyze={handleQuerySubmit}
+        onAnalyze={handleExploreQuery}
         onSelectProperty={(p) => navigateToProperty(p.id)}
+        compareList={compareList}
+        onToggleCompareSelect={handleToggleCompareSelect}
         searchQuery={searchQuery}
         onClearSearch={() => setSearchQuery("")}
       />
@@ -741,6 +782,15 @@ export default function App() {
           setSelectedDesktopProperty(relProp);
         }}
       />
+
+      {/* Floating Compare Bar */}
+      {!isAdminMode && currentPath !== "/compare" && (
+        <CompareFloatingBar
+          compareList={compareList}
+          onCompare={navigateToCompare}
+          onRemoveProject={(id) => handleToggleCompareSelect({ id })}
+        />
+      )}
 
       {/* TOAST SYSTEM LAUNCHER */}
       <CribrToastContainer />
