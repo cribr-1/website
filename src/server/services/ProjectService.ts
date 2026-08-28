@@ -204,43 +204,38 @@ export class ProjectService {
     if (maxPrice && maxPrice > 0) {
       const maxLakhs = maxPrice / 100000;
       filtered = filtered.filter(p => {
-        let normMinLakhs = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? 0);
-        if (!normMinLakhs && (p.min_price || p.minPrice)) {
-          const rawVal = Number(p.min_price || p.minPrice);
-          normMinLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
-        }
-        return normMinLakhs > 0 && normMinLakhs <= maxLakhs;
+        const rawMin = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? p.min_price ?? p.minPrice ?? 0);
+        const normMinLakhs = rawMin > 10000 ? rawMin / 100000 : rawMin;
+        if (normMinLakhs === 0) return false; // Exclude 'Price on Request' if maxPrice is strict
+        return normMinLakhs <= maxLakhs;
       });
     }
 
     if (minPrice && minPrice > 0) {
       const minLakhs = minPrice / 100000;
       filtered = filtered.filter(p => {
-        let normMaxLakhs = Number(p.max_price_lakhs ?? p.maxPriceLakhs ?? 0);
-        if (!normMaxLakhs && (p.max_price || p.maxPrice)) {
-          const rawVal = Number(p.max_price || p.maxPrice);
-          normMaxLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
+        let rawMax = Number(p.max_price_lakhs ?? p.maxPriceLakhs ?? p.max_price ?? p.maxPrice ?? 0);
+        let normMaxLakhs = rawMax > 10000 ? rawMax / 100000 : rawMax;
+        
+        if (normMaxLakhs === 0) {
+          const rawMin = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? p.min_price ?? p.minPrice ?? 0);
+          normMaxLakhs = rawMin > 10000 ? rawMin / 100000 : rawMin;
         }
-        if (!normMaxLakhs) {
-          let normMin = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? 0);
-          if (!normMin && (p.min_price || p.minPrice)) {
-            const raw = Number(p.min_price || p.minPrice);
-            normMin = raw > 10000 ? raw / 100000 : raw;
-          }
-          normMaxLakhs = normMin;
-        }
-        return normMaxLakhs > 0 && normMaxLakhs >= minLakhs;
+        if (normMaxLakhs === 0) return false;
+        return normMaxLakhs >= minLakhs;
       });
     }
 
-    // Text search strictly operates on identity, not fuzzy matching
-    if (rawText && filtered.length === all.length) {
-      const q = rawText.toLowerCase().trim();
+    // If AI found NO structured intent at all, apply text search fallback
+    const hasIntent = rawLocality || rawBuilder || unitType || maxPrice || minPrice;
+    if (rawText && !hasIntent) {
+      const words = rawText.toLowerCase().split(" ");
       filtered = all.filter(p => {
-        const nameMatch = (p.name || p.projectName || "").toLowerCase().includes(q);
-        const builderMatch = (p.builder_name || p.builder || "").toLowerCase().includes(q);
-        const locMatch = (p.locality || p.location || "").toLowerCase().includes(q);
-        return nameMatch || builderMatch || locMatch;
+        const nameMatch = (p.name || p.projectName || "").toLowerCase();
+        const builderMatch = (p.builder_name || p.builder || "").toLowerCase();
+        const locMatch = (p.locality || p.location || "").toLowerCase();
+        
+        return words.some(w => nameMatch.includes(w) || builderMatch.includes(w) || locMatch.includes(w));
       });
     }
 

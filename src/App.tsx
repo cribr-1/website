@@ -409,6 +409,8 @@ export default function App() {
           setActiveReport={setActiveReport}
           isReportLoading={isReportLoading}
           setIsReportLoading={setIsReportLoading}
+          compareList={compareList}
+          onToggleCompareSelect={handleToggleCompareSelect}
           onQuerySubmit={handleQuerySubmit}
           onSelectProperty={(prop) => navigateToProperty(prop.id)}
           onBookVisit={() => {}}

@@ -45,21 +45,27 @@ function matchesSearchQuery(p: WhitelistedProject, query: string): boolean {
   const lakhMatch = q.match(/(\d+(?:\.\d+)?)\s*lakh/);
   const requestedLakh = lakhMatch ? parseFloat(lakhMatch[1]) : null;
   
-  let matches = true;
+  let priceMatched = false;
+  let matches = false; // default to false if no criteria met
 
   if ((requestedCr || requestedLakh) && p.minPriceLakhs) {
+    priceMatched = true;
     let targetPriceLakhs = 0;
     if (requestedCr) targetPriceLakhs = requestedCr * 100;
     if (requestedLakh) targetPriceLakhs = requestedLakh;
 
-    if (targetPriceLakhs > 0 && p.minPriceLakhs > targetPriceLakhs) {
-      matches = false;
+    if (targetPriceLakhs > 0 && p.minPriceLakhs <= targetPriceLakhs) {
+      matches = true;
     }
   } else if ((requestedCr || requestedLakh) && !p.minPriceLakhs) {
+    priceMatched = true;
     matches = false; // Exclude 'Price on Request' if specific price requested
   }
-
-  return matches;
+  
+  if (priceMatched) return matches;
+  
+  // If no price is matched and name/builder/locality didn't match, return false.
+  return false;
 }
 
 /**

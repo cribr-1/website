@@ -538,26 +538,45 @@ export default function CribrMobileChat({
     }
   };
 
-  // Voice Recognition Simulation
+  // Web Speech API Voice Recognition
   const triggerVoiceInquiry = () => {
-    setVoiceActive(true);
-    setVoiceWaveText("Listening to voice query...");
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice search is not supported in your browser.");
+      return;
+    }
 
-    const questions = [
-      "Find me a 2 BHK under 80 lakh in Pune.",
-      "Compare Godrej and Lodha.",
-      "Is this builder trustworthy and what is RERA?",
-      "Which locality has better appreciation in Nagpur?"
-    ];
-    const picked = questions[Math.floor(Math.random() * questions.length)];
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-    setTimeout(() => {
-      setVoiceWaveText(`"${picked}"`);
+    recognition.onstart = () => {
+      setVoiceActive(true);
+      setVoiceWaveText("Listening to voice query...");
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setVoiceWaveText(`"${transcript}"`);
       setTimeout(() => {
         setVoiceActive(false);
-        setInputText(picked);
+        setInputText(transcript);
       }, 1200);
-    }, 2000);
+    };
+
+    recognition.onerror = (event: any) => {
+      setVoiceWaveText(`Error: ${event.error}`);
+      setTimeout(() => setVoiceActive(false), 2000);
+    };
+
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+      setVoiceActive(false);
+    }
   };
 
   // Chat management features

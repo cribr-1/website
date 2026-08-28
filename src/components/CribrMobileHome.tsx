@@ -39,7 +39,7 @@ import CribrMobileChat from "./CribrMobileChat";
 import { showToast } from "./CribrToast";
 import { mapToWhitelistedProject } from "../lib/projectDataMapper";
 import ResultContextAIAssistant from "./Search/ResultContextAIAssistant";
-import { Star, Navigation, ArrowRight } from "lucide-react";
+import { Star, Navigation, ArrowRight, Scale } from "lucide-react";
 
 interface CribrMobileHomeProps {
   currentUser: CribrUser | null;
@@ -54,6 +54,8 @@ interface CribrMobileHomeProps {
   setActiveReport: React.Dispatch<React.SetStateAction<PropertyReport | null>>;
   isReportLoading: boolean;
   setIsReportLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  compareList?: string[];
+  onToggleCompareSelect?: (p: any) => void;
   onQuerySubmit: (query: string) => Promise<void>;
   onBookVisit?: (property: PremiumProperty) => void;
   handleSaveCurrentReport: () => void;
@@ -125,6 +127,8 @@ export default function CribrMobileHome({
   setActiveReport,
   isReportLoading,
   setIsReportLoading,
+  compareList = [],
+  onToggleCompareSelect,
   onQuerySubmit,
   onBookVisit,
   handleSaveCurrentReport,
@@ -376,6 +380,23 @@ export default function CribrMobileHome({
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <div className="absolute top-1.5 left-1.5 right-1.5 flex justify-between items-start">
+                        {onToggleCompareSelect && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleCompareSelect(item);
+                            }}
+                            className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
+                              compareList.includes(item.id) 
+                                ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
+                                : "bg-black/40 text-white/90 hover:bg-black/60"
+                            }`}
+                          >
+                            <Scale className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                       <div className="absolute bottom-1.5 left-1.5 text-[9px] font-mono font-bold text-white bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md">
                         {item.minPrice}
                       </div>
