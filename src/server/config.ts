@@ -2,7 +2,7 @@
  * Centralized Server Environment & Configuration
  * Supports Node.js environment variables across Vite local dev and Vercel serverless functions.
  */
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 
 dotenv.config();
 
