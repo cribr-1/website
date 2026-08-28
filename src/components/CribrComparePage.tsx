@@ -31,7 +31,14 @@ export default function CribrComparePage({ compareList, onBack, onRemoveProject 
           body: JSON.stringify({ projectIds: compareList })
         });
         
-        const json = await res.json();
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          throw new Error("The comparison service timed out or encountered an unexpected server error. Please try again.");
+        }
+
         if (!res.ok || !json.success) {
           throw new Error(json.error || "Failed to compare projects");
         }
