@@ -475,6 +475,8 @@ export default function App() {
               }}
             />
           )}
+        </AnimatePresence>
+
         <AnimatePresence>
           {!isAdminMode && currentPath !== "/compare" && (
             <CompareFloatingBar
