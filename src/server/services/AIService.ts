@@ -689,7 +689,7 @@ SCHEMA:
    * Deterministic comparison fallback when AI is unavailable.
    * Uses only verified project data fields — never invents facts.
    */
-  private generateGroundedComparisonFallback(projects: any[]): any {
+  public generateGroundedComparisonFallback(projects: any[]): any {
     const getName = (p: any) => p.name || p.projectName || p.propertyName || "Project";
     const getBuilder = (p: any) => p.builder_name || p.builder || p.developer || p.builderName || "Builder";
     const getGrade = (p: any) => p.builder_grade || p.builderGrade || "N/A";

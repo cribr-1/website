@@ -6,6 +6,23 @@ import { mapToWhitelistedProject } from "../../lib/projectDataMapper";
 export const compareAIRouter = Router();
 const projectService = new ProjectService();
 
+/** Race the AI call against a timeout — always returns a result (AI or fallback). */
+async function compareWithTimeout(projects: any[], timeoutMs = 20000): Promise<any> {
+  try {
+    const result = await Promise.race([
+      aiService.compareProjectsWithAI(projects),
+      new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error("AI comparison timed out")), timeoutMs)
+      ),
+    ]);
+    if (result) return result;
+  } catch (err: any) {
+    console.warn("[CompareAPI] AI call failed/timed-out, using deterministic fallback:", err?.message);
+  }
+  // Deterministic fallback — always succeeds, never calls an LLM
+  return aiService.generateGroundedComparisonFallback(projects);
+}
+
 compareAIRouter.post("/compare", async (req, res) => {
   try {
     const { projectIds } = req.body;
@@ -30,12 +47,8 @@ compareAIRouter.post("/compare", async (req, res) => {
       projects.push(proj);
     }
 
-    // Call AI
-    const analysis = await aiService.compareProjectsWithAI(projects);
-    
-    if (!analysis) {
-      return res.status(500).json({ error: "AI comparison failed to generate." });
-    }
+    // Call AI with timeout — guaranteed to return a comparison (AI or deterministic)
+    const analysis = await compareWithTimeout(projects);
 
     // Return the objective facts + AI analysis combined
     const mappedProjects = projects.map(p => mapToWhitelistedProject(p));
