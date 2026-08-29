@@ -29,42 +29,56 @@ export interface UsePropertySearchResult {
  */
 function matchesSearchQuery(p: WhitelistedProject, query: string): boolean {
   if (!query) return true;
-  const q = query.toLowerCase().trim();
+  const rawQ = query.toLowerCase().trim();
 
-  // Very strict explicit string matching against identity only
-  const nameMatch = p.projectName.toLowerCase().includes(q);
-  const builderMatch = p.builder.toLowerCase().includes(q);
-  const localityMatch = p.locality.toLowerCase().includes(q);
-  
-  if (nameMatch || builderMatch || localityMatch) return true;
+  // 1. Direct match
+  const searchTarget = `${p.projectName} ${p.builder} ${p.locality} ${p.area} ${p.unitTypes} ${p.reraNumber}`.toLowerCase();
+  if (searchTarget.includes(rawQ)) return true;
 
-  // Complex multi-word heuristic fallback
-  const crMatch = q.match(/(\d+(?:\.\d+)?)\s*cr/);
+  // 2. Check if raw query contains locality or project/builder names
+  if (
+    (p.locality && p.locality.length > 3 && rawQ.includes(p.locality.toLowerCase())) ||
+    (p.area && p.area.length > 3 && rawQ.includes(p.area.toLowerCase())) ||
+    (p.projectName && rawQ.includes(p.projectName.toLowerCase())) ||
+    (p.builder && rawQ.includes(p.builder.toLowerCase()))
+  ) {
+    return true;
+  }
+
+  // 3. Extract core keywords by removing conversational noise
+  const cleanQ = rawQ
+    .replace(/\b(tell me|show me|find me|give me|looking for|projects in|project in|properties in|flats in|apartments in|homes in|in|near|around|at|the|best|top|all)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (cleanQ && searchTarget.includes(cleanQ)) return true;
+
+  // 4. Token match for significant terms
+  const tokens = cleanQ.split(/\s+/).filter(t => t.length >= 3);
+  if (tokens.length > 0 && tokens.every(t => searchTarget.includes(t))) {
+    return true;
+  }
+  if (tokens.length > 0 && tokens.some(t => p.locality.toLowerCase().includes(t) || p.area.toLowerCase().includes(t) || p.projectName.toLowerCase().includes(t))) {
+    return true;
+  }
+
+  // Complex multi-word price heuristic fallback
+  const crMatch = rawQ.match(/(\d+(?:\.\d+)?)\s*cr/);
   const requestedCr = crMatch ? parseFloat(crMatch[1]) : null;
 
-  const lakhMatch = q.match(/(\d+(?:\.\d+)?)\s*lakh/);
+  const lakhMatch = rawQ.match(/(\d+(?:\.\d+)?)\s*lakh/);
   const requestedLakh = lakhMatch ? parseFloat(lakhMatch[1]) : null;
   
-  let priceMatched = false;
-  let matches = false; // default to false if no criteria met
-
   if ((requestedCr || requestedLakh) && p.minPriceLakhs) {
-    priceMatched = true;
     let targetPriceLakhs = 0;
     if (requestedCr) targetPriceLakhs = requestedCr * 100;
     if (requestedLakh) targetPriceLakhs = requestedLakh;
 
     if (targetPriceLakhs > 0 && p.minPriceLakhs <= targetPriceLakhs) {
-      matches = true;
+      return true;
     }
-  } else if ((requestedCr || requestedLakh) && !p.minPriceLakhs) {
-    priceMatched = true;
-    matches = false; // Exclude 'Price on Request' if specific price requested
   }
   
-  if (priceMatched) return matches;
-  
-  // If no price is matched and name/builder/locality didn't match, return false.
   return false;
 }
 
