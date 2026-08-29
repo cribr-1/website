@@ -1,5 +1,4 @@
 import { FullProject } from "../types/search";
-import { getFeaturedProperties } from "../data";
 
 export const ACRE_TO_SQM = 4046.8564224;
 
@@ -1567,18 +1566,18 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
   }
 
   let minLakhs = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? 0);
-  if (!minLakhs && (p.min_price || p.minPrice)) {
-    const rawVal = Number(p.min_price || p.minPrice);
+  if (!minLakhs && (p.min_price || p.minPrice || p.price_min)) {
+    const rawVal = Number(p.min_price || p.minPrice || p.price_min);
     minLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
   }
   let maxLakhs = Number(p.max_price_lakhs ?? p.maxPriceLakhs ?? 0);
-  if (!maxLakhs && (p.max_price || p.maxPrice)) {
-    const rawVal = Number(p.max_price || p.maxPrice);
+  if (!maxLakhs && (p.max_price || p.maxPrice || p.price_max)) {
+    const rawVal = Number(p.max_price || p.maxPrice || p.price_max);
     maxLakhs = rawVal > 10000 ? rawVal / 100000 : rawVal;
   }
   if (!maxLakhs && minLakhs) maxLakhs = minLakhs;
 
-  const pricePerSqftVal = Number(p.price_per_sqft || p.pricePerSqft || 0);
+  const pricePerSqftVal = Number(p.price_per_sqft || p.pricePerSqft || p.price_per_sft || 0);
   const pricePerSqftStr =
     pricePerSqftVal > 0
       ? `₹${pricePerSqftVal.toLocaleString("en-IN")} / sq ft`
@@ -1594,11 +1593,9 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
       ? String(p.totalUnits)
       : "N/A";
 
-  let ratingStr =
-    p.google_rating != null || p.googleRating != null
-      ? String(p.google_rating ?? p.googleRating)
-      : "4.2";
-  if (!ratingStr.includes("★")) {
+  let ratingVal = p.google_rating != null ? p.google_rating : (p.googleRating != null ? p.googleRating : (p.google_reviews_score != null ? p.google_reviews_score : null));
+  let ratingStr = ratingVal != null ? String(ratingVal) : "N/A";
+  if (ratingStr !== "N/A" && !ratingStr.includes("★")) {
     ratingStr = `${ratingStr} ★`;
   }
 
@@ -1611,10 +1608,11 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
 
   const locationInfo = resolveTalukAndArea(p);
 
-  const rawCommute = p.commute_score ?? p.commuteScore ?? 8.8;
-  const commuteNum =
-    Number(rawCommute) > 10 ? Number(rawCommute) / 10 : Number(rawCommute);
-  const commuteStr = `${Math.round(commuteNum * 10) / 10}/10`;
+  const rawCommute = p.commute_score != null ? p.commute_score : (p.commuteScore != null ? p.commuteScore : null);
+  const commuteStr =
+    rawCommute != null
+      ? `${Math.round((Number(rawCommute) <= 1 ? Number(rawCommute) * 10 : (Number(rawCommute) > 10 ? Number(rawCommute) / 10 : Number(rawCommute))) * 10) / 10}/10`
+      : "N/A";
 
   const heroImg =
     p.hero_image ||
@@ -1635,6 +1633,8 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
   const complaintsStr =
     p.complaints_count != null
       ? String(p.complaints_count)
+      : p.complaints_on_project != null
+      ? String(p.complaints_on_project)
       : p.complaintsCount != null
       ? String(p.complaintsCount)
       : p.activeComplaintsNum != null
@@ -1646,6 +1646,8 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
   const hasLitigation = Boolean(
     p.land_litigation === true ||
       p.land_litigation === "true" ||
+      p.land_litigations > 0 ||
+      p.land_litigations === "1" ||
       p.litigation === true ||
       (typeof p.land_litigation === "string" &&
         p.land_litigation.toLowerCase().includes("active")) ||
@@ -1667,12 +1669,12 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
   );
   const posDate =
     p.possession_date || p.possessionDate || p.possession || "TBD";
-  const startDate = p.project_start_date || p.projectStartDate || null;
+  const startDate = p.project_start_date || p.projectStartDate || p.start_date || null;
 
   const yearsToPoss = calculateYearsToPossession(posDate);
 
   const timelineRel = calculateTimelineReliability(
-    p.timeline_reliability_ratio ?? p.timelineReliabilityRatio,
+    p.timeline_reliability_ratio ?? p.timelineReliabilityRatio ?? p.timeline_reliability,
     progressVal,
     startDate,
     posDate
@@ -1681,22 +1683,22 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
   const densityInfo = calculateUnitDensity(
     p.total_units ?? p.totalUnits,
     landAreaInfo.acresNum,
-    p.unit_density_per_acre ?? p.densityText
+    p.unit_density_per_acre ?? p.density ?? p.densityText
   );
 
   const hubInfo = resolveDistanceToHub(p);
   const builderGrade = resolveBuilderGrade(p);
-  const titleAuditNote = resolveTitleAuditNote(p);
-  const reviewSummary = resolveGoogleReviewSummary(p);
+  const titleAuditNote = p.property_title_summary || p.verification_title_audit_note || resolveTitleAuditNote(p);
+  const reviewSummary = p.google_review_summary || resolveGoogleReviewSummary(p);
 
   return {
-    id: String(p.id || ""),
-    projectName: p.name || p.projectName || "Project",
+    id: String(p.id || p.slug || ""),
+    projectName: p.name || p.projectName || p.project_name || p.rera_project_name || "Project",
     builder: builderStr,
     locality: locationInfo.locality,
     taluk: locationInfo.taluk,
     area: locationInfo.areaDisplay,
-    reraNumber: p.rera_number || p.reraNumber || "RERA Pending",
+    reraNumber: p.rera_number || p.reraNumber || p["RERA registration number"] || p.rera_registration_number || "RERA Pending",
     projectStartDate: startDate || "N/A",
     possessionDate: posDate,
     constructionProgress: Number(progressVal) <= 1 && Number(progressVal) > 0 ? Number(progressVal) * 100 : Number(progressVal),
@@ -1752,31 +1754,18 @@ export function normalizeSlug(str: string): string {
 }
 
 /**
- * Strips leading 'proj-' or 'project-' prefixes to get the canonical identifier slug.
- * IMPORTANT: Preserves phase identifiers and full project names to prevent cross-project collisions.
+ * Cleans a slug key for robust lookup.
  */
-export function cleanSlugKey(str: string): string {
-  const decoded = (() => {
-    try {
-      return decodeURIComponent(str);
-    } catch {
-      return str;
-    }
-  })();
-
-  return decoded
+export function cleanSlugKey(key: string): string {
+  return (key || "")
     .toLowerCase()
-    .trim()
     .replace(/^proj-/, "")
-    .replace(/^project-/, "")
-    .trim();
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 /**
- * Strict Property Matcher.
- * Matches project by STRICT EXACT ID, EXACT SLUG, EXACT NORMALIZED NAME SLUG,
- * EXACT PROJECT NAME, or EXACT RERA NUMBER only.
- * NO fuzzy token matching, NO partial name matching, NO phase stripping.
+ * Synchronous property lookup against an in-memory/passed list of properties.
  */
 export function findMatchingProperty(slugOrId: string, customList?: any[]): any | null {
   if (!slugOrId) return null;
@@ -1793,8 +1782,7 @@ export function findMatchingProperty(slugOrId: string, customList?: any[]): any 
   const normalizedRaw = normalizeSlug(raw);
   const normalizedRawClean = normalizeSlug(rawClean);
 
-  const baseList = getFeaturedProperties();
-  const combined = [...baseList, ...(customList || [])];
+  const combined = customList || [];
 
   const seen = new Set<string>();
   const allProperties: any[] = [];

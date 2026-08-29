@@ -7,13 +7,12 @@ import { SERVER_CONFIG } from "../config";
 
 export const MASTER_SYSTEM_PROMPT = `You are CRIBR AI Property Advisor, an expert real estate intelligence consultant.
 
-You answer questions about residential real estate developments using verified factual project data.
+You answer questions about residential real estate developments strictly using verified factual project data.
 
 Rules:
-- Never invent facts, prices, dates, or RERA numbers.
-- If specific data is not available, state clearly: "This information is not available in the verified project records."
+- Never invent facts, prices, dates, amenities, or RERA numbers.
+- If the raw data does not contain an answer or a specific detail is not present in the verified dataset, you MUST explicitly state: "That information is not available in the current project data."
 - Distinguish verified statutory facts (RERA, approved plans, audited progress) from market estimates.
-- Provide structured, concise, and helpful advice to homebuyers and investors.
 - Format responses nicely with Markdown bolding, bullet points, and clean section headers.`;
 
 export function cleanLLMContent(content: string): string {
@@ -258,18 +257,15 @@ export class AIService {
 - **Micro-Market Assessment:** Competitive within the ${locality} Grade ${grade} corridor.`;
     }
 
-    // Maintenance charges
-    if (qLower.includes("maintenance charge") || qLower.includes("maintenance cost") || qLower.includes("monthly maintenance")) {
-      return `### Maintenance Information: ${name}
-- **Exact Maintenance Charge:** **Subject to final RWA notification upon handover** (Information Unavailable in statutory filings)
-- **Standard Benchmark:** Typical Grade ${grade} communities in ${locality} average ₹3.50 – ₹5.00/sqft/month.`;
-    }
-
-    // Rental yield
-    if (qLower.includes("rental") || qLower.includes("rent")) {
-      return `### Rental Yield & Income Assessment: ${name}
-- **Corridor Demand:** Proximity to ${hub} (${distance}) provides strong corporate tenant demand.
-- **Projected Gross Yield:** 4.2% – 5.1% gross annual yield based on micro-market rental averages in ${locality}.`;
+    // Missing / Unsupported attribute inquiries
+    const unsupportedKeywords = [
+      "swimming pool", "olympic", "school", "hospital", "supermarket", "grocery",
+      "floor plan", "sq ft size of room", "room dimension", "clubhouse size", "clubhouse sq",
+      "maintenance", "parking slot", "elevator", "lift count",
+      "balcony size", "ceiling height", "vastu", "vaastu", "furnishing", "interior", "rental yield", "rent"
+    ];
+    if (unsupportedKeywords.some(kw => qLower.includes(kw))) {
+      return "That information is not available in the current project data.";
     }
 
     // Default overview
@@ -286,7 +282,7 @@ export class AIService {
   }
 
   /**
-   * Deterministic grounded fallback for Results Set AI
+   * Deterministic grounded fallback for Results Set AI — 100% dynamic and data-driven
    */
   private generateGroundedResultsFallback(query: string, filters: any, projects: any[], userQuestion: string): string {
     if (!projects || projects.length === 0) {
@@ -294,193 +290,109 @@ export class AIService {
     }
 
     const qLower = (userQuestion || "").toLowerCase();
-    const topProjects = projects.slice(0, 7);
+    const topProjects = projects.slice(0, 10);
 
-    // Specific Comparison: Godrej Lakeside Orchard vs Brigade Sanctuary
-    if (qLower.includes("godrej") && qLower.includes("brigade")) {
-      return `### Comparative Analysis: Godrej Lakeside Orchard vs Brigade Sanctuary
+    const getName = (p: any) => p.name || p.projectName || p.propertyName || "Project";
+    const getBuilder = (p: any) => p.builder_name || p.builder || p.developer || p.builderName || "Verified Developer";
+    const getGrade = (p: any) => p.builder_grade || p.builderGrade || "A";
+    const getPriceRange = (p: any) => p.price_range || p.priceRange || p.price || "Price on Request";
+    const getPriceSqft = (p: any) => Number(p.price_per_sqft || p.pricePerSqft || 0);
+    const getUnits = (p: any) => p.total_units || p.totalUnits || "N/A";
+    const getAcres = (p: any) => p.land_area_acres || p.landAreaAcres || p.totalAcres || "N/A";
+    const getProgress = (p: any) => p.construction_progress ?? p.constructionProgress ?? 0;
+    const getPossession = (p: any) => p.possession_date || p.possessionDate || p.possession || "TBD";
+    const getHub = (p: any) => p.nearest_office_hub || p.nearestOfficeHub || "Tech Corridor";
+    const getDist = (p: any) => p.distance_to_hub_km || p.distanceToHubKm || p.distance_from_nearest_office_hub || "N/A";
+    const getComplaints = (p: any) => Number(p.complaints_count ?? p.complaintsCount ?? p.complaints_on_project ?? 0);
+    const getLitigation = (p: any) => Boolean(p.land_litigation === true || p.land_litigations > 0 || String(p.land_litigation).toLowerCase().includes("active"));
+    const getMinLakhs = (p: any) => {
+      const val = Number(p.min_price_lakhs ?? p.minPriceLakhs ?? (p.price_min ? p.price_min / 100000 : 0));
+      return val > 10000 ? val / 100000 : val;
+    };
 
-| Metric | Godrej Lakeside Orchard | Brigade Sanctuary |
-|---|---|---|
-| **Promoter & Grade** | Godrej Properties Ltd (Grade **A+**) | Brigade Enterprises Ltd (Grade **A+**) |
-| **Pricing** | ₹1.50 Cr – ₹2.79 Cr (₹12,362/sqft) | ₹1.60 Cr – ₹2.80 Cr (₹11,256/sqft) |
-| **Scale & Density** | 698 Units on 12.1 Acres (**58 units/ac**) | 1,275 Units on 14.9 Acres (**85 units/ac**) |
-| **Construction** | 21% Completed (Possession: Sep 2030) | 62% Completed (Possession: Dec 2028) |
-| **Commute (to Hub)** | 3.43 km to Sarjapur Rd Hub | 7.76 km to Kadubeesanahalli Hub |
-| **Title & Complaints** | Litigation Flagged (Under Review) \| 2 Complaints | 100% Clean Title Deed \| 3 Complaints |
-
-**Key Verdict:** **Brigade Sanctuary** offers earlier possession (2028) and lower price per sq.ft (₹11,256), whereas **Godrej Lakeside Orchard** offers significantly lower density (58 vs 85 units/acre) and closer proximity to Sarjapur Road hub.`;
-    }
-
-    // Specific Comparison: Birla Evara vs Nambiar District 25
-    if (qLower.includes("birla") && qLower.includes("nambiar")) {
-      return `### Comparative Analysis: Birla Evara vs Nambiar District 25 Ph.1
-
-| Metric | Birla Evara | Nambiar District 25 Ph.1 |
-|---|---|---|
-| **Promoter & Grade** | Birla Estates / Vardhita (Grade **A**) | Nambiar Ensemble (Grade **A**) |
-| **Starting Price** | **₹93.20 Lakhs** – ₹3.36 Cr (₹13,054/sqft) | **₹1.72 Cr** – ₹3.46 Cr (₹13,850/sqft) |
-| **Land Size & Scale** | 25.7 Acres (1,594 Units, **62 units/ac**) | 8.8 Acres (796 Units, **91 units/ac**) |
-| **Handover** | Dec 2031 (4% Progress) | Jan 2030 (20% Progress) |
-| **Title & Due Diligence**| 100% Clean Title Deed (0 Complaints) | 100% Clean Title Deed (0 Complaints) |
-| **Commute** | 2.99 km to Sarjapur Rd Hub | 8.42 km to Sarjapur Rd Hub |
-
-**Key Verdict:** **Birla Evara** provides a much wider price spectrum (starting at ₹93.2L for 1 BHK) and massive 25.7-acre integrated township living with lower density, while **Nambiar District 25** has higher ongoing physical construction progress (20%).`;
-    }
-
-    // Under 2 Crore / Budget queries
-    if (qLower.includes("under 2 crore") || qLower.includes("under 2 cr") || qLower.includes("under 2cr") || qLower.includes("under ₹2")) {
+    // 1. Under 2 Crore / Budget queries
+    if (qLower.includes("under 2") || qLower.includes("budget") || qLower.includes("affordable")) {
       const under2Cr = topProjects.filter(p => {
-        const minP = p.minPriceLakhs ?? p.min_price_lakhs ?? 150;
-        return minP < 200;
+        const minL = getMinLakhs(p);
+        return minL > 0 && minL <= 200;
       });
-      const list = under2Cr.map(p => {
-        const name = p.name || p.projectName || p.propertyName;
-        const price = p.priceRange || p.price_range || p.price;
-        const configs = p.configurations || p.unitTypes || p.unit_types || "2, 3 BHK";
-        return `• **${name}**: ${price} (Configs: ${Array.isArray(configs) ? configs.join(", ") : configs})`;
-      }).join("\n");
 
-      return `### Projects Available Under ₹2 Crore
-
-${list}
-
-**Summary:** 
-- **Birla Evara** has the lowest entry starting point from **₹93.20 Lakhs** (1 & 2 BHK).
-- **Assetz Melodies of Life** starts at **₹96.00 Lakhs**.
-- **Godrej Lakeside Orchard**, **Brigade Sanctuary**, and **Abhee Celestial City** all offer standard 2 BHK units under the ₹1.60 Cr threshold.`;
+      if (under2Cr.length > 0) {
+        const list = under2Cr.map(p => `• **${getName(p)}** (${getBuilder(p)}): ${getPriceRange(p)} | Poss: ${getPossession(p)}`).join("\n");
+        return `### Projects Available Under ₹2 Crore (${under2Cr.length} Matches)\n\n${list}\n\n**Recommendation:** All listed projects have verified regulatory filings and clear builder track records.`;
+      }
     }
 
-    // Lowest price per sq.ft queries
-    if (qLower.includes("lowest price per sq") || qLower.includes("lowest rate") || qLower.includes("cheapest per sqft") || qLower.includes("lowest price per square")) {
-      return `### Lowest Price Per Sq.Ft Ranking (Verified Database)
-
-1. **Abhee Celestial City**: **₹11,160 / sq.ft** (Nexplace Infrastructure / Grade B)
-2. **Brigade Sanctuary**: **₹11,256 / sq.ft** (Brigade Enterprises / Grade A+)
-3. **Prestige Eaton Park**: **₹12,100 / sq.ft** (Prestige Projects / Grade A+)
-4. **Godrej Lakeside Orchard**: **₹12,362 / sq.ft** (Godrej Properties / Grade A+)
-5. **Birla Evara**: **₹13,054 / sq.ft** (Birla Estates / Grade A)
-6. **Nambiar District 25 Ph.1**: **₹13,850 / sq.ft** (Nambiar Ensemble / Grade A)
-7. **Assetz Melodies of Life**: **₹15,567 / sq.ft** (Assetz / Grade B)
-
-**Takeaway:** **Abhee Celestial City** has the lowest base rate at ₹11,160/sqft, closely followed by Grade A+ **Brigade Sanctuary** at ₹11,256/sqft.`;
+    // 2. Lowest price per sq.ft queries
+    if (qLower.includes("lowest price per sq") || qLower.includes("lowest rate") || qLower.includes("cheapest per sqft") || qLower.includes("per sqft") || qLower.includes("price per square")) {
+      const withRate = topProjects.filter(p => getPriceSqft(p) > 0).sort((a, b) => getPriceSqft(a) - getPriceSqft(b));
+      if (withRate.length > 0) {
+        const list = withRate.map((p, idx) => `${idx + 1}. **${getName(p)}**: **₹${getPriceSqft(p).toLocaleString("en-IN")} / sq.ft** (${getBuilder(p)} / Grade ${getGrade(p)})`).join("\n");
+        return `### Price Per Sq.Ft Ranking (Verified Database)\n\n${list}\n\n**Summary:** **${getName(withRate[0])}** offers the most competitive rate at ₹${getPriceSqft(withRate[0]).toLocaleString("en-IN")}/sq.ft.`;
+      }
     }
 
-    // Active complaints queries
-    if (qLower.includes("complaint") || qLower.includes("active complaint")) {
-      const withComplaints = topProjects.filter(p => (p.complaintsCount ?? p.complaints_count ?? p.complaints ?? 0) > 0);
-      const cleanOnes = topProjects.filter(p => (p.complaintsCount ?? p.complaints_count ?? p.complaints ?? 0) === 0);
+    // 3. Active complaints queries
+    if (qLower.includes("complaint") || qLower.includes("rera issue")) {
+      const withComplaints = topProjects.filter(p => getComplaints(p) > 0);
+      const cleanOnes = topProjects.filter(p => getComplaints(p) === 0);
 
-      return `### Statutory RERA Complaint Audit
+      const complaintsList = withComplaints.length > 0
+        ? `**Projects with Inquiries on State RERA Portal:**\n${withComplaints.map(p => `• **${getName(p)}**: **${getComplaints(p)} complaint(s)** on record (Developer: ${getBuilder(p)})`).join("\n")}`
+        : `**All ${topProjects.length} evaluated projects currently have 0 active complaints on record.**`;
 
-**Projects with Active Inquiries on K-RERA Portal:**
-${withComplaints.map(p => `• **${p.name || p.projectName}**: **${p.complaintsCount ?? p.complaints_count ?? 2} active complaints** on record (Developer: ${p.builder || p.builder_name})`).join("\n")}
+      const cleanList = cleanOnes.length > 0
+        ? `\n\n**Projects with 0 Active Complaints (100% Clean Audit):**\n${cleanOnes.map(p => `• **${getName(p)}** (0 Complaints)`).join("\n")}`
+        : "";
 
-**Projects with 0 Active Complaints (100% Clean Audit):**
-${cleanOnes.map(p => `• **${p.name || p.projectName}** (0 Complaints)`).join("\n")}
-
-**Due-Diligence Note:** Active complaints on Grade A+ developers typically relate to minor layout revisions or draft agreement wording under review by K-RERA adjudicating officers.`;
+      return `### Statutory RERA Complaint Audit\n\n${complaintsList}${cleanList}`;
     }
 
-    // Litigation & Clean Title queries
-    if (qLower.includes("litigation") || qLower.includes("clean title") || qLower.includes("title deed") || qLower.includes("legal concern")) {
-      return `### Title Deed & Litigation Status Verification
+    // 4. Litigation & Clean Title queries
+    if (qLower.includes("litigation") || qLower.includes("clean title") || qLower.includes("title deed") || qLower.includes("legal")) {
+      const flagged = topProjects.filter(p => getLitigation(p));
+      const clean = topProjects.filter(p => !getLitigation(p));
 
-**Litigation Audit:**
-- **Godrej Lakeside Orchard**: ⚠️ **Active Litigation Flagged (Under Review)** — Title due diligence advisory recommends verifying survey boundary dispute documentation.
-- **Birla Evara**: ✓ **100% Clean Title Deed** (Zero Litigation Records)
-- **Nambiar District 25 Ph.1**: ✓ **100% Clean Title Deed** (Zero Litigation Records)
-- **Brigade Sanctuary**: ✓ **100% Clean Title Deed** (Zero Litigation Records)
-- **Prestige Eaton Park**: ✓ **100% Clean Title Deed** (Zero Litigation Records)
-- **Abhee Celestial City**: ✓ **100% Clean Title Deed** (Zero Litigation Records)
-- **Assetz Melodies of Life**: ✓ **100% Clean Title Deed** (Zero Litigation Records)
+      const flaggedList = flagged.length > 0
+        ? `**Active Litigation Under Review:**\n${flagged.map(p => `• **${getName(p)}**: ⚠️ Disclosed land boundary / survey review on record.`).join("\n")}\n\n`
+        : "";
 
-**Summary:** 6 out of 7 projects in the active dataset possess unencumbered, 100% clean title deeds with no registered civil suits.`;
+      const cleanList = `**100% Clean Title Deed (Zero Litigation Records):**\n${clean.map(p => `• **${getName(p)}**: ✓ Verified unencumbered title deed.`).join("\n")}`;
+
+      return `### Title Deed & Land Litigation Verification\n\n${flaggedList}${cleanList}\n\n**Summary:** ${clean.length} out of ${topProjects.length} evaluated projects possess verified clean title deeds.`;
     }
 
-    // Proximity to IT / Tech Hub queries
-    if (qLower.includes("closest") || qLower.includes("nearest") || qLower.includes("it hub") || qLower.includes("tech hub")) {
-      return `### Proximity to Key IT & Commercial Hubs (Ranked by Distance)
-
-1. **Assetz Melodies of Life**: **1.49 km** to Sarjapur Rd Hub
-2. **Birla Evara**: **2.99 km** to Sarjapur Rd Hub
-3. **Godrej Lakeside Orchard**: **3.43 km** to Sarjapur Rd Hub
-4. **Abhee Celestial City**: **7.57 km** to Kadubeesanahalli / ORR Tech Hub
-5. **Brigade Sanctuary**: **7.76 km** to Kadubeesanahalli / ORR Tech Hub
-6. **Nambiar District 25 Ph.1**: **8.42 km** to Sarjapur Rd Hub
-7. **Prestige Eaton Park**: **10.59 km** to ITPL / Whitefield Corridor
-
-**Commute Recommendation:** **Assetz Melodies of Life** and **Birla Evara** offer the shortest daily transit times to primary Outer Ring Road tech corridors.`;
+    // 5. Proximity to IT / Tech Hub queries
+    if (qLower.includes("closest") || qLower.includes("nearest") || qLower.includes("hub") || qLower.includes("commute") || qLower.includes("distance")) {
+      const sortedByDist = [...topProjects].sort((a, b) => Number(getDist(a) || 999) - Number(getDist(b) || 999));
+      const list = sortedByDist.map((p, idx) => `${idx + 1}. **${getName(p)}**: **${getDist(p)} km** to ${getHub(p)}`).join("\n");
+      return `### Proximity to Commercial & Tech Hubs\n\n${list}\n\n**Commute Strategy:** Projects closest to arterial junctions offer shorter daily transit times during peak corridor traffic.`;
     }
 
-    // Best builder rating / reliability
-    if (qLower.includes("best builder") || qLower.includes("builder rating") || qLower.includes("builder grade") || qLower.includes("reliability")) {
-      return `### Builder Reliability & Grade Analysis
-
-**Grade A+ Developers (Institutional Tier-1 Execution):**
-- **Godrej Properties Ltd** (*Godrej Lakeside Orchard*) — High brand governance, institutional delivery track record.
-- **Brigade Enterprises Ltd** (*Brigade Sanctuary*) — 3+ decades in Bangalore real estate, 62% construction milestone completed.
-- **Prestige Projects Pvt Ltd** (*Prestige Eaton Park*) — Strong market capitalization and consistent finish quality.
-
-**Grade A Developers (High Quality Execution):**
-- **Birla Estates / Vardhita** (*Birla Evara*) — Century-old corporate backing, clean title governance.
-- **Nambiar Group** (*Nambiar District 25*) — Regional luxury villa & high-rise specialist.
-
-**Grade B Developers (Regional Promoters):**
-- **Nexplace / Abhee Ventures** (*Abhee Celestial City*) & **Assetz** (*Assetz Melodies of Life*).`;
+    // 6. Builder reliability / rating
+    if (qLower.includes("builder") || qLower.includes("developer") || qLower.includes("grade") || qLower.includes("reliability")) {
+      const list = topProjects.map(p => `• **${getBuilder(p)}** (*${getName(p)}*) — Developer Grade: **${getGrade(p)}** | Progress: **${getProgress(p)}%**`).join("\n");
+      return `### Developer Grade & Execution Track Record\n\n${list}\n\n**Due-Diligence Note:** Higher grade developers demonstrate institutional corporate governance and structured delivery track records.`;
     }
 
-    // 1. General Value & Pricing comparison prompt
-    if (qLower.includes("value") || qLower.includes("price") || qLower.includes("cheaper") || qLower.includes("affordable") || qLower.includes("expensive")) {
-      const priceList = topProjects.map((p, idx) => {
-        const name = p.name || p.projectName || p.propertyName || `Project ${idx + 1}`;
-        const price = p.priceRange || p.price_range || p.price || "Price on Request";
-        const sqft = p.pricePerSqft || p.price_per_sqft || "N/A";
-        return `• **${name}**: ${price} (Rate: **${sqft}**)`;
-      }).join("\n");
-
-      return `### Price & Value Analysis (${topProjects.length} Projects)\n\n${priceList}\n\n**Verdict:** \n- Best entry point pricing: **${topProjects[topProjects.length - 1]?.name || topProjects[topProjects.length - 1]?.projectName || "Birla Evara"}**\n- Premium segment positioning: **${topProjects[0]?.name || topProjects[0]?.projectName || "Godrej Lakeside Orchard"}** with verified Grade A+ developer reputation.`;
-    }
-
-    // General Commute distance prompt
-    if (qLower.includes("commute") || qLower.includes("distance") || qLower.includes("transit") || qLower.includes("metro")) {
-      const commuteList = topProjects.map((p, idx) => {
-        const name = p.name || p.projectName || p.propertyName || `Project ${idx + 1}`;
-        const hub = p.nearestOfficeHub || p.nearest_office_hub || p.nearestHub || "Sarjapur Rd / ORR Tech Corridor";
-        const dist = p.distanceToHubKm || p.distance_to_hub_km || p.commuteDistance || "4.5";
-        return `• **${name}**: **${dist} km** to ${hub}`;
-      }).join("\n");
-
-      return `### Commute & Tech Hub Proximity\n\n${commuteList}\n\n**Commute Strategy:** Projects closest to the Sarjapur Outer Ring Road junction offer 15-25 minute drive times during off-peak hours, with arterial bus and upcoming metro links.`;
-    }
-
-    // General Main differences prompt
-    if (qLower.includes("differ") || qLower.includes("compare") || qLower.includes("versus") || qLower.includes("vs")) {
-      const diffList = topProjects.map((p, idx) => {
-        const name = p.name || p.projectName || p.propertyName || `Project ${idx + 1}`;
-        const builder = p.builder || p.builder_name || p.builderName || "Builder";
-        const price = p.priceRange || p.price_range || p.price || "₹1.50 Cr+";
-        const units = p.totalUnits || p.total_units || "700 Units";
-        const density = p.unitDensity || p.unit_density_per_acre ? `${p.unitDensity || p.unit_density_per_acre} units/ac` : "Low density";
-        const progress = p.constructionProgress ?? p.construction_progress ?? 20;
-        return `**${idx + 1}. ${name}** (${builder})\n- Price: ${price} | Progress: **${progress}%** | Scale: ${units} (${density})`;
+    // 7. General Price & Value Comparison
+    if (qLower.includes("value") || qLower.includes("price") || qLower.includes("cost") || qLower.includes("compare") || qLower.includes("differ") || qLower.includes("vs")) {
+      const list = topProjects.map((p, idx) => {
+        const rate = getPriceSqft(p) > 0 ? ` (₹${getPriceSqft(p).toLocaleString("en-IN")}/sqft)` : "";
+        return `**${idx + 1}. ${getName(p)}** (${getBuilder(p)})\n- Price: ${getPriceRange(p)}${rate}\n- Construction: **${getProgress(p)}%** completed (Target: ${getPossession(p)})\n- Scale: ${getUnits()} Units across ${getAcres()} Acres`;
       }).join("\n\n");
 
-      return `### Match-by-Match Key Differences\n\n${diffList}\n\n**Summary:** Higher density communities offer richer clubhouse amenities and lower maintenance, while lower density projects provide higher open space ratios and privacy.`;
+      return `### Comparative Project Matrix (${topProjects.length} Verified Projects)\n\n${list}`;
     }
 
+    // 8. Default Discovery Summary
     const summaries = topProjects.map((p, idx) => {
-      const name = p.name || p.projectName || p.propertyName || `Project ${idx + 1}`;
-      const price = p.priceRange || p.price_range || p.price || "Price on Request";
-      const priceSqft = p.pricePerSqft || p.price_per_sqft || "N/A";
-      const loc = p.locality || p.location || "Bangalore";
-      const builder = p.builder || p.builder_name || p.builderName || "Verified Promoter";
-      const progress = p.constructionProgress ?? p.construction_progress ?? 0;
-      const rera = p.reraNumber || p.rera_number || "RERA Verified";
-      return `**${idx + 1}. ${name}** (${builder})
-- Location: ${loc}
-- Price: ${price} (${priceSqft})
-- Progress: ${progress}% completed
+      const rate = getPriceSqft(p) > 0 ? ` (₹${getPriceSqft(p).toLocaleString("en-IN")}/sqft)` : "";
+      const rera = p.rera_number || p.reraNumber || "RERA Verified";
+      return `**${idx + 1}. ${getName(p)}** (${getBuilder(p)})
+- Location: ${p.locality || p.location || "Bangalore"}
+- Price Range: ${getPriceRange(p)}${rate}
+- Construction Progress: ${getProgress(p)}% (Possession: ${getPossession(p)})
 - RERA: \`${rera}\``;
     }).join("\n\n");
 
@@ -490,18 +402,33 @@ ${summaries}
 
 ---
 **Key Recommendations:**
-- All listed projects possess active Karnataka RERA approvals with verified construction milestones.
-- Select any project above to inspect detailed statutory filings, density metrics, and unit configurations.`;
+- All listed projects possess active state RERA approvals with verified statutory filings.
+- Select any project card to review complete density breakdowns, unit configurations, and due-diligence data.`;
   }
 
   /**
    * Conversational Chat Answer
    */
-  async generateChatAnswer(userMessage: string, history: any[] = []): Promise<string> {
+  /**
+   * Conversational Chat Answer with Dynamic Verified Database Grounding
+   */
+  async generateChatAnswer(userMessage: string, history: any[] = [], projects: any[] = []): Promise<string> {
+    const verifiedDatasetMarkdown = Array.isArray(projects) && projects.length > 0
+      ? datasetToMarkdown(projects)
+      : "No projects available in current dataset.";
+
     const systemPrompt = `${MASTER_SYSTEM_PROMPT}
 
-You are assisting a homebuyer evaluating residential real estate projects in Bangalore, India.
-Always provide factual, well-reasoned answers. When discussing specific projects, highlight verified metrics like RERA numbers, possession dates, builder grades, unit densities, and commute distances.`;
+CURRENT VERIFIED DATABASE FACTSHEET (${projects.length} Projects):
+${verifiedDatasetMarkdown}
+
+GROUNDING & COMPLIANCE RULES:
+1. STRICT TRACEABILITY: Only use factual information present in the verified factsheet above. Never invent or hallucinate project names, prices, price per sqft, possession dates, construction progress, amenities, floor plans, dimensions, schools, or RERA numbers.
+2. MISSING DATA & UNVERIFIED ATTRIBUTES: If the user asks for a project not in the dataset above, or asks for specific attributes not present in the verified factsheet (such as swimming pool size, clubhouse area, specific school names, floor plan dimensions, maintenance fees), you MUST state clearly:
+"That information is not available in the current project data."
+3. COMPARISONS & ALTERNATIVES: When the user asks to compare projects or find alternatives, compare their verified metrics (price range, price per sqft, possession date, construction progress, builder grade, density, complaints, and distance to tech hubs).
+4. BUDGET & FILTER QUERIES: If the user asks for projects matching criteria (e.g. "under 2 Cr", "lowest density", "nearest to tech corridor", "zero complaints"), compute and list the matching verified projects accurately.
+5. FORMATTING: Use clean, professional markdown with bold text and structured bullet points.`;
 
     let userPrompt = `USER MESSAGE: "${userMessage}"`;
     if (history && history.length > 0) {
@@ -511,10 +438,177 @@ Always provide factual, well-reasoned answers. When discussing specific projects
       userPrompt = `CONVERSATION HISTORY:\n${historyStr}\n\nLATEST USER MESSAGE: "${userMessage}"`;
     }
 
-    const aiRes = await this.callLLM(systemPrompt, userPrompt, 0.3);
-    if (aiRes) return aiRes;
+    try {
+      const aiRes = await this.callLLM(systemPrompt, userPrompt, 0.25);
+      if (aiRes) return aiRes;
+    } catch (err: any) {
+      console.warn("[AIService] Chat LLM call failed, using deterministic grounded fallback:", err?.message || err);
+    }
 
-    return `I am your CRIBR AI Property Advisor. All verified residential project records in our database are cross-checked against official state RERA registers, builder track records, and location connectivity metrics. How can I assist you with specific property evaluation today?`;
+    return this.generateGroundedChatFallback(userMessage, projects);
+  }
+
+  /**
+   * Deterministic Grounded Chat Fallback — 100% grounded on verified database projects
+   */
+  public generateGroundedChatFallback(userMessage: string, projects: any[] = []): string {
+    const msg = (userMessage || "").toLowerCase().trim();
+    if (!projects || projects.length === 0) {
+      return "That information is not available in the current project data.";
+    }
+
+    const getName = (p: any) => p.name || p.projectName || p.project_name || "Project";
+    const getBuilder = (p: any) => p.builder_name || p.builder || p.developer || "Verified Developer";
+    const getPriceRange = (p: any) => p.price_range || p.priceRange || "Price on Request";
+    const getPriceSqft = (p: any) => Number(p.price_per_sqft || p.price_per_sft || p.pricePerSqft || 0);
+    const getPossession = (p: any) => p.possession_date || p.possessionDate || "TBD";
+    const getProgress = (p: any) => p.construction_progress ?? p.constructionProgress ?? 0;
+    const getComplaints = (p: any) => Number(p.complaints_on_project ?? p.complaints_count ?? p.complaintsCount ?? 0);
+    const getLitigation = (p: any) => Boolean(p.land_litigations > 0 || p.land_litigation === true);
+    const getDensity = (p: any) => p.density || p.unit_density_per_acre || p.unitDensity || "N/A";
+    const getDist = (p: any) => p.distance_from_nearest_office_hub || p.distance_to_hub_km || p.distanceToHubKm || "N/A";
+    const getRating = (p: any) => p.google_reviews_score || p.google_rating || p.googleRating || "N/A";
+    const getUnits = (p: any) => p.total_units || p.totalUnits || "N/A";
+    const getConfigurations = (p: any) => {
+      const u = p.unit_types || p.unitTypes;
+      return Array.isArray(u) ? u.join(", ") : (u || "N/A");
+    };
+
+    // 1. Check for unsupported factual queries (attributes not in the verified dataset)
+    const unsupportedKeywords = [
+      "swimming pool", "olympic", "school", "hospital", "supermarket", "grocery",
+      "floor plan", "sq ft size of room", "room dimension", "clubhouse size", "clubhouse sq",
+      "maintenance fee", "maintenance cost", "parking slot", "elevator", "lift count",
+      "balcony size", "ceiling height", "vastu", "vaastu", "furnishing", "interior", "rent"
+    ];
+    if (unsupportedKeywords.some(kw => msg.includes(kw))) {
+      return "That information is not available in the current project data.";
+    }
+
+    // 2. Check for multi-project comparison requests
+    const matchedProjectsList = projects.filter(p => {
+      const name = getName(p).toLowerCase();
+      const builder = getBuilder(p).toLowerCase();
+      return msg.includes(name) || (name.split(" ").length > 1 && msg.includes(name.split(" ")[0].toLowerCase()) && msg.includes(name.split(" ")[1]?.toLowerCase())) || (builder.length > 3 && msg.includes(builder));
+    });
+
+    if (matchedProjectsList.length >= 2 || msg.includes("compare") || msg.includes(" vs ") || msg.includes("versus") || msg.includes("difference")) {
+      const projsToCompare = matchedProjectsList.length >= 2 ? matchedProjectsList : projects.slice(0, 3);
+      const list = projsToCompare.map((p, idx) => {
+        return `**${idx + 1}. ${getName(p)}** (${getBuilder(p)})\n` +
+               `- Price Range: ${getPriceRange(p)} (₹${getPriceSqft(p).toLocaleString("en-IN")}/sq.ft)\n` +
+               `- Unit Types: ${getConfigurations(p)}\n` +
+               `- Construction: ${getProgress(p)}% completed (Possession: ${getPossession(p)})\n` +
+               `- Density: ${getDensity(p)} units/acre | Hub Distance: ${getDist(p)} km\n` +
+               `- Complaints: ${getComplaints(p)} | Litigation: ${getLitigation(p) ? "1 Disclosed" : "0 (Clean)"}`;
+      }).join("\n\n");
+
+      return `### Comparative Project Matrix\n\n${list}\n\n*Select any project in CRIBR to open a side-by-side comparison.*`;
+    }
+
+    // 3. Check for specific single project mentions
+    const matchedProject = matchedProjectsList[0] || projects.find(p => {
+      const name = getName(p).toLowerCase();
+      const builder = getBuilder(p).toLowerCase();
+      return msg.includes(name) || (name.split(" ").length > 1 && msg.includes(name.split(" ")[0].toLowerCase())) || (builder.length > 3 && msg.includes(builder));
+    });
+
+    if (matchedProject) {
+      const pName = getName(matchedProject);
+      const bName = getBuilder(matchedProject);
+
+      if (msg.includes("safe") || msg.includes("complaint") || msg.includes("litigation") || msg.includes("legal") || msg.includes("risk")) {
+        const complaints = getComplaints(matchedProject);
+        const hasLitigation = getLitigation(matchedProject);
+        const summary = matchedProject.property_title_summary || matchedProject.verification_title_audit_note;
+
+        return `### Safety & Legal Audit: ${pName} (${bName})\n\n` +
+               `• **Active Complaints on Project:** ${complaints} complaint(s) on state RERA register.\n` +
+               `• **Land Litigation Status:** ${hasLitigation ? "⚠️ Disclosed Land Litigation" : "✓ 100% Clean Title Deed (Zero Litigation)"}\n` +
+               (summary ? `• **Title Audit Summary:** ${summary}\n` : "") +
+               `• **Construction Progress:** ${getProgress(matchedProject)}% completed (Target: ${getPossession(matchedProject)})\n` +
+               `• **RERA Registration:** \`${matchedProject.rera_number || matchedProject["RERA registration number"] || "RERA Verified"}\``;
+      }
+
+      if (msg.includes("price") || msg.includes("cost") || msg.includes("rate") || msg.includes("sqft")) {
+        const rate = getPriceSqft(matchedProject);
+        return `### Pricing Intelligence: ${pName}\n\n` +
+               `• **Price Range:** ${getPriceRange(matchedProject)}\n` +
+               `• **Rate per Sq.Ft:** ${rate > 0 ? `₹${rate.toLocaleString("en-IN")} / sq.ft` : "On Request"}\n` +
+               `• **Configurations:** ${getConfigurations(matchedProject)}\n` +
+               `• **Possession Date:** ${getPossession(matchedProject)} (${getProgress(matchedProject)}% completed)`;
+      }
+
+      if (msg.includes("alternative") || msg.includes("similar") || msg.includes("other options")) {
+        const alternatives = projects.filter(p => getName(p) !== pName).slice(0, 3);
+        const list = alternatives.map(a => `• **${getName(a)}** (${getBuilder(a)}): ${getPriceRange(a)} | ${getConfigurations(a)} | Poss: ${getPossession(a)}`).join("\n");
+        return `### Alternatives to ${pName} in Current Database:\n\n${list}\n\nAll alternative projects are verified with active state RERA registrations.`;
+      }
+
+      // General project overview
+      return `### ${pName} — Verified Factsheet\n\n` +
+             `• **Developer:** ${bName} (Grade: ${matchedProject.builder_grade || (matchedProject.builder_reliability >= 0.95 ? "A+" : "A")})\n` +
+             `• **Location:** ${matchedProject.locality || matchedProject.location || "Bengaluru"}, ${matchedProject.area || matchedProject.taluk || "Bengaluru"}\n` +
+             `• **Price Range:** ${getPriceRange(matchedProject)} (₹${getPriceSqft(matchedProject).toLocaleString("en-IN")}/sq.ft)\n` +
+             `• **Unit Types:** ${getConfigurations(matchedProject)}\n` +
+             `• **Scale & Density:** ${getUnits(matchedProject)} units (${getDensity(matchedProject)} units/acre)\n` +
+             `• **Timeline:** ${getProgress(matchedProject)}% completed | Target Possession: ${getPossession(matchedProject)}\n` +
+             `• **Hub Distance:** ${getDist(matchedProject)} km to tech hub\n` +
+             `• **Google Reviews:** ${getRating(matchedProject)} ★`;
+    }
+
+    // 4. Budget queries (e.g. "under 2 crore", "under 1.5 cr", "budget")
+    if (msg.includes("under 2") || msg.includes("2 crore") || msg.includes("1.5") || msg.includes("budget") || msg.includes("affordable")) {
+      const filtered = projects.filter(p => {
+        const minP = Number(p.price_min || (p.min_price_lakhs ? p.min_price_lakhs * 100000 : 0));
+        return minP > 0 && minP <= 20000000;
+      });
+
+      if (filtered.length > 0) {
+        const list = filtered.map(p => `• **${getName(p)}** (${getBuilder(p)}): ${getPriceRange(p)} | ${getConfigurations(p)} | Poss: ${getPossession(p)}`).join("\n");
+        return `### Verified Projects Under ₹2 Crore (${filtered.length} Matches)\n\n${list}`;
+      }
+    }
+
+    // 5. Density queries
+    if (msg.includes("density") || msg.includes("spacious") || msg.includes("crowded")) {
+      const sortedByDensity = [...projects].sort((a, b) => Number(a.density || a.unit_density_per_acre || 999) - Number(b.density || b.unit_density_per_acre || 999));
+      const list = sortedByDensity.map((p, idx) => `${idx + 1}. **${getName(p)}**: **${getDensity(p)} units/acre** (${getUnits(p)} units on ${p.land_area_acres || "N/A"} acres)`).join("\n");
+      return `### Density Ranking (Lowest to Highest Units Per Acre)\n\n${list}\n\n**Insight:** Lower density developments offer more green open space per residential unit.`;
+    }
+
+    // 6. Complaints & Litigation queries
+    if (msg.includes("complaint") || msg.includes("litigation") || msg.includes("clean title") || msg.includes("legal")) {
+      const cleanList = projects.filter(p => getComplaints(p) === 0 && !getLitigation(p));
+      const flaggedList = projects.filter(p => getComplaints(p) > 0 || getLitigation(p));
+
+      let res = `### Legal & Statutory Status of Database Projects\n\n`;
+      if (cleanList.length > 0) {
+        res += `**100% Clean Title & Zero Complaints (${cleanList.length} Projects):**\n` +
+               cleanList.map(p => `• **${getName(p)}** (${getBuilder(p)}) — 0 Complaints | Clean Title`).join("\n") + `\n\n`;
+      }
+      if (flaggedList.length > 0) {
+        res += `**Disclosures on Record (${flaggedList.length} Projects):**\n` +
+               flaggedList.map(p => `• **${getName(p)}**: ${getComplaints(p)} complaint(s) | ${getLitigation(p) ? "1 Disclosed Land Litigation" : "Clean Title"}`).join("\n");
+      }
+      return res;
+    }
+
+    // 7. Distance & Commute queries
+    if (msg.includes("nearest") || msg.includes("distance") || msg.includes("hub") || msg.includes("commute") || msg.includes("office")) {
+      const sortedByDist = [...projects].sort((a, b) => Number(getDist(a) || 999) - Number(getDist(b) || 999));
+      const list = sortedByDist.map((p, idx) => `${idx + 1}. **${getName(p)}**: **${getDist(p)} km** to ${p.nearest_office_hub || "Tech Hub"}`).join("\n");
+      return `### Proximity to Office & Tech Hubs\n\n${list}`;
+    }
+
+    // 8. Unsupported factual questions or out-of-scope queries
+    if (msg.includes("swimming pool") || msg.includes("school") || msg.includes("hospital") || msg.includes("sq ft size of room") || msg.includes("clubhouse size") || msg.includes("maintenance")) {
+      return "That information is not available in the current project data.";
+    }
+
+    // Default general response grounded on all 7 projects
+    const allList = projects.map(p => `• **${getName(p)}** (${getBuilder(p)}): ${getPriceRange(p)} | ${getConfigurations(p)} | Target Poss: ${getPossession(p)}`).join("\n");
+    return `I am your CRIBR AI Property Advisor. Here are the **${projects.length} verified projects** currently in our database:\n\n${allList}\n\nAsk me about any project's pricing, density, legal audit, possession timeline, or comparative differences.`;
   }
 
   /**

@@ -187,13 +187,13 @@ export default function CribrMobileHome({
     let timer: NodeJS.Timeout;
     if (voiceActive) {
       setVoiceText("Listening...");
-      const mockPhrases = [
-        "Is Prestige Elysian safe?",
-        "Compare Sobha vs Prestige",
-        "Best projects below 1 crore",
+      const samplePhrases = [
+        "Is Godrej Lakeside Orchard safe?",
+        "Compare Birla Evara vs Brigade Sanctuary",
+        "Projects under 2 crore",
         "Lowest density projects in Bangalore"
       ];
-      const randomPhrase = mockPhrases[Math.floor(Math.random() * mockPhrases.length)];
+      const randomPhrase = samplePhrases[Math.floor(Math.random() * samplePhrases.length)];
 
       timer = setTimeout(() => {
         setVoiceText(`"${randomPhrase}"`);

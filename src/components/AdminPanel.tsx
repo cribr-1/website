@@ -58,7 +58,6 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { INTELLIGENCE_MODULES } from "../data";
 import { CribrUser, CribrBooking, localDb, isRealSupabaseConfigured, supabase, cribrAuditLogs, cribrAdminExt } from "../lib/supabase";
 import AdminCreatePropertyForm, { FullPropertyFormData } from "./AdminCreatePropertyForm";
 import { formatPriceLakhs, mapFormToSupabaseProject } from "../lib/projectDataMapper";
@@ -651,31 +650,63 @@ export default function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
           return;
         }
 
-        // Simulating robust parsing and loading
+        // Parse CSV dynamically
         setIsPageLoading(true);
-        setTimeout(() => {
-          // Add a dummy imported property to the list
-          const importedProp: AdminProperty = {
-            id: `imported-${Math.random().toString(36).substr(2, 6)}`,
-            name: "Brigade Calista (Imported)",
-            developer: "Brigade Group",
-            city: "Bangalore",
-            location: "Budigere Cross",
-            priceRange: "₹85 L - ₹1.4 Cr",
-            status: "draft",
-            score: 87,
-            image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80",
-            views: 120,
-            bookingsCount: 0,
-            version: 1,
-            configurations: "2 & 3 BHK Premium Units",
-            possession: "Jun 2028",
-            amenities: ["Jogging Track", "Gym", "Landscaped Gardens"]
-          };
-          handlePropertiesChange([importedProp, ...propertiesList]);
-          logAdminAction("IMPORT_CSV", `Successfully validated and imported property '${importedProp.name}' from CSV file: ${file.name}`);
+        try {
+          const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+          if (lines.length <= 1) {
+            alert("CSV file does not contain any data rows.");
+            setIsPageLoading(false);
+            return;
+          }
+
+          const headerCols = lines[0].split(",").map((h) => h.trim().toLowerCase());
+          const newImportedProps: AdminProperty[] = [];
+
+          for (let i = 1; i < lines.length; i++) {
+            const rowValues = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+            const rowObj: Record<string, string> = {};
+            headerCols.forEach((h, idx) => {
+              rowObj[h] = rowValues[idx] || "";
+            });
+
+            const pName = rowObj["project_name"] || rowObj["name"] || rowObj["property_name"];
+            if (!pName) continue;
+
+            const pBuilder = rowObj["builder_name"] || rowObj["developer"] || rowObj["builder"] || "Promoter Verified";
+            const pLoc = rowObj["locality"] || rowObj["location"] || rowObj["area"] || "Bangalore";
+            const pMin = rowObj["price_min"] || rowObj["min_price"];
+            const pMax = rowObj["price_max"] || rowObj["max_price"];
+            const pPriceRange = pMin && pMax ? `₹${(Number(pMin)/10000000).toFixed(2)} Cr - ₹${(Number(pMax)/10000000).toFixed(2)} Cr` : (rowObj["price_range"] || "Price on Request");
+
+            newImportedProps.push({
+              id: rowObj["id"] || `imported-${Math.random().toString(36).substr(2, 6)}`,
+              name: pName,
+              developer: pBuilder,
+              city: "Bangalore",
+              location: pLoc,
+              priceRange: pPriceRange,
+              status: "published",
+              score: 88,
+              image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80",
+              views: 0,
+              bookingsCount: 0,
+              version: 1,
+              configurations: rowObj["unit_types"] || "2 & 3 BHK Units",
+              possession: rowObj["possession_date"] || "TBD",
+              amenities: []
+            });
+          }
+
+          if (newImportedProps.length > 0) {
+            handlePropertiesChange([...newImportedProps, ...propertiesList]);
+            logAdminAction("IMPORT_CSV", `Successfully parsed and imported ${newImportedProps.length} properties from CSV: ${file.name}`);
+          }
+        } catch (err) {
+          console.error("CSV parse error:", err);
+        } finally {
           setIsPageLoading(false);
-        }, 700);
+        }
       };
 
       reader.onerror = () => {

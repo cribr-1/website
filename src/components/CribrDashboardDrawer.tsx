@@ -15,8 +15,7 @@ import {
   Phone
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { CribrUser, CribrBooking, cribrBookings, localDb } from "../lib/supabase";
-import { PREMIUM_PROPERTIES } from "../data";
+import { CribrUser, CribrBooking, cribrBookings, localDb, cribrProperties } from "../lib/supabase";
 import { showToast } from "./CribrToast";
 
 interface CribrDashboardDrawerProps {
@@ -40,9 +39,10 @@ export default function CribrDashboardDrawer({
 }: CribrDashboardDrawerProps) {
   const [activeTab, setActiveTab] = useState<"bookings" | "saved" | "intelligence">("bookings");
   const [bookings, setBookings] = useState<CribrBooking[]>([]);
+  const [allLiveProjects, setAllLiveProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Load Bookings
+  // Load Bookings & Projects
   const loadBookings = async () => {
     setLoading(true);
     try {
@@ -58,19 +58,16 @@ export default function CribrDashboardDrawer({
   useEffect(() => {
     if (isOpen) {
       loadBookings();
+      cribrProperties.getProperties().then((props) => setAllLiveProjects(props || []));
     }
   }, [isOpen]);
 
-  // Cancel Booking handler
+  // Cancel booking
   const handleCancelBooking = async (bookingId: string) => {
     try {
-      const success = await cribrBookings.cancelBooking(bookingId);
-      if (success) {
-        showToast("Site visit has been cancelled.", "info");
-        loadBookings();
-      } else {
-        throw new Error("Supabase operation was unsuccessful.");
-      }
+      await cribrBookings.cancelBooking(bookingId);
+      setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" as const } : b));
+      showToast("Site visit has been cancelled.", "info");
     } catch (e) {
       console.warn("Supabase cancel booking failed, using local DB cache fallback:", e);
       const list = localDb.getBookings();
@@ -81,8 +78,8 @@ export default function CribrDashboardDrawer({
     }
   };
 
-  // Find saved property items
-  const savedProperties = PREMIUM_PROPERTIES.filter((p) => savedPropertyIds.includes(p.id));
+  // Find saved property items from live database
+  const savedProperties = allLiveProjects.filter((p) => savedPropertyIds.includes(p.id));
 
   // Compute metrics
   const totalBookings = bookings.filter((b) => b.status === "scheduled").length;

@@ -3,7 +3,6 @@
  * Handles Phase 1 Intent Extraction, Phase 2 Result Set Assistant, and Phase 3 Project AI.
  */
 import { supabase } from "./supabase";
-import { getFeaturedProperties } from "../data";
 
 export interface AISearchIntent {
   locality?: string | null;

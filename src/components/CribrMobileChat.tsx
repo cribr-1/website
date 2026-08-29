@@ -71,54 +71,22 @@ const CHAT_STATUS_MESSAGES = [
   "Generating AI insights..."
 ];
 
-// Offline fallback mock data matching Indian real estate questions
+// Offline fallback responses for common Indian real estate queries
 const OFFLINE_RESPONSES: Record<string, { text: string; recommendedProperties?: any[] }> = {
   "2bhk": {
-    text: `### Discovering 2 BHK Apartments under ₹80L\n\nBased on your query, we scanned the offline database for high-appreciation 2 BHK layouts in Pune. Here are our top recommended options with clear RERA numbers:\n\n* **Kharadi East**: A prime IT hub with rapid rental demands and close connectivity to EON IT Park.\n* **Hinjewadi Phase 2**: Central tech park offering affordable luxury projects.\n\nHere are some verified smart homes that fit your budget:`,
-    recommendedProperties: [
-      {
-        id: "kharadi-heights",
-        name: "Kharadi Heights",
-        developer: "Godrej Properties",
-        city: "Pune",
-        location: "Kharadi, Pune",
-        priceRange: "₹65 L - ₹78 L",
-        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
-        overallScore: 88,
-        builderScore: 90,
-        legalScore: 92,
-        legalReport: "Fully RERA approved. Zero litigation recorded, clear land-boundary titles verified by CRIBR legal partners.",
-        investmentYieldScore: 86,
-        investmentAnalysis: "Highly liquid micro-market. Yields estimated at 4.0% with consistent year-on-year capital gains."
-      }
-    ]
+    text: `### Real Estate Investment Advice: 2 BHK Layouts\n\nWhen evaluating 2 BHK layouts in high-growth corridors:\n\n* **Carpet Efficiency**: Look for floor plans with >70% usable carpet area to super built-up ratio.\n* **Corridor Connectivity**: Prioritize arterial connectivity to primary IT hubs and upcoming metro stations.\n* **Title Verification**: Verify undivided land share (UDS) and ensure no pending litigation in the K-RERA registry.`,
+    recommendedProperties: []
   },
   "compare": {
-    text: `### Builder Comparison: Godrej vs Lodha\n\nComparing developer profiles is crucial for long-term safety. Here is our off-line intelligence summary:\n\n1. **Godrej Properties**: Highly rated for environmental certifications and community landscapes. Standard to premium finish grade.\n2. **Lodha Group**: Renowned for grand high-rise towers and absolute luxury clubhouses. Fast construction speeds with standard brand premium.\n\n*We suggest reviewing **Prestige Kingston** as an alternative high-yield project.*`,
-    recommendedProperties: [
-      {
-        id: "prestige-kingston",
-        name: "Prestige Kingston",
-        developer: "Prestige Group",
-        city: "Bangalore",
-        location: "Whitefield Corridor",
-        priceRange: "₹3.2 Cr - ₹5.8 Cr",
-        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1000&auto=format&fit=crop&q=80",
-        overallScore: 89,
-        builderScore: 92,
-        legalScore: 94,
-        legalReport: "Excellent RERA status. Fully certified titles with clear environment clearances.",
-        investmentYieldScore: 84,
-        investmentAnalysis: "Steady annual appreciation of 7.5% due to proximity to Whitefield IT corridor."
-      }
-    ]
+    text: `### Developer Comparison Guidance\n\nWhen comparing developers:\n\n1. **Execution Track Record**: Inspect historical milestone delivery times and track record of on-time handovers.\n2. **Grade & Governance**: Institutional Grade A/A+ developers maintain strict statutory compliance and clear title deeds.\n3. **Density & Open Space**: Evaluate unit density per acre for long-term lifestyle quality and amenities utilization.`,
+    recommendedProperties: []
   },
   "rera": {
     text: `### What is RERA and how does it protect you?\n\n**RERA (Real Estate Regulatory Authority)** was enacted to protect home-buyers from builder delays, fraudulent titles, and substandard construction quality.\n\nKey aspects:\n* **Escrow Account**: Developers must deposit 70% of buyer payments in a dedicated account used purely for construction.\n* **Standardized Carpets**: Pricing must be calculated based on absolute net carpet area, not gross super-builtup area.\n* **Delays & Fines**: Builders are legally required to compensate buyers for delivery delays at standard interest rates.`,
     recommendedProperties: []
   },
   "default": {
-    text: `### CRIBR Property AI Advisor\n\nI have consulted our offline property data library. To best assist you with real estate intelligence, please consider asking:\n* "Find a 2 BHK in Pune under 80 lakhs"\n* "Compare Godrej vs Lodha builders"\n* "Explain legal risk check and RERA"\n\n*Note: Connecting to the internet will unlock real-time Gemini AI capabilities.*`,
+    text: `### CRIBR Property AI Advisor\n\nI can assist you with:\n* Analyzing project densities, RERA statutory filings, and construction timelines.\n* Comparing developer reliability, prices per sq.ft, and commute times to tech corridors.\n* Understanding title deed audits and regulatory compliance.`,
     recommendedProperties: []
   }
 };

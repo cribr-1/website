@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { mapToWhitelistedProject } from "./projectDataMapper";
-import { MASTER_PROJECTS } from "../data";
 
 // Retrieve Supabase environment variables safely across browser and Node.js
 const metaEnv = typeof process !== "undefined" && process.env ? process.env : (typeof import.meta !== "undefined" ? (import.meta as any).env || {} : {});
@@ -397,7 +396,7 @@ export const cribrAuth = {
 
 // 2. PROJECTS & PORTFOLIO ENGINE (DATABASE-DRIVEN - CRIBR AUTHORITATIVE)
 export const cribrProperties = {
-  // Fetch published projects from Supabase projects table or verified master data.
+  // Fetch published projects strictly from Supabase projects table.
   // Returns normalized WhitelistedProject[] via mapToWhitelistedProject.
   async getProperties(): Promise<any[]> {
     if (isRealSupabaseConfigured && supabase) {
@@ -407,19 +406,19 @@ export const cribrProperties = {
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           return data.map(p => mapToWhitelistedProject(p));
         }
 
         if (error) {
-          console.warn("[cribrProperties] Supabase query error, using master projects:", error.message);
+          console.warn("[cribrProperties] Supabase query error:", error.message);
         }
       } catch (err) {
-        console.warn("[cribrProperties] Failed to load projects from Supabase, using master projects:", err);
+        console.warn("[cribrProperties] Failed to load projects from Supabase:", err);
       }
     }
 
-    return MASTER_PROJECTS.map(p => mapToWhitelistedProject(p));
+    return [];
   }
 };
 

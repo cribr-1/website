@@ -4,14 +4,13 @@
  */
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { SERVER_CONFIG } from "../config";
-import { MASTER_PROJECTS } from "../../data";
 
 export class ProjectService {
   private client: SupabaseClient | null = null;
 
   constructor() {
     const { URL, ANON_KEY } = SERVER_CONFIG.SUPABASE;
-    if (URL && ANON_KEY && URL !== "placeholder" && !URL.includes("nasccqkadwmfcajgecfs")) {
+    if (URL && ANON_KEY && URL !== "placeholder") {
       try {
         this.client = createClient(URL, ANON_KEY);
       } catch (err) {
@@ -25,7 +24,7 @@ export class ProjectService {
   }
 
   /**
-   * Lookup a single project by ID, Name, or Slug
+   * Lookup a single project by ID, Name, or Slug strictly from Supabase
    */
   async getProjectByIdOrName(identifier: string): Promise<any | null> {
     if (!identifier) return null;
@@ -33,7 +32,7 @@ export class ProjectService {
 
     if (this.client) {
       try {
-        // First try exact ID lookup
+        // 1. Try exact ID lookup
         const { data: byId, error: errId } = await this.client
           .from("projects")
           .select("*")
@@ -42,7 +41,17 @@ export class ProjectService {
 
         if (!errId && byId) return byId;
 
-        // Fallback: try case-insensitive name lookup
+        // 2. Try prefixed/unprefixed ID lookup
+        const cleanId = clean.replace(/^proj-/, "");
+        const { data: byCleanId, error: errCleanId } = await this.client
+          .from("projects")
+          .select("*")
+          .or(`id.eq.${cleanId},id.eq.proj-${cleanId}`)
+          .maybeSingle();
+
+        if (!errCleanId && byCleanId) return byCleanId;
+
+        // 3. Try case-insensitive name lookup
         const { data: byName, error: errName } = await this.client
           .from("projects")
           .select("*")
@@ -50,26 +59,25 @@ export class ProjectService {
           .maybeSingle();
 
         if (!errName && byName) return byName;
+
+        // 4. Try RERA number lookup
+        const { data: byRera, error: errRera } = await this.client
+          .from("projects")
+          .select("*")
+          .eq("rera_number", identifier)
+          .maybeSingle();
+
+        if (!errRera && byRera) return byRera;
       } catch (err: any) {
         console.warn("[ProjectService] DB lookup error:", err?.message || err);
       }
     }
 
-    // Master projects in-memory fallback - STRICT EXACT MATCHING ONLY
-    const found = MASTER_PROJECTS.find(
-      p =>
-        p.id.toLowerCase() === clean ||
-        p.id.toLowerCase().replace(/^proj-/, "") === clean.replace(/^proj-/, "") ||
-        (p.slug && (p.slug.toLowerCase() === clean || p.slug.toLowerCase().replace(/^proj-/, "") === clean.replace(/^proj-/, ""))) ||
-        p.name.toLowerCase() === clean ||
-        p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") === clean.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
-    );
-
-    return found || null;
+    return null;
   }
 
   /**
-   * Fetch all published projects
+   * Fetch all published projects strictly from Supabase
    */
   async getAllProjects(): Promise<any[]> {
     if (this.client) {
@@ -79,15 +87,18 @@ export class ProjectService {
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           return data;
         }
+        if (error) {
+          console.warn("[ProjectService] Fetch all projects Supabase error:", error.message);
+        }
       } catch (err: any) {
-        console.warn("[ProjectService] Fetch all projects error:", err?.message || err);
+        console.warn("[ProjectService] Fetch all projects exception:", err?.message || err);
       }
     }
 
-    return MASTER_PROJECTS;
+    return [];
   }
 
   /**

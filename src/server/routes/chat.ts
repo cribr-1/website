@@ -20,12 +20,12 @@ chatRouter.post("/cribr/chat", async (req, res) => {
       return res.status(400).json({ error: "Message input cannot be empty." });
     }
 
-    const aiAnswer = await aiService.generateChatAnswer(message, history || []);
-
     const allProjects = await projectService.getAllProjects();
+    const aiAnswer = await aiService.generateChatAnswer(message, history || [], allProjects);
+
     const aiAnswerLower = aiAnswer.toLowerCase();
     const rawMatches = allProjects.filter(p => {
-      const name = (p.name || p.projectName || "").toLowerCase();
+      const name = (p.name || p.projectName || p.project_name || "").toLowerCase();
       // Only match if name is significant and actually in the text
       return name.length > 3 && aiAnswerLower.includes(name);
     });

@@ -30,8 +30,7 @@ import {
   SearchIntent,
   extractSearchIntent,
 } from "../lib/searchAnalytics";
-import { getFeaturedProperties } from "../data";
-import { cribrAdminExt } from "../lib/supabase";
+import { cribrAdminExt, cribrProperties } from "../lib/supabase";
 
 interface AdminSearchIntelligenceProps {
   isAdminDark: boolean;
@@ -41,7 +40,12 @@ export const AdminSearchIntelligence: React.FC<AdminSearchIntelligenceProps> = (
   isAdminDark,
 }) => {
   const [records, setRecords] = useState<SearchRecord[]>([]);
+  const [allLiveProjects, setAllLiveProjects] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState<"today" | "7days" | "30days" | "90days" | "6months" | "1year">("30days");
+
+  useEffect(() => {
+    cribrProperties.getProperties().then((props) => setAllLiveProjects(props || []));
+  }, []);
 
   // Filters State
   const [cityFilter, setCityFilter] = useState("all");
@@ -1001,19 +1005,19 @@ export const AdminSearchIntelligence: React.FC<AdminSearchIntelligenceProps> = (
               <div className="space-y-3">
                 <h4 className="text-xs font-mono font-bold uppercase text-neutral-400">Top Projects Viewed From This Search</h4>
                 <div className="space-y-2">
-                  {getFeaturedProperties().length === 0 ? (
+                  {allLiveProjects.length === 0 ? (
                     <div className="p-3 text-xs text-neutral-400 font-mono">No projects registered in inventory database yet.</div>
                   ) : (
-                    getFeaturedProperties().slice(0, 3).map((p) => (
+                    allLiveProjects.slice(0, 3).map((p) => (
                     <div key={p.id} className="p-3 rounded-xl bg-neutral-500/5 border border-neutral-500/10 flex items-center justify-between text-xs">
                       <div className="flex items-center space-x-3">
                         <img src={p.image} alt="" className="w-10 h-7 rounded object-cover" />
                         <div>
-                          <span className="font-bold block">{p.name}</span>
-                          <span className="text-[10px] text-neutral-400 font-mono">{p.developer} • {p.location}</span>
+                          <span className="font-bold block">{p.projectName || p.name}</span>
+                          <span className="text-[10px] text-neutral-400 font-mono">{p.builder || p.developer} • {p.locality || p.location}</span>
                         </div>
                       </div>
-                      <span className="font-mono font-bold text-indigo-400">{p.priceRange}</span>
+                      <span className="font-mono font-bold text-indigo-400">{p.priceRange || p.minPrice}</span>
                     </div>
                     ))
                   )}

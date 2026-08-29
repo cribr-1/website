@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { PremiumProperty, SavedHome } from "../types";
 import { showToast } from "./CribrToast";
-import { getFeaturedProperties } from "../data";
+import { cribrProperties } from "../lib/supabase";
 import {
   mapToWhitelistedProject,
   findMatchingProperty,
@@ -45,26 +45,32 @@ export default function PropertyDetailsPage({
   onSaveProperty,
   isSaved = false
 }: PropertyDetailsPageProps) {
-  const [resolvedProperty, setResolvedProperty] = useState<any | null>(() => {
-    return findMatchingProperty(propertyIdOrSlug);
-  });
-  const [isSearchingAsync, setIsSearchingAsync] = useState(false);
+  const [resolvedProperty, setResolvedProperty] = useState<any | null>(null);
+  const [allAvailableProperties, setAllAvailableProperties] = useState<any[]>([]);
+  const [isSearchingAsync, setIsSearchingAsync] = useState(true);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    const syncFound = findMatchingProperty(propertyIdOrSlug);
-    if (syncFound) {
-      setResolvedProperty(syncFound);
-      return;
-    }
-
     let isMounted = true;
     setIsSearchingAsync(true);
-    getPropertyAsync(propertyIdOrSlug).then((prop) => {
-      if (isMounted) {
-        setResolvedProperty(prop);
+
+    // Fetch live properties from Supabase
+    cribrProperties.getProperties().then((props) => {
+      if (!isMounted) return;
+      setAllAvailableProperties(props || []);
+
+      const syncFound = findMatchingProperty(propertyIdOrSlug, props || []);
+      if (syncFound) {
+        setResolvedProperty(syncFound);
         setIsSearchingAsync(false);
+      } else {
+        getPropertyAsync(propertyIdOrSlug).then((prop) => {
+          if (isMounted) {
+            setResolvedProperty(prop);
+            setIsSearchingAsync(false);
+          }
+        });
       }
     });
 
@@ -74,7 +80,6 @@ export default function PropertyDetailsPage({
   }, [propertyIdOrSlug]);
 
   const rawProperty = resolvedProperty;
-  const allAvailableProperties = getFeaturedProperties();
 
   if (isSearchingAsync) {
     return (

@@ -34,8 +34,7 @@ import ErrorBoundary from "./components/Common/ErrorBoundary";
 import { SearchProvider } from "./context/SearchContext";
 import CompareFloatingBar from "./components/CompareFloatingBar";
 import CribrComparePage from "./components/CribrComparePage";
-import { FEATURED_PROPERTIES, MASTER_PROJECTS } from "./data";
-import { cribrAuth, CribrUser, localDb } from "./lib/supabase";
+import { cribrAuth, CribrUser, localDb, cribrProperties } from "./lib/supabase";
 import { PropertyReport, PremiumProperty, SavedHome } from "./types";
 
 export default function App() {
@@ -53,7 +52,14 @@ export default function App() {
   const [activeSection, setActiveSection] = useState("explorer");
   const [savedHomes, setSavedHomes] = useState<SavedHome[]>([]);
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
-  const [selectedDesktopProperty, setSelectedDesktopProperty] = useState<typeof FEATURED_PROPERTIES[0] | null>(null);
+  const [selectedDesktopProperty, setSelectedDesktopProperty] = useState<any | null>(null);
+  const [allLiveProjects, setAllLiveProjects] = useState<any[]>([]);
+
+  useEffect(() => {
+    cribrProperties.getProperties().then((props) => {
+      setAllLiveProjects(props || []);
+    });
+  }, []);
 
   // Router state
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
@@ -481,7 +487,7 @@ export default function App() {
           {!isAdminMode && currentPath !== "/compare" && (
             <CompareFloatingBar
               compareList={compareList}
-              projectsData={MASTER_PROJECTS}
+              projectsData={allLiveProjects}
               onCompare={navigateToCompare}
               onRemove={(id) => handleToggleCompareSelect({ id })}
               onClear={() => setCompareList([])}
@@ -801,7 +807,7 @@ export default function App() {
       {!isAdminMode && currentPath !== "/compare" && (
         <CompareFloatingBar
           compareList={compareList}
-          projectsData={MASTER_PROJECTS}
+          projectsData={allLiveProjects}
           onCompare={navigateToCompare}
           onRemove={(id) => handleToggleCompareSelect({ id })}
           onClear={() => setCompareList([])}
