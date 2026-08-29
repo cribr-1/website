@@ -209,17 +209,6 @@ export const ProjectOverviewContent: React.FC<ProjectOverviewContentProps> = ({ 
               {p.verificationTitleAuditNote || "Clean Title Deed with zero adverse litigation records."}
             </span>
           </div>
-
-          {p.googleReviewSummary && (
-            <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100/80 space-y-1 sm:col-span-2 md:col-span-3">
-              <span className="text-[10px] font-mono uppercase text-blue-600 font-bold block">
-                Resident & Buyer Sentiment Summary
-              </span>
-              <span className="text-xs text-neutral-700 block leading-relaxed">
-                {p.googleReviewSummary}
-              </span>
-            </div>
-          )}
         </div>
       </section>
 
