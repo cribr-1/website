@@ -155,6 +155,12 @@ export default function ProjectAIAssistant({ project }: ProjectAIAssistantProps)
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* AI Disclaimer Notice */}
+      <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 font-sans text-center">
+        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+        <span>AI can make mistakes. Please verify important financial and legal details with official RERA documents.</span>
+      </div>
     </div>
   );
 }

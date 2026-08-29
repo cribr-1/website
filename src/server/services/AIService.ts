@@ -786,8 +786,32 @@ SCHEMA:
   public generateGroundedComparisonFallback(projects: any[]): any {
     const getName = (p: any) => p.name || p.projectName || p.propertyName || "Project";
     const getBuilder = (p: any) => p.builder_name || p.builder || p.developer || p.builderName || "Builder";
-    const getGrade = (p: any) => p.builder_grade || p.builderGrade || "N/A";
-    const getScore = (p: any) => p.cribr_score || p.score || p.overallScore || 0;
+    const getScore = (p: any) => {
+      if (p.cribr_score && Number(p.cribr_score) > 0) return Number(p.cribr_score);
+      let score = 50; // base score for verified RERA project
+      const grade = String(p.builder_grade || p.builderGrade || "").toUpperCase();
+      if (grade.includes("A+")) score += 20;
+      else if (grade.includes("A")) score += 16;
+      else if (grade.includes("B")) score += 12;
+      else score += 8;
+
+      const complaints = Number(p.complaints_count ?? p.complaintsCount ?? p.complaints ?? 0);
+      if (complaints === 0) score += 15;
+      else score -= Math.min(10, complaints * 5);
+
+      const litigation = Boolean(p.land_litigation === true || p.land_litigations > 0 || String(p.land_litigation).toLowerCase().includes("active"));
+      if (!litigation) score += 10;
+      else score -= 15;
+
+      const gRating = Number(p.google_rating ?? p.googleRating ?? p.google_reviews_score ?? 4.0);
+      if (gRating > 0) score += Math.round((gRating / 5) * 10);
+
+      const progress = Number(p.construction_progress ?? p.constructionProgress ?? 0);
+      if (progress >= 50) score += 5;
+      else if (progress >= 20) score += 3;
+
+      return Math.min(98, Math.max(60, score));
+    };
     const getComplaints = (p: any) => p.complaints_count ?? p.complaintsCount ?? p.complaints ?? 0;
     const getDistance = (p: any) => p.distance_to_hub_km || p.distanceToHubKm || 999;
     const getProgress = (p: any) => p.construction_progress ?? p.constructionProgress ?? p.progress ?? 0;

@@ -125,6 +125,12 @@ export default function CribrComparePage({ compareList, onBack, onRemoveProject 
                 <AICard title="Best Value" value={data.analysis.bestValue} icon={<CheckCircle className="w-5 h-5" />} />
                 <AICard title="Lowest Risk" value={data.analysis.lowestRisk} icon={<AlertTriangle className="w-5 h-5" />} />
               </div>
+
+              {/* AI Disclaimer Notice */}
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-center gap-1.5 text-xs text-blue-200/90 font-sans text-center">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span>AI can make mistakes. Please verify important financial and legal details with official RERA documents.</span>
+              </div>
             </div>
           </motion.div>
 

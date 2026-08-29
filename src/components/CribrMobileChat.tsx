@@ -930,6 +930,12 @@ export default function CribrMobileChat({
             <Send className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        {/* AI Disclaimer Notice */}
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-neutral-400 dark:text-neutral-500 text-center pt-1.5">
+          <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+          <span>AI can make mistakes. Please verify important financial and legal details with official RERA documents.</span>
+        </div>
       </footer>
 
       {/* VOICE OVERLAY */}
