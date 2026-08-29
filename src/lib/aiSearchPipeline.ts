@@ -383,24 +383,24 @@ export async function queryResultSetAI(
     }).join("\n");
 
     return {
-      answer: `### Price & Value Analysis (${topProjects.length} Projects)\n\n${priceList}\n\n**Verdict:** \n- Best entry point pricing: **${topProjects[topProjects.length - 1]?.name || "Birla Evara"}**\n- Premium segment positioning: **${topProjects[0]?.name || "Godrej Lakeside Orchard"}** with verified Grade A+ developer reputation.`,
-      groundedProjects: topProjects.map((p) => ({ id: p.id, name: p.name || p.projectName }))
+      answer: `### Price & Value Analysis (${topProjects.length} Projects)\n\n${priceList}\n\n**Verdict:**\n- Lowest base rate: **${getName(topProjects[0])}**\n- All listed properties feature verified statutory filings.`,
+      groundedProjects: topProjects.map((p) => ({ id: p.id, name: getName(p) }))
     };
   }
 
   // 2. Builder Reliability prompt
   if (qLower.includes("builder") || qLower.includes("reliability") || qLower.includes("developer") || qLower.includes("promoter")) {
     const builderList = topProjects.map((p, idx) => {
-      const name = p.name || p.projectName || `Project ${idx + 1}`;
-      const builder = p.builder || p.builder_name || "Verified Promoter";
-      const grade = p.builderGrade || p.builder_grade || "A";
-      const complaints = p.complaintsCount ?? p.complaints_count ?? p.complaints ?? 0;
+      const name = getName(p);
+      const builder = getBuilder(p);
+      const grade = getGrade(p);
+      const complaints = getComplaints(p);
       return `• **${name}** — Developer: **${builder}** (Grade **${grade}**) | Active Complaints: **${complaints}**`;
     }).join("\n");
 
     return {
-      answer: `### Builder Track Record & Reliability Comparison\n\n${builderList}\n\n**Key Takeaway:** Tier-1 Grade A/A+ promoters (e.g. Godrej, Brigade, Prestige, Birla) have institutional execution capabilities with strong compliance across statutory K-RERA audits.`,
-      groundedProjects: topProjects.map((p) => ({ id: p.id, name: p.name || p.projectName }))
+      answer: `### Builder Track Record & Reliability Comparison\n\n${builderList}\n\n**Key Takeaway:** Promoters with Grade A/A+ ratings have strong institutional execution capabilities with compliance across statutory K-RERA audits.`,
+      groundedProjects: topProjects.map((p) => ({ id: p.id, name: getName(p) }))
     };
   }
 

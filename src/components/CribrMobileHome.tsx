@@ -188,10 +188,10 @@ export default function CribrMobileHome({
     if (voiceActive) {
       setVoiceText("Listening...");
       const samplePhrases = [
-        "Is Godrej Lakeside Orchard safe?",
-        "Compare Birla Evara vs Brigade Sanctuary",
+        "Is Arvind Sylva safe?",
+        "Compare East Park Residences vs Arvind Sylva",
         "Projects under 2 crore",
-        "Lowest density projects in Bangalore"
+        "Lowest density projects"
       ];
       const randomPhrase = samplePhrases[Math.floor(Math.random() * samplePhrases.length)];
 
