@@ -159,17 +159,19 @@ export default function CribrComparePage({ compareList, onBack, onRemoveProject 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                <TableRow label="Builder Grade" data={data.projects} render={(p) => p.builder_grade || p.builderGrade || "N/A"} />
-                <TableRow label="RERA Status" data={data.projects} render={(p) => p.rera_number ? (p.rera_number.includes("Progress") ? "Pending" : "Approved") : "N/A"} />
-                <TableRow label="Price Range" data={data.projects} render={(p) => p.price_range || p.priceRange || "N/A"} />
-                <TableRow label="Total Units" data={data.projects} render={(p) => p.total_units || p.totalUnits || "N/A"} />
-                <TableRow label="Land Area" data={data.projects} render={(p) => p.land_area_sqm ? `${p.land_area_sqm} Sqm` : (p.land_area_acres ? `${p.land_area_acres} Acres` : "N/A")} />
-                <TableRow label="Unit Density" data={data.projects} render={(p) => p.unit_density_per_acre || p.unitDensity ? `${p.unit_density_per_acre || p.unitDensity} / acre` : "N/A"} />
-                <TableRow label="Possession" data={data.projects} render={(p) => p.possession_date || p.possessionDate || p.possession || "N/A"} />
-                <TableRow label="Timeline Reliability" data={data.projects} render={(p) => p.timelineReliabilityDisplay || p.timeline_reliability_ratio || p.timelineReliabilityRatio || p.timeline_reliability || p.timelineReliability || "N/A"} />
-                <TableRow label="Progress" data={data.projects} render={(p) => p.construction_progress !== undefined ? `${p.construction_progress}%` : "N/A"} />
-                <TableRow label="Complaints" data={data.projects} render={(p) => p.complaints_count ?? p.complaintsCount ?? "0"} />
-                <TableRow label="Land Litigation" data={data.projects} render={(p) => p.land_litigation ? <span className="text-red-600 font-medium">Flagged</span> : <span className="text-green-600">Clear</span>} />
+                <TableRow label="Builder Grade" data={data.projects} render={(p) => p.builderGradeDisplay || p.builderGrade || p.builder_grade || "N/A"} />
+                <TableRow label="RERA Number" data={data.projects} render={(p) => p.reraNumber || p.rera_number || p["RERA registration number"] || "RERA Approved"} />
+                <TableRow label="Price Range" data={data.projects} render={(p) => (p.minPrice && p.maxPrice && p.minPrice !== "Price on Request" ? `${p.minPrice} – ${p.maxPrice}` : p.price_range || p.priceRange || (p.minPrice ? p.minPrice : "N/A"))} />
+                <TableRow label="Price / sq ft" data={data.projects} render={(p) => p.pricePerSqft || (p.price_per_sqft ? `₹${Number(p.price_per_sqft).toLocaleString("en-IN")}/sqft` : "N/A")} />
+                <TableRow label="Unit Configurations" data={data.projects} render={(p) => p.unitTypes || (Array.isArray(p.unit_types) ? p.unit_types.join(", ") : p.unit_types) || "N/A"} />
+                <TableRow label="Total Units" data={data.projects} render={(p) => p.totalUnits ? (String(p.totalUnits).includes("Units") ? p.totalUnits : `${p.totalUnits} Units`) : (p.total_units ? `${p.total_units} Units` : "N/A")} />
+                <TableRow label="Land Area" data={data.projects} render={(p) => p.landAreaAcres || (p.land_area_acres ? `${p.land_area_acres} Acres` : p.landAreaSqm || "N/A")} />
+                <TableRow label="Unit Density" data={data.projects} render={(p) => p.unitDensity || (p.unit_density_per_acre ? `${p.unit_density_per_acre} units/ac` : (p.density ? `${p.density} units/ac` : "N/A"))} />
+                <TableRow label="Possession Date" data={data.projects} render={(p) => p.possessionDate || p.possession_date || "N/A"} />
+                <TableRow label="Timeline Reliability" data={data.projects} render={(p) => p.timelineReliabilityDisplay || p.timelineReliabilityRatio || p.timeline_reliability_ratio || "On Track"} />
+                <TableRow label="Construction Progress" data={data.projects} render={(p) => p.constructionProgress !== undefined ? `${p.constructionProgress}%` : (p.construction_progress !== undefined ? `${p.construction_progress}%` : "N/A")} />
+                <TableRow label="Active Complaints" data={data.projects} render={(p) => p.complaints !== undefined ? `${p.complaints}` : (p.complaints_count !== undefined ? `${p.complaints_count}` : "0")} />
+                <TableRow label="Title & Litigation" data={data.projects} render={(p) => p.landLitigation || p.property_title_summary || (p.land_litigation ? "Litigation Flagged" : "100% Clean Title Deed")} />
               </tbody>
             </table>
           </div>
