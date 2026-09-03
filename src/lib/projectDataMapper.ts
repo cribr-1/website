@@ -114,8 +114,12 @@ export interface WhitelistedProjectOverview {
 
 export interface WhitelistedProject {
   id: string;
+  name?: string;
   projectName: string;
   builder: string;
+  builder_name?: string;
+  builderName?: string;
+  slug?: string;
   locality: string;
   taluk: string;
   area: string;
@@ -915,10 +919,21 @@ export function calculateTimelineReliability(
  */
 function formatTimelineReliability(timelineReliability: number, progressPercent: number): TimelineReliabilityResult {
   const rounded = Math.round(timelineReliability * 100) / 100;
-  const displayVal = Math.round(rounded);
+  
+  // If ratio is negative or progress is 0, handle pre-launch state cleanly
+  if (rounded < 0 || (progressPercent === 0 && rounded <= 0)) {
+    return {
+      variance: 0,
+      ratioDisplay: "0",
+      statusDisplay: "Pre-Launch",
+      fullDisplay: "0 (Pre-Launch)",
+    };
+  }
+
+  const displayVal = Math.max(0, Math.round(rounded));
 
   let status = "On Track";
-  // Determine status based on the new 0-100+ scale
+  // Determine status based on the 0-100+ scale
   // If ratio >= 110 -> Ahead
   // If ratio 90-110 -> On Track
   // If ratio < 90 -> Behind
@@ -931,7 +946,7 @@ function formatTimelineReliability(timelineReliability: number, progressPercent:
   }
 
   return {
-    variance: rounded,
+    variance: displayVal,
     ratioDisplay: String(displayVal),
     statusDisplay: status,
     fullDisplay: `${displayVal} (${status})`,
@@ -1691,10 +1706,17 @@ export function mapToWhitelistedProject(p: any): WhitelistedProject {
   const titleAuditNote = p.property_title_summary || p.verification_title_audit_note || resolveTitleAuditNote(p);
   const reviewSummary = p.google_review_summary || resolveGoogleReviewSummary(p);
 
+  const resolvedProjectName = p.name || p.projectName || p.project_name || p.rera_project_name || "Project";
+  const cleanId = String(p.id || p.slug || "");
+
   return {
-    id: String(p.id || p.slug || ""),
-    projectName: p.name || p.projectName || p.project_name || p.rera_project_name || "Project",
+    id: cleanId,
+    name: resolvedProjectName,
+    projectName: resolvedProjectName,
     builder: builderStr,
+    builder_name: builderStr,
+    builderName: builderStr,
+    slug: p.slug || cleanId.replace(/^proj-/, ""),
     locality: locationInfo.locality,
     taluk: locationInfo.taluk,
     area: locationInfo.areaDisplay,

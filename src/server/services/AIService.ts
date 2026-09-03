@@ -102,7 +102,14 @@ export class AIService {
     const apiKey = process.env.GEMINI_API_KEY || SERVER_CONFIG.GEMINI?.API_KEY;
     if (apiKey && apiKey.trim()) {
       try {
-        this.gemini = new GoogleGenAI({ apiKey: apiKey.trim() });
+        this.gemini = new GoogleGenAI({
+          apiKey: apiKey.trim(),
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            },
+          },
+        });
       } catch (err) {
         console.warn("[AIService] Failed to initialize Gemini client:", err);
       }
@@ -127,16 +134,26 @@ export class AIService {
     return !!(this.initGemini() || this.initGroq());
   }
 
-  private async callLLM(systemPrompt: string, userMessage: string, temperature = 0.25): Promise<string | null> {
-    // 1. Try Gemini with fallback models if available
+  private async callLLM(
+    systemPrompt: string,
+    userMessage: string,
+    temperature = 0.25,
+    responseMimeType?: string
+  ): Promise<string | null> {
+    // 1. Try Gemini with valid SDK models (gemini-3.1-flash-lite for fast high-throughput, gemini-3.8-flash as standard)
     const gemini = this.initGemini();
     if (gemini) {
-      const geminiModels = ["gemini-3.6-flash", "gemini-3.1-pro-preview"];
+      const geminiModels = ["gemini-3.1-flash-lite", "gemini-3.8-flash"];
       for (const model of geminiModels) {
         try {
+          const config: any = { temperature };
+          if (responseMimeType) {
+            config.responseMimeType = responseMimeType;
+          }
           const response = await gemini.models.generateContent({
             model,
             contents: `${systemPrompt}\n\n${userMessage}`,
+            config,
           });
           const text = response.text?.trim();
           if (text) return cleanLLMContent(text);
@@ -159,6 +176,7 @@ export class AIService {
               { role: "user", content: userMessage },
             ],
             temperature,
+            ...(responseMimeType === "application/json" ? { response_format: { type: "json_object" } } : {}),
           });
           const raw = completion.choices[0]?.message?.content || "";
           const cleaned = cleanLLMContent(raw);
@@ -379,7 +397,7 @@ export class AIService {
     if (qLower.includes("value") || qLower.includes("price") || qLower.includes("cost") || qLower.includes("compare") || qLower.includes("differ") || qLower.includes("vs")) {
       const list = topProjects.map((p, idx) => {
         const rate = getPriceSqft(p) > 0 ? ` (₹${getPriceSqft(p).toLocaleString("en-IN")}/sqft)` : "";
-        return `**${idx + 1}. ${getName(p)}** (${getBuilder(p)})\n- Price: ${getPriceRange(p)}${rate}\n- Construction: **${getProgress(p)}%** completed (Target: ${getPossession(p)})\n- Scale: ${getUnits()} Units across ${getAcres()} Acres`;
+        return `**${idx + 1}. ${getName(p)}** (${getBuilder(p)})\n- Price: ${getPriceRange(p)}${rate}\n- Construction: **${getProgress(p)}%** completed (Target: ${getPossession(p)})\n- Scale: ${getUnits(p)} Units across ${getAcres(p)} Acres`;
       }).join("\n\n");
 
       return `### Comparative Project Matrix (${topProjects.length} Verified Projects)\n\n${list}`;
@@ -662,20 +680,23 @@ CRITICAL:
     // 1. Try Gemini
     const gemini = this.initGemini();
     if (gemini) {
-      try {
-        const response = await gemini.models.generateContent({
-          model: "gemini-3.6-flash",
-          contents: `${systemPrompt}\n\n${userMsg}`,
-          config: {
-            responseMimeType: "application/json",
-          },
-        });
-        const text = response.text?.trim();
-        if (text) {
-          return JSON.parse(text);
+      const intentModels = ["gemini-3.1-flash-lite", "gemini-3.8-flash"];
+      for (const model of intentModels) {
+        try {
+          const response = await gemini.models.generateContent({
+            model,
+            contents: `${systemPrompt}\n\n${userMsg}`,
+            config: {
+              responseMimeType: "application/json",
+            },
+          });
+          const text = response.text?.trim();
+          if (text) {
+            return JSON.parse(text);
+          }
+        } catch (err: any) {
+          console.warn(`[AIService] Gemini intent extraction failed with ${model}:`, err?.message || err);
         }
-      } catch (err: any) {
-        console.warn("[AIService] Gemini intent extraction failed:", err?.message || err);
       }
     }
 
@@ -756,7 +777,7 @@ SCHEMA:
     const userMessage = `Here is the verified data for the projects to compare:\n\n${datasetToMarkdown(projects)}\n\nOutput ONLY the JSON object.`;
 
     try {
-      const rawResponse = await this.callLLM(systemPrompt, userMessage, 0.2);
+      const rawResponse = await this.callLLM(systemPrompt, userMessage, 0.2, "application/json");
       if (rawResponse) {
         try {
           // Clean up markdown if the LLM still wrapped it
@@ -766,7 +787,29 @@ SCHEMA:
           } else if (jsonString.startsWith("```")) {
             jsonString = jsonString.replace(/^```/, "").replace(/```$/, "");
           }
-          return JSON.parse(jsonString.trim());
+          const parsed = JSON.parse(jsonString.trim());
+          if (parsed && (parsed.overallRecommendation || parsed.projects)) {
+            // Ensure project IDs match exactly to input projects
+            if (Array.isArray(parsed.projects)) {
+              parsed.projects = parsed.projects.map((ap: any, idx: number) => {
+                const matched = projects.find(p =>
+                  p.id === ap.projectId ||
+                  (p.slug && p.slug === ap.projectId) ||
+                  (p.name && ap.projectId && p.name.toLowerCase() === ap.projectId.toLowerCase()) ||
+                  (p.projectName && ap.projectId && p.projectName.toLowerCase() === ap.projectId.toLowerCase())
+                ) || projects[idx] || projects[0];
+                return {
+                  ...ap,
+                  projectId: matched?.id || ap.projectId
+                };
+              });
+            }
+            return {
+              ...parsed,
+              source: "ai",
+              isAIGenerated: true,
+            };
+          }
         } catch (e) {
           console.error("[AIService] Failed to parse comparison JSON:", e);
         }
@@ -776,7 +819,12 @@ SCHEMA:
     }
 
     // Deterministic grounded fallback — generate comparison from raw data without AI
-    return this.generateGroundedComparisonFallback(projects);
+    const fallback = this.generateGroundedComparisonFallback(projects);
+    return {
+      ...fallback,
+      source: "deterministic",
+      isAIGenerated: false,
+    };
   }
 
   /**
@@ -786,8 +834,11 @@ SCHEMA:
   public generateGroundedComparisonFallback(projects: any[]): any {
     const getName = (p: any) => p.name || p.projectName || p.propertyName || "Project";
     const getBuilder = (p: any) => p.builder_name || p.builder || p.developer || p.builderName || "Builder";
+    const getGrade = (p: any) => p.builder_grade || p.builderGrade || "A";
+
     const getScore = (p: any) => {
-      if (p.cribr_score && Number(p.cribr_score) > 0) return Number(p.cribr_score);
+      const explicitScore = Number(p.cribr_score ?? p.cribrScore);
+      if (Number.isFinite(explicitScore) && explicitScore > 0) return explicitScore;
       let score = 50; // base score for verified RERA project
       const grade = String(p.builder_grade || p.builderGrade || "").toUpperCase();
       if (grade.includes("A+")) score += 20;
@@ -795,49 +846,79 @@ SCHEMA:
       else if (grade.includes("B")) score += 12;
       else score += 8;
 
-      const complaints = Number(p.complaints_count ?? p.complaintsCount ?? p.complaints ?? 0);
+      const complaints = Number(String(p.complaints_count ?? p.complaintsCount ?? p.complaints ?? 0).replace(/[^0-9]/g, "")) || 0;
       if (complaints === 0) score += 15;
       else score -= Math.min(10, complaints * 5);
 
-      const litigation = Boolean(p.land_litigation === true || p.land_litigations > 0 || String(p.land_litigation).toLowerCase().includes("active"));
+      const litigation = Boolean(
+        p.land_litigation === true ||
+        p.land_litigations > 0 ||
+        String(p.land_litigation || "").toLowerCase().includes("active") ||
+        String(p.landLitigation || "").toLowerCase().includes("flag")
+      );
       if (!litigation) score += 10;
       else score -= 15;
 
-      const gRating = Number(p.google_rating ?? p.googleRating ?? p.google_reviews_score ?? 4.0);
+      const gRating = parseFloat(String(p.google_rating ?? p.googleRating ?? p.google_reviews_score ?? 4.0).replace(/[^0-9.]/g, "")) || 4.0;
       if (gRating > 0) score += Math.round((gRating / 5) * 10);
 
-      const progress = Number(p.construction_progress ?? p.constructionProgress ?? 0);
+      const progress = parseFloat(String(p.construction_progress ?? p.constructionProgress ?? 0).replace(/[^0-9.]/g, "")) || 0;
       if (progress >= 50) score += 5;
       else if (progress >= 20) score += 3;
 
       return Math.min(98, Math.max(60, score));
     };
-    const getComplaints = (p: any) => p.complaints_count ?? p.complaintsCount ?? p.complaints ?? 0;
-    const getDistance = (p: any) => p.distance_to_hub_km || p.distanceToHubKm || 999;
-    const getProgress = (p: any) => p.construction_progress ?? p.constructionProgress ?? p.progress ?? 0;
-    const getPriceSqft = (p: any) => p.price_per_sqft || p.pricePerSqft || 0;
-    const getLitigation = (p: any) => p.land_litigation ? true : false;
 
-    // Sort by score descending
+    const getComplaints = (p: any) => {
+      return Number(String(p.complaints_count ?? p.complaintsCount ?? p.complaints ?? 0).replace(/[^0-9]/g, "")) || 0;
+    };
+
+    const getDistance = (p: any) => {
+      const raw = p.distance_to_hub_km ?? p.distanceToHubKm ?? p.distance_from_nearest_office_hub ?? p.distanceToHub;
+      const num = parseFloat(String(raw || "").replace(/[^0-9.]/g, ""));
+      return Number.isFinite(num) ? num : 999;
+    };
+
+    const getProgress = (p: any) => {
+      const raw = p.construction_progress ?? p.constructionProgress ?? p.progress ?? 0;
+      const num = parseFloat(String(raw).replace(/[^0-9.]/g, ""));
+      return Number.isFinite(num) ? num : 0;
+    };
+
+    const getPriceSqft = (p: any) => {
+      if (typeof p.pricePerSqftNum === "number" && p.pricePerSqftNum > 0) return p.pricePerSqftNum;
+      if (typeof p.price_per_sqft === "number" && p.price_per_sqft > 0) return p.price_per_sqft;
+      const raw = p.price_per_sqft || p.pricePerSqft || "";
+      const num = Number(String(raw).replace(/[^0-9]/g, ""));
+      return Number.isFinite(num) ? num : 0;
+    };
+
+    const getLitigation = (p: any) => {
+      if (p.land_litigation === true || p.land_litigations > 0) return true;
+      const str = String(p.land_litigation || p.landLitigation || "").toLowerCase();
+      return str.includes("flag") || str.includes("active") || str.includes("dispute") || str.includes("pending");
+    };
+
+    // Sort by score descending (strictly numeric)
     const sorted = [...projects].sort((a, b) => getScore(b) - getScore(a));
     const best = sorted[0];
     const bestName = getName(best);
 
-    // Find best connectivity (lowest distance)
-    const byConnectivity = [...projects].sort((a, b) => Number(getDistance(a)) - Number(getDistance(b)));
+    // Find best connectivity (strictly numeric distance)
+    const byConnectivity = [...projects].sort((a, b) => getDistance(a) - getDistance(b));
     const bestConn = byConnectivity[0];
 
-    // Find lowest risk (least complaints + no litigation)
+    // Find lowest risk (strictly numeric complaints + litigation penalty)
     const byRisk = [...projects].sort((a, b) => {
       const aRisk = getComplaints(a) + (getLitigation(a) ? 10 : 0);
       const bRisk = getComplaints(b) + (getLitigation(b) ? 10 : 0);
       return aRisk - bRisk;
     });
 
-    // Find best value (lowest price per sqft)
+    // Find best value (strictly numeric lowest price per sqft > 0)
     const byValue = [...projects].filter(p => getPriceSqft(p) > 0).sort((a, b) => getPriceSqft(a) - getPriceSqft(b));
 
-    // Find best builder (highest grade)
+    // Find best builder (highest grade rank)
     const gradeRank: Record<string, number> = { "A+": 5, "A": 4, "B+": 3, "B": 2, "C": 1 };
     const byBuilder = [...projects].sort((a, b) => (gradeRank[getGrade(b)] || 0) - (gradeRank[getGrade(a)] || 0));
 
@@ -861,13 +942,13 @@ SCHEMA:
       if (score >= 85) strengths.push(`High CRIBR Safety & Value Score of ${score}/100`);
       if (complaints === 0) strengths.push("Zero RERA complaints filed");
       if (!litigation) strengths.push("Clean title deed with zero land litigation");
-      if (Number(dist) < 5) strengths.push(`Excellent connectivity — ${dist} km to ${hub}`);
+      if (dist < 5) strengths.push(`Excellent connectivity — ${dist} km to ${hub}`);
       if (progress >= 50) strengths.push(`Strong construction progress at ${progress}%`);
 
       if (complaints > 0) risks.push(`${complaints} RERA complaint(s) on record`);
       if (litigation) risks.push("Land litigation flagged — requires due diligence");
       if (progress < 20) risks.push(`Early stage construction at ${progress}% — longer wait to possession`);
-      if (Number(dist) > 10) risks.push(`${dist} km from nearest tech hub may affect daily commute`);
+      if (dist > 10 && dist < 999) risks.push(`${dist} km from nearest tech hub may affect daily commute`);
 
       if (strengths.length === 0) strengths.push(`${builder} (Grade ${grade}) development in verified RERA registry`);
       if (risks.length === 0) risks.push("No significant risk factors identified in verified records");
@@ -876,7 +957,7 @@ SCHEMA:
         projectId: p.id || name,
         strengths: strengths.slice(0, 3),
         risks: risks.slice(0, 3),
-        analysis: `${name} by ${builder} (Grade ${grade}) is priced at ${priceRange}${priceSqft ? ` (₹${priceSqft}/sqft)` : ""}. Construction is at ${progress}% with ${complaints} RERA complaints. Located ${dist} km from ${hub}. CRIBR Score: ${score}/100.`
+        analysis: `${name} by ${builder} (Grade ${grade}) is priced at ${priceRange}${priceSqft ? ` (₹${priceSqft.toLocaleString("en-IN")}/sqft)` : ""}. Construction is at ${progress}% with ${complaints} RERA complaints. Located ${dist === 999 ? "near" : `${dist} km from`} ${hub}. CRIBR Score: ${score}/100.`
       };
     });
 
@@ -898,7 +979,9 @@ SCHEMA:
       lowestRisk: `${getName(byRisk[0])} — ${getComplaints(byRisk[0])} complaints, ${getLitigation(byRisk[0]) ? "litigation flagged" : "clean title deed"}`,
       projects: projectAnalyses,
       headToHead: headToHead.slice(0, 6),
-      finalVerdict: `For risk-adjusted value, ${bestName} offers the strongest combination of builder reliability, regulatory compliance, and location connectivity among the ${projects.length} compared projects.`
+      finalVerdict: `For risk-adjusted value, ${bestName} offers the strongest combination of builder reliability, regulatory compliance, and location connectivity among the ${projects.length} compared projects.`,
+      source: "deterministic",
+      isAIGenerated: false,
     };
   }
 }

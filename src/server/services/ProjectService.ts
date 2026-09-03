@@ -51,16 +51,25 @@ export class ProjectService {
 
         if (!errCleanId && byCleanId) return byCleanId;
 
-        // 3. Try case-insensitive name lookup
+        // 3. Try slug lookup
+        const { data: bySlug, error: errSlug } = await this.client
+          .from("projects")
+          .select("*")
+          .or(`slug.eq.${clean},slug.eq.${cleanId},slug.eq.proj-${cleanId}`)
+          .maybeSingle();
+
+        if (!errSlug && bySlug) return bySlug;
+
+        // 4. Try case-insensitive exact name lookup (fail safely on ambiguous substrings)
         const { data: byName, error: errName } = await this.client
           .from("projects")
           .select("*")
-          .ilike("name", identifier)
+          .or(`name.ilike.${identifier},name.ilike.${clean},project_name.ilike.${identifier},project_name.ilike.${clean}`)
           .maybeSingle();
 
         if (!errName && byName) return byName;
 
-        // 4. Try RERA number lookup
+        // 5. Try RERA number lookup
         const { data: byRera, error: errRera } = await this.client
           .from("projects")
           .select("*")

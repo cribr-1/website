@@ -69,6 +69,21 @@ export default function App() {
       const path = window.location.pathname;
       setCurrentPath(path);
       setIsAdminMode(path === "/admin" || path.startsWith("/admin"));
+      const urlParams = new URLSearchParams(window.location.search);
+      const idsParam = urlParams.get("ids");
+      if (idsParam) {
+        const cleanIds = Array.from(
+          new Set(
+            idsParam
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0)
+          )
+        ).slice(0, 4);
+        if (cleanIds.length > 0) {
+          setCompareList(cleanIds);
+        }
+      }
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -106,7 +121,41 @@ export default function App() {
   });
   
   // Compare Feature State
-  const [compareList, setCompareList] = useState<string[]>([]);
+  const [compareList, setCompareList] = useState<string[]>(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const idsParam = urlParams.get("ids");
+      if (idsParam) {
+        return Array.from(
+          new Set(
+            idsParam
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0)
+          )
+        ).slice(0, 4);
+      }
+      const saved = localStorage.getItem("cribr_compare_list");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const validStrings = parsed
+            .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+            .map((s) => s.trim());
+          return Array.from(new Set(validStrings)).slice(0, 4);
+        }
+      }
+    } catch (e) {
+      console.warn("[App] Error initializing compareList:", e);
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("cribr_compare_list", JSON.stringify(compareList));
+    } catch (e) {}
+  }, [compareList]);
 
   const handleToggleCompareSelect = (property: any) => {
     setCompareList((prev) => {
@@ -380,6 +429,9 @@ export default function App() {
             compareList={compareList}
             onBack={navigateHome}
             onRemoveProject={(id) => handleToggleCompareSelect({ id })}
+            onAddProject={(id) => handleToggleCompareSelect({ id })}
+            allProjects={allLiveProjects}
+            onNavigateProperty={(id) => navigateToProperty(id)}
           />
         </div>
         <CribrToastContainer />
